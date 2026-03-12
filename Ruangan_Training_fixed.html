@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrainingHub - Enterprise Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+        .sidebar-item-active { background: #eff6ff; color: #2563eb; border-right: 4px solid #2563eb; font-weight: 600; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .hide { display: none !important; }
+        .tab-active { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 700; }
+        
+        .card-pop { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }
+        .card-pop:hover { transform: translateY(-8px); }
+        
+        .stat-card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; position: relative; overflow: hidden; transition: all 0.3s ease; }
+        .stat-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 5px; }
+        
+        .stat-blue::before { background: #3b82f6; }
+        .stat-emerald::before { background: #10b981; }
+        .stat-indigo::before { background: #6366f1; }
+        .stat-amber::before { background: #f59e0b; }
+        .stat-rose::before { background: #f43f5e; }
+        .stat-slate::before { background: #64748b; }
+
+        #reader { width: 100%; border-radius: 1rem; overflow: hidden; }
+        #qrcode img { margin: 0 auto; }
+
+        /* Mobile Sidebar Transition */
+        #mobile-sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-open { transform: translateX(0) !important; }
+    </style>
+</head>
+<body class="text-slate-700">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="bg-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-200">
+                    <i class="fas fa-layer-group text-white text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-black text-slate-900">TrainingHub</h1>
+                <p class="text-slate-500 text-sm">Silakan masuk ke akun Anda</p>
+            </div>
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 mb-2 block">Username</label>
+                    <input type="text" id="login-username" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 mb-2 block">Password</label>
+                    <input type="password" id="login-password" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <p id="login-error" class="text-rose-500 text-[10px] font-bold hide text-center">Username atau Password salah!</p>
+                <button type="submit" class="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Masuk Sekarang</button>
+            </form>
+            <div class="mt-6 pt-6 border-t border-slate-100 text-center">
+                <p class="text-xs text-slate-500">Belum punya akun? <button onclick="openRegister()" class="text-indigo-600 font-bold hover:underline">Daftar Disini</button></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER MODAL -->
+    <div id="modal-register" class="fixed inset-0 z-[210] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black">Daftar Akun Baru</h3>
+                <button onclick="closeModal('modal-register')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="form-register" class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Username</label>
+                    <input type="text" id="reg-username" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Password</label>
+                    <input type="password" id="reg-password" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Departemen</label>
+                    <select id="reg-dept" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                        <option value="IT">IT Department</option>
+                        <option value="HR">HR Department</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Operations">Operations</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg mt-4">Buat Akun</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MOBILE OVERLAY FOR SIDEBAR -->
+    <div id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-[90] hide md:hidden"></div>
+
+    <div class="flex min-h-screen">
+        <!-- SIDEBAR (Responsive) -->
+        <aside id="mobile-sidebar" class="fixed md:sticky top-0 left-0 h-screen w-64 bg-white border-r border-slate-200 z-[100] -translate-x-full md:translate-x-0 flex flex-col">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-600 p-2 rounded-xl"><i class="fas fa-layer-group text-white"></i></div>
+                        <span class="font-extrabold text-xl text-slate-900">TrainingHub</span>
+                    </div>
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400"><i class="fas fa-times"></i></button>
+                </div>
+                <nav class="space-y-1" id="main-nav">
+                    <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg sidebar-item-active" data-view="dashboard">
+                        <i class="fas fa-th-large w-5"></i> Dashboard
+                    </button>
+                    <button onclick="showView('jadwal', 'Kalender')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="jadwal">
+                        <i class="fas fa-calendar-alt w-5"></i> Kalender
+                    </button>
+                    <div id="user-menu-section" class="hide">
+                        <button onclick="showView('riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="riwayat">
+                            <i class="fas fa-history w-5"></i> Pesanan Saya
+                        </button>
+                    </div>
+                    <div id="admin-menu-section" class="pt-4 mt-4 border-t border-slate-100 hide">
+                        <button onclick="showView('approval', 'Approval')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="approval">
+                            <i class="fas fa-check-double w-5"></i> Approval <span id="badge-pending" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
+                        </button>
+                        <button onclick="showView('master-data', 'Database Aset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="master-data">
+                            <i class="fas fa-database w-5"></i> Database Aset
+                        </button>
+                    </div>
+                </nav>
+            </div>
+            <div class="mt-auto p-6 border-t border-slate-100">
+                <div class="bg-slate-900 rounded-2xl p-4 text-white">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1" id="role-label">User</p>
+                    <p class="text-sm font-bold truncate" id="user-display">Guest</p>
+                    <button onclick="logout()" class="mt-3 text-[11px] text-slate-400 hover:text-white flex items-center gap-1"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0">
+            <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <!-- MOBILE MENU TOGGLE -->
+                    <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-xl text-slate-600">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-lg md:text-xl font-bold text-slate-900 truncate" id="view-title">Dashboard</h2>
+                    <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
+                    <div class="relative group hidden sm:block">
+                        <select id="global-time-filter" onchange="window.handleTimeFilterChange(this.value)" class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 pr-8 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="this-month">Bulan Ini</option>
+                            <option value="last-month">Bulan Lalu</option>
+                            <option value="next-month">Bulan Depan</option>
+                            <option value="custom">Kustom...</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div id="header-actions">
+                    <button id="btn-booking-trigger" onclick="openBooking()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-bold shadow-lg flex items-center gap-2">
+                        <i class="fas fa-plus"></i> <span class="hidden sm:inline">Buat Pesanan</span><span class="sm:hidden">Pesan</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-8" id="content-area">
+                <div id="view-dashboard" class="view">
+                    <div id="admin-dashboard-ui" class="hide">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-8">
+                            <div class="stat-card card-pop stat-slate p-4" onclick="window.showRoomStatsDetail()">
+                                <p class="text-slate-400 text-[9px] font-black uppercase">Total Ruangan</p>
+                                <h3 class="text-xl font-black mt-1" id="stat-total-rooms">0</h3>
+                                <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+                            </div>
+                            <div class="stat-card card-pop stat-slate p-4" onclick="window.showToolStatsDetail()">
+                                <p class="text-slate-400 text-[9px] font-black uppercase">Total Alat</p>
+                                <h3 class="text-xl font-black mt-1" id="stat-total-tools">0</h3>
+                                <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+                            </div>
+                            <div class="stat-card card-pop stat-blue p-4" onclick="window.showStatTable('room')">
+                                <p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
+                                <h3 class="text-xl font-black mt-1" id="stat-room-booking-pct">0%</h3>
+                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-room-booking-ratio">0/0</p>
+                            </div>
+                            <div class="stat-card card-pop stat-emerald p-4" onclick="window.showStatTable('tool-only')">
+                                <p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
+                                <h3 class="text-xl font-black mt-1" id="stat-tool-booking-pct">0%</h3>
+                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-tool-booking-ratio">0/0</p>
+                            </div>
+                            <div class="stat-card card-pop stat-indigo p-4" onclick="window.showStatTable('Approved')">
+                                <p class="text-indigo-500 text-[9px] font-black uppercase">Disetujui</p>
+                                <h3 class="text-xl font-black mt-1" id="stat-approved-pct">0%</h3>
+                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-approved-ratio">0/0</p>
+                            </div>
+                            <div class="stat-card card-pop stat-amber p-4" onclick="window.showStatTable('Pending')">
+                                <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
+                                <h3 class="text-xl font-black mt-1" id="stat-pending-pct">0%</h3>
+                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-pending-ratio">0/0</p>
+                            </div>
+                            <div class="stat-card card-pop stat-rose p-4" onclick="window.showStatTable('Rejected')">
+                                <p class="text-rose-500 text-[9px] font-black uppercase">Ditolak</p>
+                                <h3 class="text-xl font-black mt-1" id="stat-rejected-pct">0%</h3>
+                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-rejected-ratio">0/0</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10">
+                            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
+                            </h4>
+                            <div class="h-[280px] w-full">
+                                <canvas id="deptChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="user-dashboard-ui" class="hide">
+                        <div class="flex items-center gap-8 mb-8 border-b border-slate-200">
+                            <button onclick="switchDashTab('rooms')" id="tab-rooms" class="dash-tab pb-3 text-sm font-medium tab-active transition-all">Ruangan Tersedia</button>
+                            <button onclick="switchDashTab('tools')" id="tab-tools" class="dash-tab pb-3 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-all">Alat Tersedia</button>
+                        </div>
+                        <div id="dash-rooms-content">
+                            <div id="available-rooms-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                        </div>
+                        <div id="dash-tools-content" class="hide">
+                            <div id="available-tools-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-jadwal" class="view hide"><div id="calendar-list" class="space-y-4"></div></div>
+                <div id="view-riwayat" class="view hide"><div id="my-booking-list" class="space-y-4"></div></div>
+                <div id="view-approval" class="view hide"><div id="approval-list" class="space-y-4"></div></div>
+                <div id="view-master-data" class="view hide">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <div class="flex justify-between items-center mb-4"><h4 class="font-bold">Ruangan</h4><button onclick="window.openMasterModal('room')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">Tambah</button></div>
+                            <div id="master-room-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-4"><h4 class="font-bold">Alat & Lokasi</h4><button onclick="window.openMasterModal('tool')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">Tambah</button></div>
+                            <div id="master-tool-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SCANNER MODAL -->
+    <div id="modal-scanner" class="fixed inset-0 z-[220] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
+            <div class="flex justify-between w-full items-center mb-6">
+                <h3 class="text-xl font-black">Scan QR Code Selesai</h3>
+                <button onclick="window.stopScanner()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="reader" class="mb-4"></div>
+            <p class="text-xs text-slate-500 text-center italic">Arahkan kamera ke QR Code di layar Admin untuk menyelesaikan pesanan.</p>
+        </div>
+    </div>
+
+    <!-- MODAL LIST RUANGAN -->
+    <div id="modal-room-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black">Status Unit Ruangan</h3>
+                <button onclick="closeModal('modal-room-stats')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="room-stats-container" class="overflow-y-auto space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- MODAL LIST ALAT -->
+    <div id="modal-tool-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black">Status Unit Alat</h3>
+                <button onclick="closeModal('modal-tool-stats')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="tool-stats-container" class="overflow-y-auto space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- MODAL TABEL STATISTIK -->
+    <div id="modal-stat-table" class="fixed inset-0 z-[185] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="stat-table-title" class="text-xl font-black">Detail Data</h3>
+                <button onclick="closeModal('modal-stat-table')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="overflow-x-auto border rounded-2xl">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="px-4 py-3">Peminjam</th>
+                            <th class="px-4 py-3">Tujuan</th>
+                            <th class="px-4 py-3">Unit</th>
+                            <th class="px-4 py-3">Waktu</th>
+                            <th class="px-4 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stat-table-body" class="divide-y"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RIWAYAT RUANGAN -->
+    <div id="modal-room-history" class="fixed inset-0 z-[190] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="room-history-title" class="text-lg font-black text-indigo-600">Riwayat Penggunaan</h3>
+                <button onclick="closeModal('modal-room-history')"><i class="fas fa-times text-slate-300"></i></button>
+            </div>
+            <div id="room-history-container" class="overflow-y-auto space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- MODAL MASTER DATA -->
+    <div id="modal-master" class="fixed inset-0 z-[170] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="master-modal-title" class="text-xl font-black">Tambah Data</h3>
+                <button onclick="closeModal('modal-master')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="form-master" class="space-y-4">
+                <input type="hidden" id="master-type">
+                <input type="hidden" id="master-id">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Nama Aset</label>
+                    <input type="text" id="master-name" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                </div>
+                <div id="master-extra-field"></div>
+                <!-- FIELD STATUS ASET -->
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Status Ketersediaan</label>
+                    <select id="master-status" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                        <option value="Open">Dibuka (Tersedia)</option>
+                        <option value="Closed">Ditutup (Perbaikan/Maintenance)</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal('modal-master')" class="flex-1 py-3 border rounded-xl">Batal</button>
+                    <button type="submit" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL PEMESANAN -->
+    <div id="modal-detail" class="fixed inset-0 z-[150] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-black">Detail Pemesanan</h3>
+                <button onclick="closeModal('modal-detail')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="detail-content" class="p-6 overflow-y-auto space-y-6"></div>
+            <div id="detail-footer" class="p-6 border-t bg-slate-50 flex gap-3"></div>
+        </div>
+    </div>
+
+    <!-- MODAL FORM BOOKING -->
+    <div id="modal-booking" class="fixed inset-0 z-[100] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 id="booking-modal-title" class="text-2xl font-black">Form Pemesanan</h3>
+                <button onclick="closeModal('modal-booking')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="form-booking" class="p-8 grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
+                <input type="hidden" id="edit-booking-id">
+                <div class="col-span-2">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="window.toggleBookingType('room')" id="btn-type-room" class="py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm">Ruangan & Alat</button>
+                        <button type="button" onclick="window.toggleBookingType('tool')" id="btn-type-tool" class="py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-500 font-bold text-sm">Hanya Alat</button>
+                    </div>
+                </div>
+                <div id="booking-room-field" class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Pilih Ruangan</label><select id="book-room" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></select></div>
+                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Departemen</label><input type="text" id="book-dept" readonly class="w-full bg-slate-200 border-none rounded-xl px-4 py-3 text-sm text-slate-500"></div>
+                <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Tujuan</label><input type="text" id="book-goal" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>
+                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Tanggal</label><input type="date" id="book-date" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></div>
+                <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
+                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Mulai</label><input type="time" id="book-start" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
+                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Selesai</label><input type="time" id="book-end" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
+                </div>
+                <div class="col-span-2 border-t pt-4">
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Pilih Alat</label>
+                    <div id="tool-selection" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div id="booking-error-msg" class="col-span-2 text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg">Pilihan ruangan ini sudah dipesan pada waktu tersebut.</div>
+                <button type="submit" id="btn-submit-booking" class="col-span-2 bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg">Simpan Pesanan</button>
+            </form>
+        </div>
+    </div>
+
+    
+<script>
+/* FIX AGAR BISA JALAN DI FILE HTML STANDALONE */
+if (typeof __firebase_config === "undefined") {
+    window.__firebase_config = JSON.stringify({
+        apiKey: "demo",
+        authDomain: "demo.firebaseapp.com",
+        projectId: "demo",
+        storageBucket: "demo.appspot.com",
+        messagingSenderId: "demo",
+        appId: "demo"
+    });
+}
+
+if (typeof __app_id === "undefined") {
+    window.__app_id = "traininghub-local";
+}
+
+if (typeof __initial_auth_token === "undefined") {
+    window.__initial_auth_token = null;
+}
+</script>
+
+<script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'traininghub-pro';
+
+        let currentUser = null;
+        let bookingType = 'room';
+        const ADMIN_PASS = "1234";
+        let deptChart = null;
+        let html5QrCode = null;
+
+        let localState = {
+            users: [],
+            rooms: [],
+            tools: [],
+            bookings: []
+        };
+
+        // FILTER STATE
+        let filterMode = 'this-month';
+        let filterRange = { start: null, end: null };
+
+        // UTILITIES
+        window.closeModal = (id) => {
+            if(id === 'modal-scanner') window.stopScanner();
+            document.getElementById(id).classList.add('hide');
+        };
+
+        window.toggleMobileSidebar = () => {
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+            sidebar.classList.toggle('sidebar-open');
+            overlay.classList.toggle('hide');
+        };
+
+        window.openRegister = () => document.getElementById('modal-register').classList.remove('hide');
+
+        window.handleTimeFilterChange = (val) => {
+            filterMode = val;
+            const customContainer = document.getElementById('custom-date-container');
+            if(val === 'custom') {
+                if(customContainer) customContainer.classList.remove('hide');
+            } else {
+                if(customContainer) customContainer.classList.add('hide');
+                calculateFilterRange();
+                refreshUI();
+            }
+        };
+
+        window.applyCustomFilter = () => {
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            if(!start || !end) return;
+            filterRange = { start, end };
+            refreshUI();
+        };
+
+        function calculateFilterRange() {
+            const today = new Date();
+            let start, end;
+            
+            if(filterMode === 'this-month') {
+                start = new Date(today.getFullYear(), today.getMonth(), 1);
+                end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else if(filterMode === 'last-month') {
+                start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                end = new Date(today.getFullYear(), today.getMonth(), 0);
+            } else if(filterMode === 'next-month') {
+                start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+            } else {
+                return;
+            }
+
+            const format = (d) => d.toISOString().split('T')[0];
+            filterRange = { start: format(start), end: format(end) };
+        }
+
+        function getFilteredBookings() {
+            if(!filterRange.start || !filterRange.end) return localState.bookings;
+            return localState.bookings.filter(b => b.date >= filterRange.start && b.date <= filterRange.end);
+        }
+
+        // STATS RENDERING
+        function renderAdminDashboard() {
+            const filtered = getFilteredBookings();
+            const total = filtered.length || 0;
+
+            const roomsBooking = filtered.filter(b => b.type === 'room');
+            const toolsOnlyBooking = filtered.filter(b => b.type === 'tool');
+            const approved = filtered.filter(b => b.status === 'Approved' || b.status === 'Completed' || b.status === 'Ongoing');
+            const pending = filtered.filter(b => b.status === 'Pending');
+            const rejected = filtered.filter(b => b.status === 'Rejected');
+
+            document.getElementById('stat-total-rooms').innerText = localState.rooms.length;
+            document.getElementById('stat-total-tools').innerText = localState.tools.length;
+            
+            const setStat = (idPrefix, count) => {
+                const pct = total === 0 ? 0 : Math.round((count / total) * 100);
+                document.getElementById(`stat-${idPrefix}-pct`).innerText = `${pct}%`;
+                document.getElementById(`stat-${idPrefix}-ratio`).innerText = `${count} / ${total} Pesanan`;
+            };
+
+            setStat('room-booking', roomsBooking.length);
+            setStat('tool-booking', toolsOnlyBooking.length);
+            setStat('approved', approved.length);
+            setStat('pending', pending.length);
+            setStat('rejected', rejected.length);
+
+            updateChart(filtered);
+        }
+
+        window.showStatTable = (category) => {
+            const filtered = getFilteredBookings();
+            let list = [];
+            let title = "Detail Data";
+
+            if (category === 'room') {
+                list = filtered.filter(b => b.type === 'room');
+                title = "Pesanan Ruangan";
+            } else if (category === 'tool-only') {
+                list = filtered.filter(b => b.type === 'tool');
+                title = "Pesanan Alat";
+            } else if (['Approved', 'Pending', 'Rejected'].includes(category)) {
+                list = filtered.filter(b => b.status === category || (category === 'Approved' && (b.status === 'Completed' || b.status === 'Ongoing')));
+                title = `Data Status: ${category}`;
+            }
+
+            document.getElementById('stat-table-title').innerText = `${title} (${list.length})`;
+            const body = document.getElementById('stat-table-body');
+            
+            if (list.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>`;
+            } else {
+                body.innerHTML = list.map(b => {
+                    const roomName = b.roomId ? (localState.rooms.find(r => r.id === b.roomId)?.name || 'N/A') : 'Hanya Alat';
+                    return `
+                        <tr class="hover:bg-slate-50 transition-colors border-b last:border-0">
+                            <td class="px-4 py-3">
+                                <p class="font-bold text-slate-700">${b.userName}</p>
+                                <p class="text-[9px] text-slate-400 uppercase">${b.dept}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="text-xs text-slate-600 line-clamp-1">${b.goal}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="text-xs font-medium text-slate-700">${roomName}</p>
+                                <p class="text-[9px] text-indigo-500 font-bold">${(b.tools || []).length} Alat</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="text-xs text-slate-700 font-medium">${b.date}</p>
+                                <p class="text-[9px] text-slate-400">${b.start} - ${b.end}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-[9px] font-black uppercase px-2 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+            document.getElementById('modal-stat-table').classList.remove('hide');
+        };
+
+        window.showRoomStatsDetail = () => {
+            const container = document.getElementById('room-stats-container');
+            container.innerHTML = localState.rooms.map(room => {
+                const roomBookings = localState.bookings
+                    .filter(b => b.roomId === room.id && (b.status === 'Approved' || b.status === 'Completed' || b.status === 'Ongoing'))
+                    .sort((a,b) => b.date.localeCompare(a.date));
+                
+                const lastBooking = roomBookings[0];
+                const lastUser = lastBooking ? `${lastBooking.userName} (${lastBooking.dept})` : 'Belum pernah digunakan';
+                
+                return `
+                    <div onclick="window.showRoomHistory('${room.id}', '${room.name}')" class="bg-slate-50 hover:bg-white hover:border-indigo-300 border border-transparent transition-all p-4 rounded-2xl cursor-pointer flex justify-between items-center group">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h5 class="font-bold text-slate-800">${room.name}</h5>
+                                <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${room.status === 'Open' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">${room.status === 'Open' ? 'Tersedia' : 'Ditutup'}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium">Terakhir: ${lastUser}</p>
+                        </div>
+                        <i class="fas fa-history text-slate-200 group-hover:text-indigo-400 transition-colors"></i>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('modal-room-stats').classList.remove('hide');
+        };
+
+        window.showToolStatsDetail = () => {
+            const container = document.getElementById('tool-stats-container');
+            container.innerHTML = localState.tools.map(tool => {
+                const toolBookings = localState.bookings
+                    .filter(b => b.tools && b.tools.some(t => t.id === tool.id) && (b.status === 'Approved' || b.status === 'Completed' || b.status === 'Ongoing'))
+                    .sort((a,b) => b.date.localeCompare(a.date));
+                
+                const lastBooking = toolBookings[0];
+                const lastUser = lastBooking ? `${lastBooking.userName} (${lastBooking.dept})` : 'Belum digunakan';
+                
+                return `
+                    <div class="bg-slate-50 border border-transparent p-4 rounded-2xl flex justify-between items-center group">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h5 class="font-bold text-slate-800">${tool.name}</h5>
+                                <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${tool.status === 'Open' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">${tool.status === 'Open' ? 'Tersedia' : 'Ditutup'}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase">${tool.pos}</p>
+                            <p class="text-[9px] text-slate-400 mt-1">Penggunaan terakhir: ${lastUser}</p>
+                        </div>
+                        <i class="fas fa-tools text-slate-200"></i>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('modal-tool-stats').classList.remove('hide');
+        };
+
+        window.showRoomHistory = (roomId, roomName) => {
+            const container = document.getElementById('room-history-container');
+            document.getElementById('room-history-title').innerText = roomName;
+            const filtered = getFilteredBookings().filter(b => b.roomId === roomId);
+            
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs italic">Tidak ada riwayat pemesanan di periode ini</div>`;
+            } else {
+                container.innerHTML = filtered.slice().reverse().map(b => `
+                    <div class="border-b border-slate-50 pb-3 last:border-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-black uppercase ${getStatusClass(b.status)} px-2 py-0.5 rounded">${b.status}</span>
+                            <span class="text-[9px] text-slate-400 font-bold">${b.date}</span>
+                        </div>
+                        <p class="text-xs font-bold text-slate-700">${b.goal}</p>
+                        <p class="text-[10px] text-slate-400">${b.userName} • ${b.start} - ${b.end}</p>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('modal-room-history').classList.remove('hide');
+        };
+
+        function refreshUI() {
+            if (!currentUser) return;
+            const activeView = document.querySelector('.nav-btn.sidebar-item-active')?.dataset.view || 'dashboard';
+            
+            if(activeView === 'dashboard') {
+                if(currentUser.role === 'admin') renderAdminDashboard();
+                else renderAvailableAssets(document.getElementById('tab-rooms').classList.contains('tab-active') ? 'room' : 'tool');
+            }
+            if(activeView === 'riwayat') renderRiwayat();
+            if(activeView === 'approval') renderApproval();
+            if(activeView === 'master-data') renderMaster();
+            if(activeView === 'jadwal') renderJadwal();
+            updatePendingBadge();
+        }
+
+        function updateChart(dataList) {
+            const ctx = document.getElementById('deptChart');
+            if(!ctx) return;
+            const deptStats = {};
+            dataList.forEach(b => {
+                const d = b.dept || 'Umum';
+                deptStats[d] = (deptStats[d] || 0) + 1;
+            });
+            const labels = Object.keys(deptStats);
+            const data = Object.values(deptStats);
+            if(deptChart) deptChart.destroy();
+            deptChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Pemesanan', data, backgroundColor: '#6366f1', borderRadius: 8, barThickness: 28 }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }, 
+                        x: { grid: { display: false } } 
+                    }
+                }
+            });
+        }
+
+        // AUTH HANDLERS
+        document.getElementById('form-login').onsubmit = async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value;
+            const p = document.getElementById('login-password').value;
+            if(u === 'admin' && p === ADMIN_PASS) {
+                currentUser = { role: 'admin', username: 'Administrator', uid: 'admin-123' };
+                document.getElementById('login-screen').classList.add('hide');
+                initSession();
+            } else {
+                const found = localState.users.find(x => x.username === u && x.password === p);
+                if(found) { 
+                    currentUser = {...found, uid: found.id}; 
+                    document.getElementById('login-screen').classList.add('hide'); 
+                    initSession(); 
+                } else {
+                    document.getElementById('login-error').classList.remove('hide');
+                }
+            }
+        };
+
+        document.getElementById('form-register').onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const dept = document.getElementById('reg-dept').value;
+            
+            if(localState.users.find(u => u.username === username)) return alert("Username sudah digunakan");
+            
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'users'), {
+                username, password, dept, role: 'user', createdAt: serverTimestamp()
+            });
+            alert("Pendaftaran berhasil! Silakan login.");
+            window.closeModal('modal-register');
+        };
+
+        function initSession() {
+            document.getElementById('user-display').innerText = currentUser.username;
+            document.getElementById('role-label').innerText = currentUser.role.toUpperCase();
+            const isAdmin = currentUser.role === 'admin';
+            document.getElementById('admin-menu-section').classList.toggle('hide', !isAdmin);
+            document.getElementById('user-menu-section').classList.toggle('hide', isAdmin);
+            document.getElementById('header-actions').classList.toggle('hide', isAdmin);
+            document.getElementById('admin-dashboard-ui').classList.toggle('hide', !isAdmin);
+            document.getElementById('user-dashboard-ui').classList.toggle('hide', isAdmin);
+            calculateFilterRange();
+            window.showView('dashboard', 'Dashboard');
+        }
+
+        function renderAvailableAssets(type) {
+            const list = type === 'room' ? localState.rooms : localState.tools;
+            const container = document.getElementById(type === 'room' ? 'available-rooms-list' : 'available-tools-list');
+            
+            container.innerHTML = list.map(item => {
+                const bookingsInRange = getFilteredBookings().filter(b => (b.roomId === item.id || (b.tools && b.tools.some(t => t.id === item.id))) && (b.status === 'Approved' || b.status === 'Ongoing'));
+                const isOccupied = bookingsInRange.length > 0;
+                const isClosed = item.status === 'Closed';
+                
+                return `
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center relative overflow-hidden ${isClosed ? 'opacity-60 grayscale' : ''}">
+                        ${isClosed ? '<div class="absolute inset-0 bg-slate-900/5 flex items-center justify-center"><span class="bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-full">DITUTUP (PERBAIKAN)</span></div>' : ''}
+                        ${isOccupied && !isClosed ? '<div class="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black px-2 py-1 rounded-bl-lg">DIPESAN</div>' : ''}
+                        <div class="w-12 h-12 ${isOccupied || isClosed ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-600'} rounded-2xl flex items-center justify-center mb-4 transition-colors">
+                            <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-xl"></i>
+                        </div>
+                        <h5 class="font-bold text-slate-900">${item.name}</h5>
+                        <p class="text-[10px] text-slate-500 mt-1">${type === 'room' ? `Kapasitas: ${item.capacity} Orang` : `Lokasi: ${item.pos}`}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.openMasterModal = (type, existingId = null) => {
+            const isEdit = existingId !== null;
+            const title = type === 'room' ? (isEdit ? 'Edit Ruangan' : 'Tambah Ruangan') : (isEdit ? 'Edit Alat' : 'Tambah Alat');
+            document.getElementById('master-modal-title').innerText = title;
+            document.getElementById('master-type').value = type;
+            document.getElementById('master-id').value = existingId || '';
+            
+            const extra = document.getElementById('master-extra-field');
+            if(type === 'room') extra.innerHTML = `<div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Kapasitas Orang</label><input type="number" id="master-extra" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>`;
+            else extra.innerHTML = `<div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Lokasi Simpan</label><input type="text" id="master-extra" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>`;
+            
+            if(isEdit) {
+                const item = (type === 'room' ? localState.rooms : localState.tools).find(x => x.id === existingId);
+                document.getElementById('master-name').value = item.name;
+                document.getElementById('master-extra').value = type === 'room' ? item.capacity : item.pos;
+                document.getElementById('master-status').value = item.status || 'Open';
+            } else {
+                document.getElementById('master-name').value = '';
+                document.getElementById('master-status').value = 'Open';
+            }
+            
+            document.getElementById('modal-master').classList.remove('hide');
+        };
+
+        window.toggleBookingType = (type) => {
+            bookingType = type;
+            const btnRoom = document.getElementById('btn-type-room');
+            const btnTool = document.getElementById('btn-type-tool');
+            if(type === 'room') {
+                btnRoom.className = "py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm";
+                btnTool.className = "py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-500 font-bold text-sm";
+                document.getElementById('booking-room-field').classList.remove('hide');
+            } else {
+                btnRoom.className = "py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-500 font-bold text-sm";
+                btnTool.className = "py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm";
+                document.getElementById('booking-room-field').classList.add('hide');
+            }
+            window.validateToolSelection();
+        };
+
+        window.showView = (id, titleText = null) => {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hide'));
+            document.getElementById('view-' + id).classList.remove('hide');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('sidebar-item-active', btn.dataset.view === id));
+            
+            if(titleText) {
+                document.getElementById('view-title').innerText = titleText;
+            }
+
+            // Close mobile sidebar after selecting view
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+            if(sidebar.classList.contains('sidebar-open')) {
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.add('hide');
+            }
+            
+            refreshUI();
+        };
+
+        window.logout = () => location.reload();
+
+        window.switchDashTab = (type) => {
+            document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('tab-active', 'text-slate-500'));
+            document.getElementById('tab-' + type).classList.add('tab-active');
+            document.getElementById('dash-rooms-content').classList.toggle('hide', type !== 'rooms');
+            document.getElementById('dash-tools-content').classList.toggle('hide', type !== 'tools');
+            renderAvailableAssets(type === 'rooms' ? 'room' : 'tool');
+        };
+
+        window.openBooking = () => {
+            document.getElementById('booking-modal-title').innerText = "Form Pemesanan";
+            document.getElementById('edit-booking-id').value = "";
+            const select = document.getElementById('book-room');
+            select.innerHTML = localState.rooms.filter(r => r.status === 'Open').map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+            document.getElementById('book-dept').value = currentUser?.dept || 'Umum';
+            document.getElementById('form-booking').reset();
+            window.toggleBookingType('room');
+            window.validateToolSelection();
+            document.getElementById('modal-booking').classList.remove('hide');
+        };
+
+        window.validateToolSelection = () => {
+            const date = document.getElementById('book-date').value;
+            const start = document.getElementById('book-start').value;
+            const end = document.getElementById('book-end').value;
+            const roomId = document.getElementById('book-room').value;
+            const editId = document.getElementById('edit-booking-id').value;
+            const errorMsg = document.getElementById('booking-error-msg');
+            const submitBtn = document.getElementById('btn-submit-booking');
+            
+            if(!date || !start || !end) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+                return;
+            }
+
+            const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
+            
+            let roomBentrok = false;
+            if (bookingType === 'room' && roomId) {
+                roomBentrok = localState.bookings.some(b => 
+                    b.id !== editId &&
+                    b.date === date && 
+                    b.roomId === roomId &&
+                    (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing') &&
+                    isOverlapping(start, end, b.start, b.end)
+                );
+            }
+            
+            if (roomBentrok) {
+                errorMsg.classList.remove('hide');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
+            } else {
+                errorMsg.classList.add('hide');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+            }
+
+            const container = document.getElementById('tool-selection');
+            const activeBookingsForTools = localState.bookings.filter(b => 
+                b.id !== editId &&
+                b.date === date && 
+                (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing')
+            );
+
+            let currentSelectedToolIds = [];
+            if(editId) {
+                const b = localState.bookings.find(x => x.id === editId);
+                if(b && b.tools) currentSelectedToolIds = b.tools.map(t => t.id);
+            }
+
+            container.innerHTML = localState.tools.filter(t => t.status === 'Open').map(t => {
+                const isToolBentrok = activeBookingsForTools.some(b => 
+                    b.tools && 
+                    b.tools.some(bt => bt.id === t.id) && 
+                    isOverlapping(start, end, b.start, b.end)
+                );
+                const isChecked = currentSelectedToolIds.includes(t.id);
+                return `
+                    <label class="${isToolBentrok ? 'opacity-40 bg-slate-200 cursor-not-allowed' : 'bg-slate-50 hover:border-indigo-300 cursor-pointer'} px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
+                        <input type="checkbox" name="tools" value="${t.id}" ${isToolBentrok ? 'disabled' : ''} ${isChecked ? 'checked' : ''} class="mb-1">
+                        <span class="text-[10px] font-bold truncate">${t.name}</span>
+                        <span class="text-[8px] text-indigo-500">${isToolBentrok ? 'DIPESAN' : t.pos}</span>
+                    </label>`;
+            }).join('');
+        };
+
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+            else await signInAnonymously(auth);
+        };
+
+        onAuthStateChanged(auth, (user) => { if (user) listenToData(); });
+
+        const listenToData = () => {
+            ['rooms', 'tools', 'bookings', 'users'].forEach(coll => {
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', coll), (snap) => {
+                    localState[coll] = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    refreshUI();
+                }, (err) => console.error("Firestore Error:", err));
+            });
+        };
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Approved': case 'Ongoing': return 'bg-emerald-50 text-emerald-600';
+                case 'Completed': return 'bg-indigo-50 text-indigo-600';
+                case 'Rejected': return 'bg-rose-50 text-rose-600';
+                default: return 'bg-amber-50 text-amber-600';
+            }
+        }
+
+        function updatePendingBadge() {
+            const count = localState.bookings.filter(b => b.status === 'Pending').length;
+            const badge = document.getElementById('badge-pending');
+            if(badge) { badge.innerText = count; badge.classList.toggle('hide', count === 0); }
+        }
+
+        function renderRiwayat() {
+            const my = getFilteredBookings().filter(b => b.userUid === currentUser.uid);
+            const container = document.getElementById('my-booking-list');
+            if(my.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada riwayat pesanan di periode ini</div>`;
+            else container.innerHTML = my.slice().reverse().map(b => `
+                <div class="card-pop bg-white p-4 rounded-2xl border flex justify-between items-center group">
+                    <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0">
+                        <p class="font-bold text-sm truncate">${b.goal}</p>
+                        <p class="text-[10px] text-slate-400">${b.date} • ${b.start}-${b.end}</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <span onclick="window.openDetail('${b.id}')" class="text-[9px] font-black uppercase px-3 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
+                        ${b.status === 'Pending' ? `
+                            <button onclick="window.deleteBooking('${b.id}')" class="text-rose-400 hover:text-rose-600 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-trash-alt text-sm"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>`).join('');
+        }
+
+        window.deleteBooking = async (id) => {
+            if(confirm("Batalkan dan hapus pesanan ini?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id));
+                window.closeModal('modal-detail');
+            }
+        };
+
+        function renderApproval() {
+            const pending = getFilteredBookings().filter(b => b.status === 'Pending');
+            const container = document.getElementById('approval-list');
+            if(pending.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada antrean persetujuan</div>`;
+            else container.innerHTML = pending.map(b => {
+                const room = b.roomId ? localState.rooms.find(r => r.id === b.roomId) : null;
+                return `
+                    <div class="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 mb-2 inline-block">${b.type === 'room' ? 'Ruangan & Alat' : 'Hanya Alat'}</span>
+                                <h4 class="font-bold text-slate-900 text-lg">${b.goal}</h4>
+                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">${b.userName} (${b.dept}) • ${b.date} [${b.start}-${b.end}]</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                            <p class="text-[10px] font-black uppercase text-slate-400 mb-3">Unit Persetujuan:</p>
+                            <div class="space-y-2">
+                                ${b.roomId ? `
+                                    <label class="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 cursor-pointer">
+                                        <input type="checkbox" checked class="approval-room-check-${b.id} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" data-room-id="${b.roomId}">
+                                        <span class="text-xs font-bold text-slate-700">Ruangan: ${room?.name || 'N/A'}</span>
+                                    </label>
+                                ` : ''}
+                                ${(b.tools || []).map(t => `
+                                    <label class="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 cursor-pointer">
+                                        <input type="checkbox" checked class="approval-tool-check-${b.id} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" data-tool-id="${t.id}" data-tool-name="${t.name}">
+                                        <span class="text-xs font-bold text-slate-700">Alat: ${t.name}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Catatan Admin</label>
+                            <textarea id="admin-note-${b.id}" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Alasan penolakan sebagian atau seluruh item..."></textarea>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="window.updateBookingStatusWithNote('${b.id}', 'Rejected')" class="flex-1 py-3 border border-rose-100 text-rose-500 rounded-2xl text-xs font-black hover:bg-rose-50 transition-colors">Tolak Semua</button>
+                            <button id="btn-approve-${b.id}" onclick="window.processPartialApproval('${b.id}')" class="flex-1 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black transition-all">Setujui</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.processPartialApproval = async (id) => {
+            const b = localState.bookings.find(x => x.id === id);
+            const roomCheck = document.querySelector(`.approval-room-check-${id}`);
+            const toolChecks = document.querySelectorAll(`.approval-tool-check-${id}`);
+            const note = document.getElementById(`admin-note-${id}`).value.trim();
+
+            const isRoomApproved = roomCheck ? roomCheck.checked : false;
+            const approvedTools = Array.from(toolChecks).filter(c => c.checked).map(c => ({
+                id: c.dataset.toolId,
+                name: c.dataset.toolName
+            }));
+
+            const originalToolCount = (b.tools || []).length;
+            const isPartialReject = (roomCheck && !isRoomApproved) || (approvedTools.length < originalToolCount);
+
+            if(isPartialReject && !note) {
+                alert("Wajib mengisi Catatan Admin jika ada item yang tidak disetujui.");
+                return;
+            }
+
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), {
+                status: 'Approved',
+                adminNote: note,
+                roomId: isRoomApproved ? b.roomId : null,
+                tools: approvedTools,
+                type: isRoomApproved ? 'room' : 'tool', 
+                approvedAt: serverTimestamp()
+            });
+        };
+
+        window.updateBookingStatusWithNote = async (id, status) => {
+            const note = document.getElementById(`admin-note-${id}`).value;
+            if(status === 'Rejected' && !note) {
+                alert("Wajib memberikan alasan penolakan pada catatan.");
+                return;
+            }
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { 
+                status, 
+                adminNote: note,
+                approvedAt: status === 'Approved' ? serverTimestamp() : null
+            });
+        };
+
+        function renderJadwal() {
+            const approved = getFilteredBookings().filter(b => b.status === 'Approved' || b.status === 'Ongoing').sort((a,b) => a.date.localeCompare(b.date));
+            const container = document.getElementById('calendar-list');
+            if(approved.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada jadwal pemakaian di periode ini</div>`;
+            else container.innerHTML = approved.map(b => `<div onclick="window.openDetail('${b.id}')" class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex gap-4 cursor-pointer"><div class="text-center min-w-[50px]"><p class="text-xl font-black text-slate-900">${b.date.split('-')[2]}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${new Date(b.date).toLocaleString('id-ID', {month:'short'})}</p></div><div class="min-w-0"><p class="font-bold text-sm truncate">${b.goal}</p><p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p></div></div>`).join('');
+        }
+
+        window.updateBookingStatus = async (id, status) => {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { status });
+            window.closeModal('modal-detail');
+        };
+
+        window.openDetail = (id) => {
+            const b = localState.bookings.find(x => x.id === id);
+            if(!b) return;
+            const room = b.roomId ? localState.rooms.find(r => r.id == b.roomId) : null;
+            const container = document.getElementById('detail-content');
+            const footer = document.getElementById('detail-footer');
+
+            let qrSection = '';
+            if(currentUser.role === 'admin' && b.status === 'Ongoing') {
+                qrSection = `
+                    <div class="col-span-2 pt-6 flex flex-col items-center justify-center border-t mt-4">
+                        <p class="text-[10px] font-black uppercase text-indigo-500 mb-3 text-center">Tunjukkan QR Ini ke Peminjam untuk Selesai</p>
+                        <div id="qrcode" class="bg-white p-3 rounded-2xl shadow-md"></div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Status</label>
+                        <div class="flex items-center mt-1">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${getStatusClass(b.status)}">${b.status}</span>
+                        </div>
+                    </div>
+                    <div class="col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Peminjam</label><p class="font-bold text-xs truncate">${b.userName}</p></div>
+                    <div class="col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Jadwal</label><p class="font-bold text-xs">${b.date}</p></div>
+                    <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Tujuan</label><p class="bg-slate-50 p-3 rounded-xl text-xs">${b.goal}</p></div>
+                    ${room ? `<div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Ruangan</label><p class="font-bold text-xs">${room.name}</p></div>` : ''}
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Alat</label>
+                        <div class="flex flex-wrap gap-2 mt-1">
+                            ${(b.tools || []).length ? b.tools.map(t => `<span class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[10px] font-bold truncate max-w-[150px]"># ${t.name}</span>`).join('') : '<span class="text-slate-400 text-xs italic">N/A</span>'}
+                        </div>
+                    </div>
+                    ${b.adminNote ? `
+                        <div class="col-span-2 pt-2 border-t">
+                            <label class="text-[10px] font-bold uppercase text-indigo-400">Catatan Admin</label>
+                            <p class="text-[11px] text-slate-600 mt-1 italic">"${b.adminNote}"</p>
+                        </div>
+                    ` : ''}
+                    ${qrSection}
+                </div>`;
+            
+            if(currentUser.role === 'admin' && b.status === 'Ongoing') {
+                setTimeout(() => {
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: `finish-booking-${b.id}`,
+                        width: 140,
+                        height: 140
+                    });
+                }, 100);
+            }
+
+            footer.innerHTML = '';
+            if(currentUser.role !== 'admin') {
+                if(b.status === 'Pending') {
+                    footer.innerHTML = `
+                        <button onclick="window.deleteBooking('${b.id}')" class="flex-1 border border-rose-200 text-rose-500 py-3 rounded-2xl font-bold text-xs">Batal</button>
+                        <button onclick="window.editBooking('${b.id}')" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">Edit</button>
+                    `;
+                } else if(b.status === 'Approved') {
+                    footer.innerHTML = `<button onclick="window.updateBookingStatus('${b.id}', 'Ongoing')" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">Mulai Sekarang</button>`;
+                } else if(b.status === 'Ongoing') {
+                    footer.innerHTML = `<button onclick="window.startScanner('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs"><i class="fas fa-qrcode"></i> Selesaikan Pesanan</button>`;
+                }
+            }
+            footer.classList.toggle('hide', footer.innerHTML === '');
+            document.getElementById('modal-detail').classList.remove('hide');
+        };
+
+        window.startScanner = (bookingId) => {
+            document.getElementById('modal-scanner').classList.remove('hide');
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
+                if (decodedText === `finish-booking-${bookingId}`) {
+                    window.stopScanner();
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { 
+                        status: 'Completed',
+                        finishedAt: serverTimestamp()
+                    });
+                    window.closeModal('modal-detail');
+                    alert("Pesanan berhasil diselesaikan!");
+                }
+            }).catch(err => {
+                console.error("Scanner Error:", err);
+            });
+        };
+
+        window.stopScanner = () => {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('modal-scanner').classList.add('hide');
+                }).catch(err => {
+                    console.error(err);
+                    document.getElementById('modal-scanner').classList.add('hide');
+                });
+            } else {
+                document.getElementById('modal-scanner').classList.add('hide');
+            }
+        };
+
+        window.editBooking = (id) => {
+            const b = localState.bookings.find(x => x.id === id);
+            if(!b) return;
+            
+            window.closeModal('modal-detail');
+            document.getElementById('booking-modal-title').innerText = "Edit Pesanan";
+            document.getElementById('edit-booking-id').value = b.id;
+            window.toggleBookingType(b.type);
+            document.getElementById('book-room').value = b.roomId || "";
+            document.getElementById('book-goal').value = b.goal;
+            document.getElementById('book-date').value = b.date;
+            document.getElementById('book-start').value = b.start;
+            document.getElementById('book-end').value = b.end;
+            window.validateToolSelection();
+            document.getElementById('modal-booking').classList.remove('hide');
+        };
+
+        function renderMaster() {
+            document.getElementById('master-room-list').innerHTML = localState.rooms.map(r => `
+                <div class="p-4 border-b last:border-0 flex justify-between items-center group">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <p class="font-bold text-sm truncate">${r.name}</p>
+                            <span class="shrink-0 text-[7px] font-black uppercase px-1 py-0.5 rounded ${r.status === 'Open' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">${r.status === 'Open' ? 'Tersedia' : 'Tutup'}</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button class="text-indigo-500 text-[10px] font-bold" onclick="window.openMasterModal('room', '${r.id}')">Edit</button>
+                        <button class="text-rose-500 text-[10px] font-bold" onclick="window.deleteMaster('rooms', '${r.id}')">Hapus</button>
+                    </div>
+                </div>`).join('');
+
+            document.getElementById('master-tool-list').innerHTML = localState.tools.map(t => `
+                <div class="p-4 border-b last:border-0 flex justify-between items-center group">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <p class="font-bold text-sm truncate">${t.name}</p>
+                            <span class="shrink-0 text-[7px] font-black uppercase px-1 py-0.5 rounded ${t.status === 'Open' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">${t.status === 'Open' ? 'Tersedia' : 'Tutup'}</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button class="text-indigo-500 text-[10px] font-bold" onclick="window.openMasterModal('tool', '${t.id}')">Edit</button>
+                        <button class="text-rose-500 text-[10px] font-bold" onclick="window.deleteMaster('tools', '${t.id}')">Hapus</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        window.deleteMaster = async (coll, id) => { if(confirm("Hapus aset ini?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', coll, id)); };
+
+        document.getElementById('form-booking').onsubmit = async (e) => {
+            e.preventDefault();
+            const date = document.getElementById('book-date').value;
+            const start = document.getElementById('book-start').value;
+            const end = document.getElementById('book-end').value;
+            const roomId = document.getElementById('book-room').value;
+            const editId = document.getElementById('edit-booking-id').value;
+
+            const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(c => {
+                const t = localState.tools.find(x => x.id === c.value);
+                return { id: t.id, name: t.name };
+            });
+
+            const bookingData = {
+                type: bookingType, 
+                roomId: bookingType === 'room' ? roomId : null,
+                userName: currentUser.username, 
+                userUid: currentUser.uid, 
+                dept: currentUser.dept || 'Umum',
+                goal: document.getElementById('book-goal').value, 
+                date, start, end,
+                tools: selectedTools, 
+                status: 'Pending', 
+                updatedAt: serverTimestamp()
+            };
+
+            if(editId) {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', editId), bookingData);
+            } else {
+                bookingData.createdAt = serverTimestamp();
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), bookingData);
+            }
+            
+            window.closeModal('modal-booking');
+            window.showView('riwayat', 'Pesanan Saya');
+        };
+
+        document.getElementById('form-master').onsubmit = async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('master-type').value;
+            const id = document.getElementById('master-id').value;
+            const extra = document.getElementById('master-extra').value;
+            const data = { 
+                name: document.getElementById('master-name').value, 
+                status: document.getElementById('master-status').value 
+            };
+            if(type === 'room') data.capacity = extra; else data.pos = extra;
+            
+            if(id) {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', type === 'room' ? 'rooms' : 'tools', id), data);
+            } else {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', type === 'room' ? 'rooms' : 'tools'), data);
+            }
+            
+            window.closeModal('modal-master');
+        };
+
+        initAuth();
+    </script>
+</body>
+</html>
