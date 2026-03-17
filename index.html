@@ -1141,6 +1141,23 @@
                             <p class="text-[11px] text-slate-600 mt-1 italic">"${b.adminNote}"</p>
                         </div>
                     ` : ''}
+					<div class="col-span-2 pt-2 border-t">
+<label class="text-[10px] font-bold uppercase text-slate-400">Waktu Sistem</label>
+
+<div class="text-[11px] text-slate-600 mt-1 space-y-1">
+
+<div>Dibuat : ${b.createdAt ? b.createdAt.toDate().toLocaleString('id-ID') : '-'}</div>
+
+<div>Disetujui : ${b.approvedAt ? b.approvedAt.toDate().toLocaleString('id-ID') : '-'}</div>
+
+<div>Ditolak : ${b.rejectedAt ? b.rejectedAt.toDate().toLocaleString('id-ID') : '-'}</div>
+
+<div>Actual Mulai : ${b.startedAt ? b.startedAt.toDate().toLocaleString('id-ID') : '-'}</div>
+
+<div>Actual Selesai : ${b.finishedAt ? b.finishedAt.toDate().toLocaleString('id-ID') : '-'}</div>
+
+</div>
+</div>
                     ${qrSection}
                 </div>`;
             
@@ -1324,6 +1341,44 @@ if(currentUser.role !== 'admin') {
             window.closeModal('modal-master');
         };
 
+		// ===== TAMBAHAN TIMESTAMP DETAIL PESANAN =====
+
+function formatTime(ts){
+    if(!ts) return "-";
+    try{
+        return ts.toDate().toLocaleString("id-ID");
+    }catch{
+        return "-";
+    }
+}
+
+function injectBookingTimes(b){
+
+    const created  = formatTime(b.createdAt);
+    const approved = formatTime(b.approvedAt);
+    const rejected = formatTime(b.rejectedAt);
+    const started  = formatTime(b.startedAt);
+    const finished = formatTime(b.finishedAt);
+
+    return `
+
+    <div class="mt-4 border-t pt-3 text-xs text-slate-600 space-y-1">
+
+        <div><b>Dibuat:</b> ${created}</div>
+
+        ${approved !== "-" ? `<div><b>Disetujui:</b> ${approved}</div>` : ""}
+
+        ${rejected !== "-" ? `<div><b>Ditolak:</b> ${rejected}</div>` : ""}
+
+        ${started !== "-" ? `<div><b>Actual Mulai:</b> ${started}</div>` : ""}
+
+        ${finished !== "-" ? `<div><b>Actual Selesai:</b> ${finished}</div>` : ""}
+
+    </div>
+
+    `;
+}
+		
         initAuth();
     </script>
 </body>
