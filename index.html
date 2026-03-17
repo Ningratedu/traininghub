@@ -275,47 +275,15 @@
 
     <!-- SCANNER MODAL -->
     <div id="modal-scanner" class="fixed inset-0 z-[220] hide modal-overlay flex items-center justify-center p-4">
-    
-    <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
-        
-        <div class="flex justify-between w-full items-center mb-6">
-            <h3 class="text-xl font-black">Scan QR Code Selesai</h3>
-            <button onclick="window.stopScanner()">
-                <i class="fas fa-times"></i>
-            </button>
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
+            <div class="flex justify-between w-full items-center mb-6">
+                <h3 class="text-xl font-black">Scan QR Code Selesai</h3>
+                <button onclick="window.stopScanner()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="reader" class="mb-4"></div>
+            <p class="text-xs text-slate-500 text-center italic">Arahkan kamera ke QR Code di layar Admin untuk menyelesaikan pesanan.</p>
         </div>
-
-        <div id="reader" class="mb-4"></div>
-
-        <p class="text-xs text-slate-500 text-center italic mb-4">
-        Arahkan kamera ke QR Code di layar Admin untuk menyelesaikan pesanan.
-        </p>
-
-        <div class="flex gap-2 w-full">
-
-            <button 
-            onclick="document.getElementById('qr-file-input').click()" 
-            class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-xs font-bold">
-            Scan dari Galeri
-            </button>
-
-            <button 
-            onclick="window.stopScanner()" 
-            class="flex-1 bg-gray-200 py-3 rounded-xl text-xs font-bold">
-            Tutup
-            </button>
-
-        </div>
-
-        <input 
-        type="file" 
-        id="qr-file-input" 
-        accept="image/*"
-        class="hidden">
-
     </div>
-
-</div>
 
     <!-- MODAL LIST RUANGAN -->
     <div id="modal-room-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
@@ -1215,113 +1183,38 @@ if(currentUser.role !== 'admin') {
         };
 
         window.startScanner = (bookingId) => {
+            document.getElementById('modal-scanner').classList.remove('hide');
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
+                if (decodedText === `finish-booking-${bookingId}`) {
+                    window.stopScanner();
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { 
+                        status: 'Completed',
+                        finishedAt: serverTimestamp()
+                    });
+                    window.closeModal('modal-detail');
+                    alert("Pesanan berhasil diselesaikan!");
+                }
+            }).catch(err => {
+                console.error("Scanner Error:", err);
+            });
+        };
 
-document.getElementById('modal-scanner').classList.remove('hide');
+        window.stopScanner = () => {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('modal-scanner').classList.add('hide');
+                }).catch(err => {
+                    console.error(err);
+                    document.getElementById('modal-scanner').classList.add('hide');
+                });
+            } else {
+                document.getElementById('modal-scanner').classList.add('hide');
+            }
+        };
 
-html5QrCode = new Html5Qrcode("reader");
-
-const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-html5QrCode.start(
-{ facingMode: "environment" },
-config,
-async (decodedText) => {
-
-if(decodedText === `finish-booking-${bookingId}`){
-
-window.stopScanner();
-
-await updateDoc(
-doc(db,'artifacts',appId,'public','data','bookings',bookingId),
-{
-status:'Completed',
-finishedAt: serverTimestamp()
-}
-);
-
-window.closeModal('modal-detail');
-
-alert("Pesanan berhasil diselesaikan!");
-
-}
-
-}
-).catch(err=>{
-console.error("Scanner Error:",err);
-});
-
-
-// SCAN QR DARI GALERI
-const fileInput = document.getElementById("qr-file-input");
-
-if(fileInput){
-
-fileInput.onchange = async (e)=>{
-
-const file = e.target.files[0];
-
-if(!file) return;
-
-try{
-
-const decodedText = await html5QrCode.scanFile(file,true);
-
-if(decodedText === `finish-booking-${bookingId}`){
-
-window.stopScanner();
-
-await updateDoc(
-doc(db,'artifacts',appId,'public','data','bookings',bookingId),
-{
-status:'Completed',
-finishedAt: serverTimestamp()
-}
-);
-
-window.closeModal('modal-detail');
-
-alert("Pesanan berhasil diselesaikan!");
-
-}else{
-
-alert("QR tidak valid");
-
-}
-
-}catch(err){
-
-alert("QR tidak terbaca");
-
-}
-
-};
-
-}
-
-};
-
-
-window.stopScanner = () => {
-
-if(html5QrCode){
-
-html5QrCode.stop().then(()=>{
-
-document.getElementById('modal-scanner').classList.add('hide');
-
-}).catch(()=>{
-
-document.getElementById('modal-scanner').classList.add('hide');
-
-});
-
-}else{
-
-document.getElementById('modal-scanner').classList.add('hide');
-
-}
-
-};
         window.editBooking = (id) => {
             const b = localState.bookings.find(x => x.id === id);
             if(!b) return;
