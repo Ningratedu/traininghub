@@ -275,15 +275,47 @@
 
     <!-- SCANNER MODAL -->
     <div id="modal-scanner" class="fixed inset-0 z-[220] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
-            <div class="flex justify-between w-full items-center mb-6">
-                <h3 class="text-xl font-black">Scan QR Code Selesai</h3>
-                <button onclick="window.stopScanner()"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="reader" class="mb-4"></div>
-            <p class="text-xs text-slate-500 text-center italic">Arahkan kamera ke QR Code di layar Admin untuk menyelesaikan pesanan.</p>
+    
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
+        
+        <div class="flex justify-between w-full items-center mb-6">
+            <h3 class="text-xl font-black">Scan QR Code Selesai</h3>
+            <button onclick="window.stopScanner()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+
+        <div id="reader" class="mb-4"></div>
+
+        <p class="text-xs text-slate-500 text-center italic mb-4">
+        Arahkan kamera ke QR Code di layar Admin untuk menyelesaikan pesanan.
+        </p>
+
+        <div class="flex gap-2 w-full">
+
+            <button 
+            onclick="document.getElementById('qr-file-input').click()" 
+            class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-xs font-bold">
+            Scan dari Galeri
+            </button>
+
+            <button 
+            onclick="window.stopScanner()" 
+            class="flex-1 bg-gray-200 py-3 rounded-xl text-xs font-bold">
+            Tutup
+            </button>
+
+        </div>
+
+        <input 
+        type="file" 
+        id="qr-file-input" 
+        accept="image/*"
+        class="hidden">
+
     </div>
+
+</div>
 
     <!-- MODAL LIST RUANGAN -->
     <div id="modal-room-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
