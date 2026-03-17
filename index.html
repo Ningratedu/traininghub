@@ -294,10 +294,11 @@
         <div class="flex gap-2 w-full">
 
             <button 
-onclick="window.stopScanner()" 
-class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-xs font-bold">
-Tutup Scanner
-</button>
+            onclick="document.getElementById('qr-file-input').click()" 
+            class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-xs font-bold">
+            Scan dari Galeri
+            </button>
+
             <button 
             onclick="window.stopScanner()" 
             class="flex-1 bg-gray-200 py-3 rounded-xl text-xs font-bold">
@@ -313,36 +314,6 @@ Tutup Scanner
         class="hidden">
 
     </div>
-
-</div>
-
-	<!-- MODAL PILIHAN SCAN -->
-<div id="modal-scan-option" class="fixed inset-0 z-[210] hide modal-overlay flex items-center justify-center p-4">
-
-<div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
-
-<h3 class="text-lg font-black mb-4 text-center">Pilih Metode Scan</h3>
-
-<div class="flex flex-col gap-3">
-
-<button id="btn-scan-camera"
-class="bg-indigo-600 text-white py-3 rounded-xl text-sm font-bold">
-Scan dengan Kamera
-</button>
-
-<button id="btn-scan-gallery"
-class="bg-slate-200 py-3 rounded-xl text-sm font-bold">
-Scan dari Galeri
-</button>
-
-<button onclick="closeModal('modal-scan-option')"
-class="bg-gray-100 py-2 rounded-xl text-xs">
-Batal
-</button>
-
-</div>
-
-</div>
 
 </div>
 
@@ -1231,11 +1202,13 @@ if(currentUser.role !== 'admin') {
         `;
     } 
     else if(b.status === 'Ongoing') {
-    footer.innerHTML = `
-        <button onclick="window.openScanOption('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
-        <i class="fas fa-qrcode"></i> Selesaikan Pesanan
-        </button>
-    `;
+        footer.innerHTML = `
+            <button onclick="window.startScanner('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
+            <i class="fas fa-qrcode"></i> Selesaikan Pesanan
+            </button>
+        `;
+    }
+
 }
             footer.classList.toggle('hide', footer.innerHTML === '');
             document.getElementById('modal-detail').classList.remove('hide');
@@ -1349,25 +1322,6 @@ document.getElementById('modal-scanner').classList.add('hide');
 }
 
 };
-			window.openScanOption = (bookingId) => {
-
-document.getElementById('modal-scan-option').classList.remove('hide');
-
-document.getElementById('btn-scan-camera').onclick = () => {
-
-closeModal('modal-scan-option');
-window.startScanner(bookingId);
-
-};
-
-document.getElementById('btn-scan-gallery').onclick = () => {
-
-closeModal('modal-scan-option');
-document.getElementById('qr-file-input').click();
-
-};
-
-};
         window.editBooking = (id) => {
             const b = localState.bookings.find(x => x.id === id);
             if(!b) return;
@@ -1443,6 +1397,8 @@ document.getElementById('qr-file-input').click();
     		createdAt: serverTimestamp(),
     		updatedAt: serverTimestamp()
 		};
+
+		await addDoc(collection(db, "bookings"), bookingData);
 
             if(editId) {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', editId), bookingData);
