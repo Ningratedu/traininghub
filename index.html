@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1233,17 +1232,9 @@ if(currentUser.role !== 'admin') {
     } 
     else if(b.status === 'Ongoing') {
     footer.innerHTML = `
-
-        <button onclick="window.openScanOption('${b.id}')" 
-        class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
+        <button onclick="window.openScanOption('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
         <i class="fas fa-qrcode"></i> Selesaikan Pesanan
         </button>
-
-        <button onclick="showAdminQR('${b.id}')" 
-        class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
-        <i class="fas fa-download"></i> QR Admin
-        </button>
-
     `;
 }
             footer.classList.toggle('hide', footer.innerHTML === '');
@@ -1300,14 +1291,11 @@ if(!file) return;
 
 try{
 
-// hentikan kamera scanner dulu
-if(html5QrCode){
-await html5QrCode.stop().catch(()=>{});
-}
-
 const decodedText = await html5QrCode.scanFile(file,true);
 
 if(decodedText === `finish-booking-${bookingId}`){
+
+window.stopScanner();
 
 await updateDoc(
 doc(db,'artifacts',appId,'public','data','bookings',bookingId),
@@ -1317,7 +1305,6 @@ finishedAt: serverTimestamp()
 }
 );
 
-window.closeModal('modal-scanner');
 window.closeModal('modal-detail');
 
 alert("Pesanan berhasil diselesaikan!");
@@ -1330,14 +1317,15 @@ alert("QR tidak valid");
 
 }catch(err){
 
-console.error(err);
-alert("QR tidak terbaca, coba foto QR lebih jelas.");
+alert("QR tidak terbaca");
 
 }
 
 };
 
 }
+
+};
 
 
 window.stopScanner = () => {
@@ -1487,59 +1475,7 @@ document.getElementById('qr-file-input').click();
             window.closeModal('modal-master');
         };
 
-			window.showAdminQR = (bookingId) => {
-
-document.getElementById('modal-qr-admin').classList.remove('hide');
-
-const qrContainer = document.getElementById("admin-qr");
-
-qrContainer.innerHTML = "";
-
-new QRCode(qrContainer,{
-text:`finish-booking-${bookingId}`,
-width:220,
-height:220
-});
-
-};
-
-
-function downloadQR(){
-
-const canvas = document.querySelector("#admin-qr canvas");
-
-if(!canvas){
-alert("QR belum tersedia");
-return;
-}
-
-const link = document.createElement("a");
-
-link.download = "qr-booking.png";
-
-link.href = canvas.toDataURL();
-
-link.click();
-
-}
         initAuth();
     </script>
-	<!-- MODAL QR ADMIN -->
-<div id="modal-qr-admin" class="fixed inset-0 z-[230] hide modal-overlay flex items-center justify-center p-4">
-
-<div class="bg-white p-6 rounded-3xl shadow-xl text-center">
-
-<h3 class="font-black mb-4">QR Penyelesaian Pesanan</h3>
-
-<div id="admin-qr" class="flex justify-center mb-4"></div>
-
-<button onclick="downloadQR()" 
-class="bg-indigo-600 text-white py-2 px-4 rounded-xl text-xs font-bold">
-Download QR
-</button>
-
-</div>
-
-</div>
 </body>
 </html>
