@@ -400,40 +400,27 @@
         </div>
     </div>
 
-    
-<script>
-/* FIX AGAR BISA JALAN DI FILE HTML STANDALONE */
-if (typeof __firebase_config === "undefined") {
-    window.__firebase_config = JSON.stringify({
-        apiKey: "demo",
-        authDomain: "demo.firebaseapp.com",
-        projectId: "demo",
-        storageBucket: "demo.appspot.com",
-        messagingSenderId: "demo",
-        appId: "demo"
-    });
-}
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-if (typeof __app_id === "undefined") {
-    window.__app_id = "traininghub-local";
-}
+        const firebaseConfig = {
+  		apiKey: "AIzaSyAdNlDuqIbpoZvb1f1_u6SC2zcFcXbB8DM",
+  		authDomain: "booking-ruang-training.firebaseapp.com",
+  		projectId: "booking-ruang-training",
+  		storageBucket: "booking-ruang-training.firebasestorage.app",
+  		messagingSenderId: "627204181280",
+  		appId: "1:627204181280:web:df6653f289326d65135b45"
+	};
 
-if (typeof __initial_auth_token === "undefined") {
-    window.__initial_auth_token = null;
-}
-</script>
+	const app = initializeApp(firebaseConfig);
+	const auth = getAuth(app);
+	const db = getFirestore(app);
+	const appId = "booking-ruang-training";
 
-<script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'traininghub-pro';
-
+	signInAnonymously(auth).catch(err => console.error(err));
+	
         let currentUser = null;
         let bookingType = 'room';
         const ADMIN_PASS = "1234";
@@ -1119,7 +1106,8 @@ if (typeof __initial_auth_token === "undefined") {
                             <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${getStatusClass(b.status)}">${b.status}</span>
                         </div>
                     </div>
-                    <div class="col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Peminjam</label><p class="font-bold text-xs truncate">${b.userName}</p></div>
+                    <div class="col-span-1">
+<label class="text-[10px] font-bold uppercase text-slate-400">Peminjam</label><p class="font-bold text-xs truncate">${b.userName}</p><p class="text-[10px] text-slate-500">${b.dept || '-'}</p></div>
                     <div class="col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Jadwal</label><p class="font-bold text-xs">${b.date}</p></div>
                     <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Tujuan</label><p class="bg-slate-50 p-3 rounded-xl text-xs">${b.goal}</p></div>
                     ${room ? `<div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Ruangan</label><p class="font-bold text-xs">${room.name}</p></div>` : ''}
@@ -1149,18 +1137,29 @@ if (typeof __initial_auth_token === "undefined") {
             }
 
             footer.innerHTML = '';
-            if(currentUser.role !== 'admin') {
-                if(b.status === 'Pending') {
-                    footer.innerHTML = `
-                        <button onclick="window.deleteBooking('${b.id}')" class="flex-1 border border-rose-200 text-rose-500 py-3 rounded-2xl font-bold text-xs">Batal</button>
-                        <button onclick="window.editBooking('${b.id}')" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">Edit</button>
-                    `;
-                } else if(b.status === 'Approved') {
-                    footer.innerHTML = `<button onclick="window.updateBookingStatus('${b.id}', 'Ongoing')" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">Mulai Sekarang</button>`;
-                } else if(b.status === 'Ongoing') {
-                    footer.innerHTML = `<button onclick="window.startScanner('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs"><i class="fas fa-qrcode"></i> Selesaikan Pesanan</button>`;
-                }
-            }
+
+if(currentUser.role !== 'admin') {
+
+    if(b.status === 'Pending') {
+        footer.innerHTML = `
+            <button onclick="window.deleteBooking('${b.id}')" class="flex-1 border border-rose-200 text-rose-500 py-3 rounded-2xl font-bold text-xs">Batal</button>
+            <button onclick="window.editBooking('${b.id}')" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">Edit</button>
+        `;
+    } 
+    else if(b.status === 'Approved' && b.userUid === currentUser.uid) {
+        footer.innerHTML = `
+            <button onclick="window.updateBookingStatus('${b.id}', 'Ongoing')" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">Mulai Sekarang</button>
+        `;
+    } 
+    else if(b.status === 'Ongoing') {
+        footer.innerHTML = `
+            <button onclick="window.startScanner('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
+            <i class="fas fa-qrcode"></i> Selesaikan Pesanan
+            </button>
+        `;
+    }
+
+}
             footer.classList.toggle('hide', footer.innerHTML === '');
             document.getElementById('modal-detail').classList.remove('hide');
         };
@@ -1261,17 +1260,20 @@ if (typeof __initial_auth_token === "undefined") {
             });
 
             const bookingData = {
-                type: bookingType, 
-                roomId: bookingType === 'room' ? roomId : null,
-                userName: currentUser.username, 
-                userUid: currentUser.uid, 
-                dept: currentUser.dept || 'Umum',
-                goal: document.getElementById('book-goal').value, 
-                date, start, end,
-                tools: selectedTools, 
-                status: 'Pending', 
-                updatedAt: serverTimestamp()
-            };
+    		type: bookingType, 
+    		roomId: bookingType === 'room' ? roomId : null,
+    		userName: currentUser.username, 
+    		userUid: currentUser.uid, 
+    		dept: currentUser.dept || 'Umum',
+    		goal: document.getElementById('book-goal').value, 
+    		date, start, end,
+    		tools: selectedTools, 
+    		status: 'Pending', 
+    		createdAt: serverTimestamp(),
+    		updatedAt: serverTimestamp()
+		};
+
+		await addDoc(collection(db, "bookings"), bookingData);
 
             if(editId) {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', editId), bookingData);
