@@ -1330,58 +1330,57 @@ document.getElementById('modal-detail').classList.remove('hide');
 };
 
         window.startScanner = (bookingId) => {
-            document.getElementById('modal-scanner').classList.remove('hide');
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            
-            html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
-                if (decodedText === `finish-booking-${bookingId}`) {
+    document.getElementById('modal-scanner').classList.remove('hide');
 
-    const fileInput = document.getElementById(`end-photo-${bookingId}`);
-    const file = fileInput.files[0];
+    html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-    if (!file) {
-        alert("Upload foto setelah digunakan dulu!");
-        return;
-    }
+    html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
 
-    const compressedFile = await compressImage(file);
+        if (decodedText === `finish-booking-${bookingId}`) {
 
-    const formData = new FormData();
-    formData.append("file", compressedFile);
-    formData.append("upload_preset", "traininghub");
+            const fileInput = document.getElementById(`end-photo-${bookingId}`);
+            const file = fileInput.files[0];
 
-    const res = await fetch("https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload", {
-        method: "POST",
-        body: formData
-    });
+            if (!file) {
+                alert("Upload foto setelah digunakan dulu!");
+                return;
+            }
 
-    const data = await res.json();
-    const photoURL = data.secure_url;
+            const compressedFile = await compressImage(file);
 
-    window.stopScanner();
+            const formData = new FormData();
+            formData.append("file", compressedFile);
+            formData.append("upload_preset", "traininghub");
+            formData.append("folder", "traininghub/end-photo");
 
-    await updateDoc(
-        doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId),
-        {
-            status: 'Completed',
-            finishedAt: serverTimestamp(),
-            endPhoto: photoURL
-        }
-    );
-
-    window.closeModal('modal-detail');
-    alert("Pesanan berhasil diselesaikan!");
-}
-                    });
-                    window.closeModal('modal-detail');
-                    alert("Pesanan berhasil diselesaikan!");
-                }
-            }).catch(err => {
-                console.error("Scanner Error:", err);
+            const res = await fetch("https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload", {
+                method: "POST",
+                body: formData
             });
-        };
 
+            const data = await res.json();
+            const photoURL = data.secure_url;
+
+            window.stopScanner();
+
+            await updateDoc(
+                doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId),
+                {
+                    status: 'Completed',
+                    finishedAt: serverTimestamp(),
+                    endPhoto: photoURL
+                }
+            );
+
+            window.closeModal('modal-detail');
+            alert("Pesanan berhasil diselesaikan!");
+        }
+
+    }).catch(err => {
+        console.error("Scanner Error:", err);
+    });
+};
         window.stopScanner = () => {
             if (html5QrCode) {
                 html5QrCode.stop().then(() => {
