@@ -172,7 +172,7 @@
                     </button>
                     <h2 class="text-lg md:text-xl font-bold text-slate-900 truncate" id="view-title">Dashboard</h2>
                     <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
-                    <div class="relative group hidden sm:block">
+                    <div class="relative group w-full sm:w-auto">
                         <select id="global-time-filter" onchange="window.handleTimeFilterChange(this.value)" class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 pr-8 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="this-month">Bulan Ini</option>
                             <option value="last-month">Bulan Lalu</option>
@@ -182,6 +182,20 @@
                         <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
                     </div>
                 </div>
+		
+		<div id="custom-date-container" class="hide mt-2 flex flex-col gap-2 w-full max-w-xs">
+    <input type="date" id="filter-start"
+        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
+
+    <input type="date" id="filter-end"
+        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
+
+    <button onclick="applyCustomFilter()"
+        class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-lg w-full">
+        Terapkan
+    </button>
+</div>
+		
                 <div id="header-actions">
                     <button id="btn-booking-trigger" onclick="openBooking()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-bold shadow-lg flex items-center gap-2">
                         <i class="fas fa-plus"></i> <span class="hidden sm:inline">Buat Pesanan</span><span class="sm:hidden">Pesan</span>
@@ -421,6 +435,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+	import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
@@ -435,6 +450,7 @@
 	const app = initializeApp(firebaseConfig);
 	const auth = getAuth(app);
 	const db = getFirestore(app);
+	const storage = getStorage(app);
 	const appId = "booking-ruang-training";
 
 	signInAnonymously(auth).catch(err => console.error(err));
@@ -472,45 +488,75 @@
         window.openRegister = () => document.getElementById('modal-register').classList.remove('hide');
 
         window.handleTimeFilterChange = (val) => {
-            filterMode = val;
-            const customContainer = document.getElementById('custom-date-container');
-            if(val === 'custom') {
-                if(customContainer) customContainer.classList.remove('hide');
-            } else {
-                if(customContainer) customContainer.classList.add('hide');
-                calculateFilterRange();
-                refreshUI();
-            }
-        };
+    filterMode = val;
 
-        window.applyCustomFilter = () => {
-            const start = document.getElementById('filter-start').value;
-            const end = document.getElementById('filter-end').value;
-            if(!start || !end) return;
-            filterRange = { start, end };
-            refreshUI();
-        };
+    const customContainer = document.getElementById('custom-date-container');
 
-        function calculateFilterRange() {
-            const today = new Date();
-            let start, end;
-            
-            if(filterMode === 'this-month') {
-                start = new Date(today.getFullYear(), today.getMonth(), 1);
-                end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            } else if(filterMode === 'last-month') {
-                start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                end = new Date(today.getFullYear(), today.getMonth(), 0);
-            } else if(filterMode === 'next-month') {
-                start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-                end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
-            } else {
-                return;
-            }
+    if (val === 'custom') {
+        if (customContainer) customContainer.classList.remove('hide');
 
-            const format = (d) => d.toISOString().split('T')[0];
-            filterRange = { start: format(start), end: format(end) };
-        }
+        document.getElementById('filter-start').value = filterRange.start || '';
+        document.getElementById('filter-end').value = filterRange.end || '';
+
+        return;
+    }
+
+    if (customContainer) customContainer.classList.add('hide');
+
+    calculateFilterRange();
+    refreshUI();
+    renderJadwal();
+    setTimeout(() => renderJadwal(), 100);
+};
+
+
+window.applyCustomFilter = () => {
+    const start = document.getElementById('filter-start').value;
+    const end = document.getElementById('filter-end').value;
+
+    if (!start || !end) {
+        alert("Isi tanggal dulu");
+        return;
+    }
+
+    if (start > end) {
+        alert("Tanggal tidak valid");
+        return;
+    }
+
+    filterMode = 'custom';
+    filterRange = { start, end };
+
+    refreshUI();
+    renderJadwal();
+};
+
+
+function calculateFilterRange() {
+    const today = new Date();
+    let start, end;
+
+    if (filterMode === 'this-month') {
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    } else if (filterMode === 'last-month') {
+        start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        end = new Date(today.getFullYear(), today.getMonth(), 0);
+
+    } else if (filterMode === 'next-month') {
+        start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+
+    } else {
+        return;
+    }
+
+    filterRange = {
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0]
+    };
+}
 
         function getFilteredBookings() {
             if(!filterRange.start || !filterRange.end) return localState.bookings;
@@ -976,7 +1022,8 @@
                 <div class="card-pop bg-white p-4 rounded-2xl border flex justify-between items-center group">
                     <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0">
                         <p class="font-bold text-sm truncate">${b.goal}</p>
-                        <p class="text-[10px] text-slate-400">${b.date} • ${b.start}-${b.end}</p>
+			<p class="text-[10px] text-slate-500 truncate">${b.name || b.userName || '-'} • ${b.department || b.dept || '-'}</p>
+			<p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p>
                     </div>
                     <div class="flex items-center gap-3 shrink-0">
                         <span onclick="window.openDetail('${b.id}')" class="text-[9px] font-black uppercase px-3 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
@@ -1088,10 +1135,13 @@
         };
 
         function renderJadwal() {
-            const approved = getFilteredBookings().filter(b => b.status === 'Approved' || b.status === 'Ongoing').sort((a,b) => a.date.localeCompare(b.date));
+            const approved = getFilteredBookings().filter(b => ['Approved','Ongoing','Pending'].includes(b.status)).sort((a,b) => a.date.localeCompare(b.date));
             const container = document.getElementById('calendar-list');
             if(approved.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada jadwal pemakaian di periode ini</div>`;
-            else container.innerHTML = approved.map(b => `<div onclick="window.openDetail('${b.id}')" class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex gap-4 cursor-pointer"><div class="text-center min-w-[50px]"><p class="text-xl font-black text-slate-900">${b.date.split('-')[2]}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${new Date(b.date).toLocaleString('id-ID', {month:'short'})}</p></div><div class="min-w-0"><p class="font-bold text-sm truncate">${b.goal}</p><p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p></div></div>`).join('');
+            else container.innerHTML = approved.map(b => `<div onclick="window.openDetail('${b.id}')" class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex gap-4 cursor-pointer"><div class="text-center min-w-[50px]"><p class="text-xl font-black text-slate-900">${b.date.split('-')[2]}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${new Date(b.date).toLocaleString('id-ID', {month:'short'})}</p></div><div class="min-w-0"><p <p class="font-bold text-sm truncate">${b.goal}</p>
+<p class="text-[10px] text-slate-500">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</p>
+<p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p>
+<p class="text-[10px] font-semibold ${b.status === 'Pending' ? 'text-yellow-600' : b.status === 'Approved' ? 'text-green-600' : b.status === 'Ongoing' ? 'text-blue-600' : 'text-slate-500'}">${b.status}</p></div></div>`).join('');
         }
 
         window.updateBookingStatus = async (id, status) => {
@@ -1183,10 +1233,22 @@ if(currentUser.role !== 'admin') {
     } 
     else if(b.status === 'Approved' && b.userUid === currentUser.uid) {
         footer.innerHTML = `
-            <button onclick="window.updateBookingStatus('${b.id}', 'Ongoing')" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">Mulai Sekarang</button>
+            <input type="file" 
+    id="start-photo-${b.id}" 
+    accept="image/*"
+    onchange="window.previewStartPhoto('${b.id}')"
+    class="text-xs mb-2 w-full" />
+
+<img id="preview-${b.id}" 
+    class="hidden mt-2 rounded-xl max-h-40 object-cover"/>
+
+<button onclick="window.startBooking('${b.id}')" 
+    class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
+    Mulai Sekarang
+</button>
         `;
     } 
-    else if(b.status === 'Ongoing') {
+    else if(b.status === 'Ongoing' && b.userUid === currentUser.uid) {
         footer.innerHTML = `
             <button onclick="window.startScanner('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
             <i class="fas fa-qrcode"></i> Selesaikan Pesanan
@@ -1195,9 +1257,10 @@ if(currentUser.role !== 'admin') {
     }
 
 }
-            footer.classList.toggle('hide', footer.innerHTML === '');
-            document.getElementById('modal-detail').classList.remove('hide');
-        };
+
+footer.classList.toggle('hide', footer.innerHTML === '');
+document.getElementById('modal-detail').classList.remove('hide');
+};
 
         window.startScanner = (bookingId) => {
             document.getElementById('modal-scanner').classList.remove('hide');
@@ -1300,12 +1363,13 @@ if(currentUser.role !== 'admin') {
     		userName: currentUser.username, 
     		userUid: currentUser.uid, 
     		dept: currentUser.dept || 'Umum',
+    		name: currentUser.username, department: currentUser.dept || 'Umum',
     		goal: document.getElementById('book-goal').value, 
     		date, start, end,
     		tools: selectedTools, 
-    		status: 'Pending', 
-    		createdAt: serverTimestamp(),
-    		updatedAt: serverTimestamp()
+    		status: 'Pending',
+		startedAt: null, finishedAt: null, startPhoto: null, endPhoto: null,
+		createdAt: serverTimestamp(),
 		};
 
 		await addDoc(collection(db, "bookings"), bookingData);
@@ -1378,8 +1442,76 @@ function injectBookingTimes(b){
 
     `;
 }
+
+const filterEl = document.getElementById('global-time-filter');
+if (filterEl) {
+    filterEl.addEventListener('input', (e) => window.handleTimeFilterChange(e.target.value));
+}
+
+window.updateBookingStatus = async (id, status) => {
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
+
+    if(status === 'Ongoing') {
+        await updateDoc(docRef, {
+            status: 'Ongoing',
+            startedAt: serverTimestamp()
+        });
+    } else {
+        await updateDoc(docRef, { status });
+    }
+};
 		
         initAuth();
+// === PREVIEW FOTO ===
+window.previewStartPhoto = (bookingId) => {
+    const input = document.getElementById(`start-photo-${bookingId}`);
+    const file = input.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById(`preview-${bookingId}`);
+        preview.src = e.target.result;
+        preview.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+};
+
+// === START BOOKING (WAJIB FOTO) ===
+window.startBooking = async (bookingId) => {
+    const fileInput = document.getElementById(`start-photo-${bookingId}`);
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert("⚠️ Upload foto dulu sebelum klik Mulai!");
+        return;
+    }
+
+    try {
+        const storageRef = ref(storage, `start_photos/${bookingId}_${Date.now()}`);
+        
+        // ⬇️ WAJIB ADA INI
+        await uploadBytes(storageRef, file);
+
+        // ⬇️ WAJIB ADA INI
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // ⬇️ WAJIB ADA INI
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
+            status: 'Ongoing',
+            startedAt: serverTimestamp(),
+            startPhoto: downloadURL
+        });
+
+        alert("✅ Berhasil mulai penggunaan!");
+        window.closeModal('modal-detail');
+
+    } catch (err) {
+        console.error("ERROR:", err);
+        alert("❌ Gagal upload foto!");
+    }
+};
     </script>
 </body>
 </html>
