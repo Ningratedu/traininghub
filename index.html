@@ -1530,7 +1530,7 @@ window.startBooking = async (bookingId) => {
         formData.append("file", compressedFile);
         formData.append("upload_preset", "traininghub");
 
-        const res = await fetch("https://api.cloudinary.com/v1_1/traininghub/image/upload", {
+        const res = await fetch("https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload", {
     method: "POST",
     body: formData
 });
