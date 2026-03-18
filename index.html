@@ -1534,8 +1534,10 @@ if (file.size > 3 * 1024 * 1024) {
 
     try {
 
-        const formData = new FormData();
-        formData.append("file", compressedFile);
+        const compressedFile = await compressImage(file);
+
+		const formData = new FormData();
+		formData.append("file", compressedFile);
         formData.append("upload_preset", "traininghub");
 
         const res = await fetch("https://api.cloudinary.com/v1_1/traininghub/image/upload", {
