@@ -1516,28 +1516,18 @@ window.startBooking = async (bookingId) => {
     const file = fileInput.files[0];
 
     if (!file) {
-        alert("Upload foto dulu!");
+        alert("Upload foto dulu sebelum mulai!");
         return;
     }
 
-	// validasi tipe file
-if (!file.type.startsWith("image/")) {
-    alert("File harus berupa gambar!");
-    return;
-}
-
-// validasi ukuran (max 3MB)
-if (file.size > 3 * 1024 * 1024) {
-    alert("Ukuran foto maksimal 3MB");
-    return;
-}
-
     try {
 
+        // kompres foto
         const compressedFile = await compressImage(file);
 
-		const formData = new FormData();
-		formData.append("file", compressedFile);
+        // upload ke cloudinary
+        const formData = new FormData();
+        formData.append("file", compressedFile);
         formData.append("upload_preset", "traininghub");
 
         const res = await fetch("https://api.cloudinary.com/v1_1/traininghub/image/upload", {
@@ -1548,17 +1538,21 @@ if (file.size > 3 * 1024 * 1024) {
         const data = await res.json();
         const downloadURL = data.secure_url;
 
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
-            status: 'Ongoing',
-            startedAt: serverTimestamp(),
-            startPhoto: downloadURL
-        });
+        // update firestore
+        await updateDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId),
+            {
+                status: 'Ongoing',
+                startedAt: serverTimestamp(),
+                startPhoto: downloadURL
+            }
+        );
 
-        alert("Berhasil mulai penggunaan!");
+        alert("Penggunaan ruangan dimulai!");
 
     } catch (err) {
         console.error(err);
-        alert("Upload gagal!");
+        alert("Upload foto gagal!");
     }
 };
     </script>
