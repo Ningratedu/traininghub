@@ -1330,6 +1330,15 @@ document.getElementById('modal-detail').classList.remove('hide');
 };
 
         window.startScanner = (bookingId) => {
+
+    const fileInput = document.getElementById(`end-photo-${bookingId}`);
+    const file = fileInput?.files[0];
+
+    if (!file) {
+        alert("Upload foto setelah digunakan dulu!");
+        return;
+    }
+
     document.getElementById('modal-scanner').classList.remove('hide');
 
     html5QrCode = new Html5Qrcode("reader");
@@ -1338,14 +1347,6 @@ document.getElementById('modal-detail').classList.remove('hide');
     html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
 
         if (decodedText === `finish-booking-${bookingId}`) {
-
-            const fileInput = document.getElementById(`end-photo-${bookingId}`);
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Upload foto setelah digunakan dulu!");
-                return;
-            }
 
             const compressedFile = await compressImage(file);
 
