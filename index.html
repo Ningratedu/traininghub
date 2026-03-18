@@ -433,10 +433,39 @@
     </div>
 
     <script type="module">
+		// ===== FUNGSI KOMPRES FOTO =====
+async function compressImage(file) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = e => {
+            img.src = e.target.result;
+        };
+
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const maxWidth = 1280;
+            const scale = maxWidth / img.width;
+
+            canvas.width = maxWidth;
+            canvas.height = img.height * scale;
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                resolve(blob);
+            }, "image/jpeg", 0.7);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-	import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+		import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+		import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
   apiKey: "AIzaSyAdNlDuqIbpoZvb1f1_u6SC2zcFcXbB8DM",
@@ -1484,32 +1513,47 @@ window.startBooking = async (bookingId) => {
     const file = fileInput.files[0];
 
     if (!file) {
-        alert("⚠️ Upload foto dulu sebelum klik Mulai!");
+        alert("Upload foto dulu!");
         return;
     }
 
+	// validasi tipe file
+if (!file.type.startsWith("image/")) {
+    alert("File harus berupa gambar!");
+    return;
+}
+
+// validasi ukuran (max 3MB)
+if (file.size > 3 * 1024 * 1024) {
+    alert("Ukuran foto maksimal 3MB");
+    return;
+}
+
     try {
-        const storageRef = ref(storage, `start_photos/${bookingId}_${Date.now()}`);
-        
-        // ⬇️ WAJIB ADA INI
-        await uploadBytes(storageRef, file);
 
-        // ⬇️ WAJIB ADA INI
-        const downloadURL = await getDownloadURL(storageRef);
+        const formData = new FormData();
+        formData.append("file", compressedFile);
+        formData.append("upload_preset", "traininghub");
 
-        // ⬇️ WAJIB ADA INI
+        const res = await fetch("https://api.cloudinary.com/v1_1/traininghub/image/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+        const downloadURL = data.secure_url;
+
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
             status: 'Ongoing',
             startedAt: serverTimestamp(),
             startPhoto: downloadURL
         });
 
-        alert("✅ Berhasil mulai penggunaan!");
-        window.closeModal('modal-detail');
+        alert("Berhasil mulai penggunaan!");
 
     } catch (err) {
-        console.error("ERROR:", err);
-        alert("❌ Gagal upload foto!");
+        console.error(err);
+        alert("Upload gagal!");
     }
 };
     </script>
