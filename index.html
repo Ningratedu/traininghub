@@ -1531,12 +1531,19 @@ window.startBooking = async (bookingId) => {
         formData.append("upload_preset", "traininghub");
 
         const res = await fetch("https://api.cloudinary.com/v1_1/traininghub/image/upload", {
-            method: "POST",
-            body: formData
-        });
+    method: "POST",
+    body: formData
+});
 
-        const data = await res.json();
-        const downloadURL = data.secure_url;
+const data = await res.json();
+
+if (!data.secure_url) {
+    console.error(data);
+    alert("Upload gagal!");
+    return;
+}
+
+const downloadURL = data.secure_url;
 
         // update firestore
         await updateDoc(
