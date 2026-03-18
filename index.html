@@ -1186,6 +1186,16 @@ function calculateFilterRange() {
             if(!b) return;
             const room = b.roomId ? localState.rooms.find(r => r.id == b.roomId) : null;
             const container = document.getElementById('detail-content');
+			let startPhotoHtml = "";
+
+if (b.startPhoto) {
+    startPhotoHtml = `
+        <div style="margin-top:10px">
+            <b>Foto Mulai:</b><br>
+            <img src="${b.startPhoto}" style="width:100%;max-width:300px;border-radius:8px">
+        </div>
+    `;
+}
             const footer = document.getElementById('detail-footer');
 
             let qrSection = '';
@@ -1240,6 +1250,15 @@ function calculateFilterRange() {
 
 </div>
 </div>
+
+${b.startPhoto ? `
+<div class="col-span-2 pt-2 border-t">
+<label class="text-[10px] font-bold uppercase text-slate-400">Foto Mulai</label>
+<div class="mt-2">
+<img src="${b.startPhoto}" class="w-full max-w-[320px] rounded-xl border">
+</div>
+</div>
+` : ''}
                     ${qrSection}
                 </div>`;
             
