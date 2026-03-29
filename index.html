@@ -140,7 +140,7 @@
                         <i class="fas fa-calendar-alt w-5"></i> Kalender
                     </button>
                     <div id="user-menu-section" class="hide">
-                        <button onclick="showView('riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="riwayat">
+                        <button onclick="showView('view-riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="riwayat">
                             <i class="fas fa-history w-5"></i> Pesanan Saya
                         </button>
                     </div>
@@ -930,14 +930,41 @@ function calculateFilterRange() {
         };
 
         window.showView = (id, titleText = null) => {
-            document.querySelectorAll('.view').forEach(v => v.classList.add('hide'));
-            document.getElementById('view-' + id).classList.remove('hide');
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('sidebar-item-active', btn.dataset.view === id));
-            
-            if(titleText) {
-                document.getElementById('view-title').innerText = titleText;
-            }
 
+    // sembunyikan semua view
+    document.querySelectorAll('.view').forEach(v => 
+        v.classList.add('hide')
+    );
+
+    // ambil view target
+    const targetView = document.getElementById('view-' + id);
+
+    // kalau view tidak ditemukan
+    if (!targetView) {
+        console.error("View tidak ditemukan:", 'view-' + id);
+        return;
+    }
+
+    // tampilkan view
+    targetView.classList.remove('hide');
+
+    // aktifkan menu sidebar
+    document.querySelectorAll('.nav-btn').forEach(btn => 
+        btn.classList.toggle(
+            'sidebar-item-active',
+            btn.dataset.view === id
+        )
+    );
+
+    // update title
+    if (titleText) {
+        const titleEl = document.getElementById('view-title');
+        if (titleEl) {
+            titleEl.innerText = titleText;
+        }
+    }
+
+};
             // Close mobile sidebar after selecting view
             const sidebar = document.getElementById('mobile-sidebar');
             const overlay = document.getElementById('mobile-sidebar-overlay');
