@@ -932,14 +932,13 @@ function calculateFilterRange() {
         window.showView = (id, titleText = null) => {
 
     // sembunyikan semua view
-    document.querySelectorAll('.view').forEach(v => 
+    document.querySelectorAll('.view').forEach(v =>
         v.classList.add('hide')
     );
 
     // ambil view target
     const targetView = document.getElementById('view-' + id);
 
-    // kalau view tidak ditemukan
     if (!targetView) {
         console.error("View tidak ditemukan:", 'view-' + id);
         return;
@@ -949,7 +948,7 @@ function calculateFilterRange() {
     targetView.classList.remove('hide');
 
     // aktifkan menu sidebar
-    document.querySelectorAll('.nav-btn').forEach(btn => 
+    document.querySelectorAll('.nav-btn').forEach(btn =>
         btn.classList.toggle(
             'sidebar-item-active',
             btn.dataset.view === id
@@ -964,18 +963,18 @@ function calculateFilterRange() {
         }
     }
 
-};
-            // Close mobile sidebar after selecting view
-            const sidebar = document.getElementById('mobile-sidebar');
-            const overlay = document.getElementById('mobile-sidebar-overlay');
-            if(sidebar.classList.contains('sidebar-open')) {
-                sidebar.classList.remove('sidebar-open');
-                overlay.classList.add('hide');
-            }
-            
-            refreshUI();
-        };
+    // tutup sidebar mobile
+    const sidebar = document.getElementById('mobile-sidebar');
+    const overlay = document.getElementById('mobile-sidebar-overlay');
 
+    if (sidebar.classList.contains('sidebar-open')) {
+        sidebar.classList.remove('sidebar-open');
+        overlay.classList.add('hide');
+    }
+
+    // refresh UI
+    refreshUI();
+};
         window.logout = () => location.reload();
 
         window.switchDashTab = (type) => {
