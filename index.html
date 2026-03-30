@@ -434,9 +434,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-	import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
   		apiKey: "AIzaSyAdNlDuqIbpoZvb1f1_u6SC2zcFcXbB8DM",
@@ -450,7 +449,6 @@
 	const app = initializeApp(firebaseConfig);
 	const auth = getAuth(app);
 	const db = getFirestore(app);
-	const storage = getStorage(app);
 	const appId = "booking-ruang-training";
 
 	signInAnonymously(auth).catch(err => console.error(err));
@@ -1513,7 +1511,10 @@ window.previewStartPhoto = (bookingId) => {
 
 // === START BOOKING (WAJIB FOTO) ===
 window.startBooking = async (bookingId) => {
-    const fileInput = document.getElementById(`start-photo-${bookingId}`);
+
+    const fileInput =
+        document.getElementById(`start-photo-${bookingId}`);
+
     const file = fileInput.files[0];
 
     if (!file) {
@@ -1522,30 +1523,45 @@ window.startBooking = async (bookingId) => {
     }
 
     try {
-        const storageRef = ref(storage, `start_photos/${bookingId}_${Date.now()}`);
-        
-        // ⬇️ WAJIB ADA INI
-        await uploadBytes(storageRef, file);
 
-        // ⬇️ WAJIB ADA INI
-        const downloadURL = await getDownloadURL(storageRef);
+        const reader = new FileReader();
 
-        // ⬇️ WAJIB ADA INI
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
-            status: 'Ongoing',
-            startedAt: serverTimestamp(),
-            startPhoto: downloadURL
-        });
+        reader.onload = async function(e) {
 
-        alert("✅ Berhasil mulai penggunaan!");
-        window.closeModal('modal-detail');
+            const base64Photo = e.target.result;
+
+            await updateDoc(
+                doc(
+                    db,
+                    'artifacts',
+                    appId,
+                    'public',
+                    'data',
+                    'bookings',
+                    bookingId
+                ),
+                {
+                    status: 'Ongoing',
+                    startedAt: serverTimestamp(),
+                    startPhoto: base64Photo
+                }
+            );
+
+            alert("✅ Berhasil mulai penggunaan!");
+            window.closeModal('modal-detail');
+
+        };
+
+        reader.readAsDataURL(file);
 
     } catch (err) {
+
         console.error("ERROR:", err);
         alert("❌ Gagal upload foto!");
-    }
-};
 
+    }
+
+};
 // === FINISH BOOKING (FOTO AKHIR) ===
 window.finishBooking = async (bookingId) => {
 
