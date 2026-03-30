@@ -268,8 +268,10 @@
                     </div>
                 </div>
 
-                <div id="view-jadwal" class="view hide"><div id="calendar-list" class="space-y-4"></div></div>
-                <div id="view-riwayat" class="view hide"><div id="my-booking-list" class="space-y-4"></div></div>
+                <div id="view-jadwal" class="view hide">
+    <div id="calendar-container"></div>
+    <div id="calendar-detail" class="mt-6"></div>
+</div>
                 <div id="view-approval" class="view hide"><div id="approval-list" class="space-y-4"></div></div>
                 <div id="view-master-data" class="view hide">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1074,6 +1076,31 @@ function calculateFilterRange() {
                 window.closeModal('modal-detail');
             }
         };
+
+window.showDateDetail = (date) => {
+    const list = localState.bookings.filter(b => b.date === date);
+    const container = document.getElementById('calendar-detail');
+
+    if(list.length === 0){
+        container.innerHTML = `
+            <div class="text-center text-slate-400 py-6">
+                Tidak ada pesanan di tanggal ini
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = list.map(b => `
+        <div class="bg-white p-4 rounded-2xl border mb-2">
+            <p class="font-bold">${b.goal}</p>
+            <p class="text-xs text-slate-500">
+                ${b.start} - ${b.end} • ${b.userName}
+            </p>
+            <span class="text-[10px] px-2 py-1 rounded ${getStatusClass(b.status)}">
+                ${b.status}
+            </span>
+        </div>
+    `).join('');
+};
 
         function renderApproval() {
             const pending = getFilteredBookings().filter(b => b.status === 'Pending');
