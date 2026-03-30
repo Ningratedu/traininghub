@@ -1249,12 +1249,29 @@ if(currentUser.role !== 'admin') {
         `;
     } 
     else if(b.status === 'Ongoing' && b.userUid === currentUser.uid) {
-        footer.innerHTML = `
-            <button onclick="window.startScanner('${b.id}')" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs">
-            <i class="fas fa-qrcode"></i> Selesaikan Pesanan
-            </button>
-        `;
-    }
+    footer.innerHTML = `
+
+<input type="file" 
+id="finish-photo-${b.id}" 
+accept="image/*"
+class="text-xs mb-2 w-full" />
+
+<button onclick="window.finishBooking('${b.id}')" 
+class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
+
+Upload Foto Akhir
+
+</button>
+
+<button onclick="window.startScanner('${b.id}')" 
+class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black mt-2">
+
+Scan QR Selesai
+
+</button>
+
+`;
+}
 
 }
 
@@ -1426,7 +1443,7 @@ function injectBookingTimes(b){
 
     return `
 
-    <div class="mt-4 border-t pt-3 text-xs text-slate-600 space-y-1">
+    <div class="mt-4 border-t pt-3 text-xs text-slate-600 space-y-2">
 
         <div><b>Dibuat:</b> ${created}</div>
 
@@ -1437,6 +1454,22 @@ function injectBookingTimes(b){
         ${started !== "-" ? `<div><b>Actual Mulai:</b> ${started}</div>` : ""}
 
         ${finished !== "-" ? `<div><b>Actual Selesai:</b> ${finished}</div>` : ""}
+
+        ${b.startPhoto ? `
+        <div class="mt-3">
+            <b>Foto Awal:</b>
+            <img src="${b.startPhoto}" 
+                 class="mt-1 rounded-xl max-h-40 border object-cover"/>
+        </div>
+        ` : ""}
+
+        ${b.finishPhoto ? `
+        <div class="mt-3">
+            <b>Foto Akhir:</b>
+            <img src="${b.finishPhoto}" 
+                 class="mt-1 rounded-xl max-h-40 border object-cover"/>
+        </div>
+        ` : ""}
 
     </div>
 
@@ -1510,6 +1543,45 @@ window.startBooking = async (bookingId) => {
     } catch (err) {
         console.error("ERROR:", err);
         alert("❌ Gagal upload foto!");
+    }
+};
+
+// === FINISH BOOKING (FOTO AKHIR) ===
+window.finishBooking = async (bookingId) => {
+
+    const fileInput = document.getElementById(`finish-photo-${bookingId}`);
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert("⚠️ Upload foto akhir dulu!");
+        return;
+    }
+
+    try {
+
+        const storageRef = ref(
+            storage, 
+            `finish_photos/${bookingId}_${Date.now()}`
+        );
+
+        await uploadBytes(storageRef, file);
+
+        const downloadURL = await getDownloadURL(storageRef);
+
+        await updateDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId),
+            {
+                finishPhoto: downloadURL
+            }
+        );
+
+        alert("✅ Foto akhir berhasil diupload!");
+
+    } catch (err) {
+
+        console.error("ERROR:", err);
+        alert("❌ Gagal upload foto akhir!");
+
     }
 };
     </script>
