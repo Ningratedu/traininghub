@@ -140,7 +140,7 @@
                         <i class="fas fa-calendar-alt w-5"></i> Kalender
                     </button>
                     <div id="user-menu-section" class="hide">
-                        <button onclick="showView('view-riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="riwayat">
+                        <button onclick="showView('riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 rounded-lg" data-view="riwayat">
                             <i class="fas fa-history w-5"></i> Pesanan Saya
                         </button>
                     </div>
@@ -272,28 +272,7 @@
     <div id="calendar-container"></div>
     <div id="calendar-detail" class="mt-6"></div>
 </div>
-
-<!-- TAMBAHKAN INI -->
-<div id="view-riwayat" class="view hide">
-
-    <div class="p-4">
-
-        <h1 class="text-lg font-bold mb-4">
-            Pesanan Saya
-        </h1>
-
-        <div id="riwayat-container"
-             class="space-y-3">
-
-            <!-- isi riwayat booking muncul di sini -->
-
-        </div>
-
-    </div>
-
-</div>
-
-<div id="view-approval" class="view hide"><div id="approval-list" class="space-y-4"></div></div>
+                <div id="view-approval" class="view hide"><div id="approval-list" class="space-y-4"></div></div>
                 <div id="view-master-data" class="view hide">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
@@ -930,51 +909,25 @@ function calculateFilterRange() {
         };
 
         window.showView = (id, titleText = null) => {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hide'));
+            document.getElementById('view-' + id).classList.remove('hide');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('sidebar-item-active', btn.dataset.view === id));
+            
+            if(titleText) {
+                document.getElementById('view-title').innerText = titleText;
+            }
 
-    // sembunyikan semua view
-    document.querySelectorAll('.view').forEach(v =>
-        v.classList.add('hide')
-    );
+            // Close mobile sidebar after selecting view
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+            if(sidebar.classList.contains('sidebar-open')) {
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.add('hide');
+            }
+            
+            refreshUI();
+        };
 
-    // ambil view target
-    const targetView = document.getElementById('view-' + id);
-
-    if (!targetView) {
-        console.error("View tidak ditemukan:", 'view-' + id);
-        return;
-    }
-
-    // tampilkan view
-    targetView.classList.remove('hide');
-
-    // aktifkan menu sidebar
-    document.querySelectorAll('.nav-btn').forEach(btn =>
-        btn.classList.toggle(
-            'sidebar-item-active',
-            btn.dataset.view === id
-        )
-    );
-
-    // update title
-    if (titleText) {
-        const titleEl = document.getElementById('view-title');
-        if (titleEl) {
-            titleEl.innerText = titleText;
-        }
-    }
-
-    // tutup sidebar mobile
-    const sidebar = document.getElementById('mobile-sidebar');
-    const overlay = document.getElementById('mobile-sidebar-overlay');
-
-    if (sidebar.classList.contains('sidebar-open')) {
-        sidebar.classList.remove('sidebar-open');
-        overlay.classList.add('hide');
-    }
-
-    // refresh UI
-    refreshUI();
-};
         window.logout = () => location.reload();
 
         window.switchDashTab = (type) => {
@@ -1241,97 +1194,20 @@ window.showDateDetail = (date) => {
         };
 
         function renderJadwal() {
-    const container = document.getElementById('calendar-container');
-    const detail = document.getElementById('calendar-detail');
-
-    if (!container || !detail) return;
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
-
-    let html = `
-        <div class="bg-white p-6 rounded-3xl border">
-            <h3 class="font-bold text-lg mb-4">
-                ${today.toLocaleString('id-ID', { month: 'long', year: 'numeric' })}
-            </h3>
-            <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-400 mb-2">
-                <div>Min</div><div>Sen</div><div>Sel</div>
-                <div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
-            </div>
-            <div class="grid grid-cols-7 gap-2">
-    `;
-
-    for(let i=0;i<firstDay;i++){
-        html += `<div></div>`;
-    }
-
-    for(let d=1; d<=lastDate; d++){
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const bookings = localState.bookings.filter(b => b.date === dateStr);
-
-        let dots = bookings.map(b => {
-            let color = 'bg-slate-300';
-            if(b.status === 'Approved') color = 'bg-emerald-500';
-            if(b.status === 'Pending') color = 'bg-amber-500';
-            if(b.status === 'Rejected') color = 'bg-rose-500';
-            if(b.status === 'Ongoing') color = 'bg-blue-500';
-
-            return `<span class="w-2 h-2 rounded-full ${color}"></span>`;
-        }).join('');
-
-        html += `
-            <div onclick="showDateDetail('${dateStr}')"
-                class="cursor-pointer p-2 rounded-xl hover:bg-indigo-50 border text-xs">
-                <div class="font-bold">${d}</div>
-                <div class="flex gap-1 justify-center mt-1 flex-wrap">
-                    ${dots}
-                </div>
-            </div>
-        `;
-    }
-
-    html += `</div></div>`;
-
-    container.innerHTML = html;
-    detail.innerHTML = `<div class="text-center text-slate-400 text-sm">Klik tanggal untuk lihat detail</div>`;
-}
+            const approved = getFilteredBookings().filter(b => ['Approved','Ongoing','Pending'].includes(b.status)).sort((a,b) => a.date.localeCompare(b.date));
+            const container = document.getElementById('calendar-list');
+            if(approved.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada jadwal pemakaian di periode ini</div>`;
+            else container.innerHTML = approved.map(b => `<div onclick="window.openDetail('${b.id}')" class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex gap-4 cursor-pointer"><div class="text-center min-w-[50px]"><p class="text-xl font-black text-slate-900">${b.date.split('-')[2]}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${new Date(b.date).toLocaleString('id-ID', {month:'short'})}</p></div><div class="min-w-0"><p <p class="font-bold text-sm truncate">${b.goal}</p>
+<p class="text-[10px] text-slate-500">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</p>
+<p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p>
+<p class="text-[10px] font-semibold ${b.status === 'Pending' ? 'text-yellow-600' : b.status === 'Approved' ? 'text-green-600' : b.status === 'Ongoing' ? 'text-blue-600' : 'text-slate-500'}">${b.status}</p></div></div>`).join('');
+        }
 
         window.updateBookingStatus = async (id, status) => {
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { status });
             window.closeModal('modal-detail');
         };
 
-		window.showDateDetail = (date) => {
-    const list = localState.bookings.filter(b => b.date === date);
-    const container = document.getElementById('calendar-detail');
-
-    if(!container) return;
-
-    if(list.length === 0){
-        container.innerHTML = `
-            <div class="text-center text-slate-400 py-6">
-                Tidak ada pesanan di tanggal ini
-            </div>`;
-        return;
-    }
-
-    container.innerHTML = list.map(b => `
-        <div class="bg-white p-4 rounded-2xl border mb-2">
-            <p class="font-bold">${b.goal}</p>
-            <p class="text-xs text-slate-500">
-                ${b.start} - ${b.end} • ${b.userName}
-            </p>
-            <span class="text-[10px] px-2 py-1 rounded ${getStatusClass(b.status)}">
-                ${b.status}
-            </span>
-        </div>
-    `).join('');
-};
-		
         window.openDetail = (id) => {
             const b = localState.bookings.find(x => x.id === id);
             if(!b) return;
@@ -1781,12 +1657,6 @@ const downloadURL = data.secure_url;
         alert("Upload foto gagal!");
     }
 };
-		
-	document.addEventListener('click', function(e){
-    if(e.target.innerText && e.target.innerText.includes('Kalender')){
-        setTimeout(() => renderJadwal(), 100);
-    }
-});
     </script>
 </body>
 </html>
