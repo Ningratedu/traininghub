@@ -1526,9 +1526,7 @@ window.previewStartPhoto = (bookingId) => {
 // === START BOOKING (WAJIB FOTO) ===
 window.startBooking = async (bookingId) => {
 
-    const fileInput =
-        document.getElementById(`start-photo-${bookingId}`);
-
+    const fileInput = document.getElementById(`start-photo-${bookingId}`);
     const file = fileInput.files[0];
 
     if (!file) {
@@ -1538,43 +1536,44 @@ window.startBooking = async (bookingId) => {
 
     try {
 
-        const reader = new FileReader();
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "traininghub");
 
-        reader.onload = async function(e) {
+        // upload ke Cloudinary
+        const response = await fetch(
+            "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
 
-            const base64Photo = e.target.result;
+        const data = await response.json();
 
-            await updateDoc(
-                doc(
-                    db,
-                    'artifacts',
-                    appId,
-                    'public',
-                    'data',
-                    'bookings',
-                    bookingId
-                ),
-                {
-                    status: 'Ongoing',
-                    startedAt: serverTimestamp(),
-                    startPhoto: base64Photo
-                }
-            );
+        if (!data.secure_url) {
+            throw new Error("Upload gagal");
+        }
 
-            alert("✅ Berhasil mulai penggunaan!");
-            window.closeModal('modal-detail');
+        const photoURL = data.secure_url;
 
-        };
+        // simpan ke Firestore
+        await updateDoc(doc(db, "bookings", bookingId), {
+            startPhoto: photoURL,
+            status: "Berlangsung",
+            startTime: new Date()
+        });
 
-        reader.readAsDataURL(file);
+        alert("✅ Booking berhasil dimulai!");
 
-    } catch (err) {
+        window.loadBookings();
 
-        console.error("ERROR:", err);
-        alert("❌ Gagal upload foto!");
+    } catch (error) {
+
+        console.error("Upload error:", error);
+        alert("❌ Gagal upload foto awal");
 
     }
-
 };
 // === FINISH BOOKING (FOTO AKHIR) ===
 window.finishBooking = async (bookingId) => {
