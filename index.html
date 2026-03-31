@@ -1255,7 +1255,8 @@ if(currentUser.role !== 'admin') {
         `;
     } 
     else if(b.status === 'Ongoing' && b.userUid === currentUser.uid) {
-    footer.innerHTML = `
+
+footer.innerHTML = `
 
 <input type="file" 
 id="finish-photo-${b.id}" 
@@ -1269,6 +1270,8 @@ Upload Foto Akhir
 
 </button>
 
+${b.finishPhoto ? `
+
 <button onclick="window.startScanner('${b.id}')" 
 class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black mt-2">
 
@@ -1276,7 +1279,10 @@ Scan QR Selesai
 
 </button>
 
+` : ""}
+
 `;
+
 }
 
 }
@@ -1593,7 +1599,15 @@ window.finishBooking = async (bookingId) => {
         const downloadURL = await getDownloadURL(storageRef);
 
         await updateDoc(
-            doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId),
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                'bookings',
+                bookingId
+            ),
             {
                 finishPhoto: downloadURL
             }
@@ -1601,12 +1615,16 @@ window.finishBooking = async (bookingId) => {
 
         alert("✅ Foto akhir berhasil diupload!");
 
+        // 🔥 REFRESH UI
+        window.closeModal('modal-detail');
+
     } catch (err) {
 
         console.error("ERROR:", err);
         alert("❌ Gagal upload foto akhir!");
 
     }
+
 };
     </script>
 </body>
