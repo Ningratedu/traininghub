@@ -1261,12 +1261,32 @@ window.openDetail = (id) => {
             `;
         }
 
-        else if(b.status === 'Ongoing' && b.userUid === currentUser.uid) {
-            footer.innerHTML = `
-                <input type="file" id="finish-photo-${b.id}" accept="image/*"/>
-                <button onclick="window.finishBooking('${b.id}')">Upload Foto Akhir</button>
-            `;
-        }
+       else if(b.status === 'Ongoing' && b.userUid === currentUser.uid) {
+
+footer.innerHTML = `
+
+<input type="file" 
+id="finish-photo-${b.id}" 
+accept="image/*"
+class="text-xs mb-2 w-full" />
+
+<button onclick="window.finishBooking('${b.id}')" 
+class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
+Upload Foto Akhir
+</button>
+
+${b.finishPhoto ? `
+
+<button onclick="window.startScanner('${b.id}')" 
+class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black mt-2">
+Scan QR Selesai
+</button>
+
+` : ""}
+
+`;
+
+}
     }
 
     footer.classList.toggle('hide', footer.innerHTML === '');
@@ -1300,7 +1320,8 @@ window.startBooking = async (id) => {
     );
 
     alert("Mulai berhasil");
-    window.loadBookings();
+    window.closeModal('modal-detail');
+window.showView('riwayat','Pesanan Saya');
 };
 
 // ================= FINISH BOOKING (FIXED) =================
@@ -1328,8 +1349,14 @@ window.finishBooking = async (id) => {
         }
     );
 
-    alert("Selesai");
-    window.loadBookings();
+    alert("Selesai upload");
+
+window.closeModal('modal-detail');
+
+setTimeout(()=>{
+    window.openDetail(id);
+},300);
+window.showView('riwayat','Pesanan Saya');
 };
 
 // ================= TIME FORMAT =================
