@@ -1225,11 +1225,27 @@ window.openDetail = (id) => {
 
             <div class="col-span-2 bg-slate-50 p-2 rounded">${b.goal}</div>
 
-            ${room ? `<div class="col-span-2 text-xs font-bold">${room.name}</div>` : ''}
+           ${room ? `<div class="col-span-2 text-xs font-bold">${room.name}</div>` : ''}
 
-            ${injectBookingTimes(b)}
+<!-- ✅ TOOLS APPROVED SAJA -->
+<div class="col-span-2">
+    <label class="text-[10px] font-bold uppercase text-slate-400">Alat Digunakan</label>
+    <div class="flex flex-wrap gap-2 mt-1">
+        ${
+            (b.tools || []).length
+            ? b.tools.map(t => `
+                <span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-bold">
+                    ✔ ${t.name}
+                </span>
+            `).join('')
+            : `<span class="text-slate-400 text-xs italic">Tidak ada alat</span>`
+        }
+    </div>
+</div>
 
-            ${qrSection}
+${injectBookingTimes(b)}
+
+${qrSection}
         </div>
     `;
 
@@ -1254,10 +1270,10 @@ window.openDetail = (id) => {
             `;
         }
 
-        else if(
+       else if(
     (b.status || "").toLowerCase() === 'approved' &&
     b.userUid == currentUser.uid
-)
+){
             footer.innerHTML = `
                 <input type="file" id="start-photo-${b.id}" accept="image/*"/>
                 <button onclick="window.startBooking('${b.id}')">Mulai</button>
