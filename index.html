@@ -1523,7 +1523,6 @@ window.previewStartPhoto = (bookingId) => {
     reader.readAsDataURL(file);
 };
 
-// === START BOOKING (WAJIB FOTO) ===
 // === START BOOKING (FOTO AWAL) ===
 window.startBooking = async (bookingId) => {
 
@@ -1571,9 +1570,17 @@ window.startBooking = async (bookingId) => {
 
         const photoURL = data.secure_url;
 
-        // 🔥 Simpan ke Firestore
+        // 🔥 UPDATE FIRESTORE (PATH SUDAH BENAR)
         await updateDoc(
-            doc(db, "bookings", bookingId),
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                'bookings',
+                bookingId
+            ),
             {
                 startPhoto: photoURL,
                 status: "Berlangsung",
@@ -1583,7 +1590,6 @@ window.startBooking = async (bookingId) => {
 
         alert("✅ Booking berhasil dimulai!");
 
-        // refresh UI
         window.loadBookings();
 
     } catch (error) {
@@ -1643,9 +1649,17 @@ window.finishBooking = async (bookingId) => {
 
         const photoURL = data.secure_url;
 
-        // 🔥 Simpan ke Firestore (PATH SUDAH DIPERBAIKI)
+        // 🔥 UPDATE FIRESTORE (PATH DISAMAKAN)
         await updateDoc(
-            doc(db, "bookings", bookingId),
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                'bookings',
+                bookingId
+            ),
             {
                 finishPhoto: photoURL,
                 status: "Selesai",
@@ -1655,10 +1669,8 @@ window.finishBooking = async (bookingId) => {
 
         alert("✅ Booking selesai!");
 
-        // refresh UI
         window.loadBookings();
 
-        // tutup modal kalau ada
         if (window.closeModal) {
             window.closeModal('modal-detail');
         }
