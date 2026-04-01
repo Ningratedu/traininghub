@@ -1524,9 +1524,23 @@ window.previewStartPhoto = (bookingId) => {
 };
 
 // === START BOOKING (WAJIB FOTO) ===
+// === START BOOKING (FOTO AWAL) ===
 window.startBooking = async (bookingId) => {
 
+    console.log("START BOOKING ID:", bookingId);
+
+    if (!bookingId) {
+        alert("❌ Booking ID tidak ditemukan!");
+        return;
+    }
+
     const fileInput = document.getElementById(`start-photo-${bookingId}`);
+
+    if (!fileInput) {
+        alert("❌ Input foto tidak ditemukan!");
+        return;
+    }
+
     const file = fileInput.files[0];
 
     if (!file) {
@@ -1540,7 +1554,7 @@ window.startBooking = async (bookingId) => {
         formData.append("file", file);
         formData.append("upload_preset", "traininghub");
 
-        // upload ke Cloudinary
+        // 🔥 Upload ke Cloudinary
         const response = await fetch(
             "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
             {
@@ -1552,20 +1566,24 @@ window.startBooking = async (bookingId) => {
         const data = await response.json();
 
         if (!data.secure_url) {
-            throw new Error("Upload gagal");
+            throw new Error("Upload gagal ke Cloudinary");
         }
 
         const photoURL = data.secure_url;
 
-        // simpan ke Firestore
-        await updateDoc(doc(db, "bookings", bookingId), {
-            startPhoto: photoURL,
-            status: "Berlangsung",
-            startTime: new Date()
-        });
+        // 🔥 Simpan ke Firestore
+        await updateDoc(
+            doc(db, "bookings", bookingId),
+            {
+                startPhoto: photoURL,
+                status: "Berlangsung",
+                startTime: new Date()
+            }
+        );
 
         alert("✅ Booking berhasil dimulai!");
 
+        // refresh UI
         window.loadBookings();
 
     } catch (error) {
@@ -1575,10 +1593,26 @@ window.startBooking = async (bookingId) => {
 
     }
 };
+
+
+
 // === FINISH BOOKING (FOTO AKHIR) ===
 window.finishBooking = async (bookingId) => {
 
+    console.log("FINISH BOOKING ID:", bookingId);
+
+    if (!bookingId) {
+        alert("❌ Booking ID tidak ditemukan!");
+        return;
+    }
+
     const fileInput = document.getElementById(`finish-photo-${bookingId}`);
+
+    if (!fileInput) {
+        alert("❌ Input foto akhir tidak ditemukan!");
+        return;
+    }
+
     const file = fileInput.files[0];
 
     if (!file) {
@@ -1588,34 +1622,46 @@ window.finishBooking = async (bookingId) => {
 
     try {
 
-        const storageRef = ref(
-            storage, 
-            `finish_photos/${bookingId}_${Date.now()}`
-        );
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "traininghub");
 
-        await uploadBytes(storageRef, file);
-
-        const downloadURL = await getDownloadURL(storageRef);
-
-        await updateDoc(
-            doc(
-                db,
-                'artifacts',
-                appId,
-                'public',
-                'data',
-                'bookings',
-                bookingId
-            ),
+        // 🔥 Upload ke Cloudinary
+        const response = await fetch(
+            "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
             {
-                finishPhoto: downloadURL
+                method: "POST",
+                body: formData
             }
         );
 
-        alert("✅ Foto akhir berhasil diupload!");
+        const data = await response.json();
 
-        // 🔥 REFRESH UI
-        window.closeModal('modal-detail');
+        if (!data.secure_url) {
+            throw new Error("Upload gagal ke Cloudinary");
+        }
+
+        const photoURL = data.secure_url;
+
+        // 🔥 Simpan ke Firestore (PATH SUDAH DIPERBAIKI)
+        await updateDoc(
+            doc(db, "bookings", bookingId),
+            {
+                finishPhoto: photoURL,
+                status: "Selesai",
+                finishTime: new Date()
+            }
+        );
+
+        alert("✅ Booking selesai!");
+
+        // refresh UI
+        window.loadBookings();
+
+        // tutup modal kalau ada
+        if (window.closeModal) {
+            window.closeModal('modal-detail');
+        }
 
     } catch (err) {
 
