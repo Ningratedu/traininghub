@@ -1292,7 +1292,51 @@ Scan QR Selesai
     footer.classList.toggle('hide', footer.innerHTML === '');
     document.getElementById('modal-detail').classList.remove('hide');
 };
+		window.startScanner = (bookingId) => {
 
+    document.getElementById('modal-scanner').classList.remove('hide');
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        async (decodedText) => {
+
+            if (decodedText === `finish-booking-${bookingId}`) {
+
+                window.stopScanner();
+
+                await updateDoc(
+                    doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId),
+                    {
+                        status: 'Completed',
+                        finishedAt: serverTimestamp()
+                    }
+                );
+
+                alert("✅ Pesanan selesai!");
+
+                window.closeModal('modal-detail');
+                window.showView('riwayat','Pesanan Saya');
+            }
+        }
+    ).catch(err => {
+        console.error("Scanner error:", err);
+    });
+};
+
+		window.stopScanner = () => {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('modal-scanner').classList.add('hide');
+        }).catch(() => {
+            document.getElementById('modal-scanner').classList.add('hide');
+        });
+    }
+};
 // ================= START BOOKING (FIXED) =================
 window.startBooking = async (id) => {
 
