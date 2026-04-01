@@ -1254,7 +1254,10 @@ window.openDetail = (id) => {
             `;
         }
 
-        else if(b.status === 'Approved' && b.userUid === currentUser.uid) {
+        else if(
+    (b.status || "").toLowerCase() === 'approved' &&
+    b.userUid == currentUser.uid
+)
             footer.innerHTML = `
                 <input type="file" id="start-photo-${b.id}" accept="image/*"/>
                 <button onclick="window.startBooking('${b.id}')">Mulai</button>
