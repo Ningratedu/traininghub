@@ -1480,59 +1480,97 @@ Upload Foto Akhir
 // PREVIEW FOTO
 // ================================
 
-window.previewStartPhoto = (id) => {
+window.previewStartPhoto = (bookingId) => {
 
 const input =
-document.getElementById(`start-photo-${id}`);
+document.getElementById(`start-photo-${bookingId}`);
 
 const preview =
-document.getElementById(`preview-${id}`);
+document.getElementById(`preview-${bookingId}`);
 
-if(input.files && input.files[0]) {
+if(!input) return;
+
+const file = input.files[0];
+
+if(!file) return;
 
 const reader = new FileReader();
 
 reader.onload = (e) => {
 
+if(preview){
 preview.src = e.target.result;
 preview.classList.remove("hidden");
-
-};
-
-reader.readAsDataURL(input.files[0]);
-
 }
 
 };
 
-const data = await res.json();
+reader.readAsDataURL(file);
+
+};
 
 
+
+// ================================
+// START BOOKING
+// ================================
+
+window.startBooking = async (bookingId) => {
+
+console.log("START BOOKING:", bookingId);
+
+const fileInput =
+document.getElementById(`start-photo-${bookingId}`);
+
+if(!fileInput || !fileInput.files[0]) {
+
+alert("Upload foto dulu!");
+return;
+
+}
+
+const file =
+fileInput.files[0];
+
+try {
+
+const formData = new FormData();
+
+formData.append("file", file);
+
+formData.append(
+"upload_preset",
+"traininghub"
+);
+
+const res = await fetch(
+
+"https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
+
+{
+method: "POST",
+body: formData
+}
+
+);
+
+const data =
+await res.json();
+
+console.log("Cloudinary:", data);
 
 if(!data.secure_url)
-
 throw new Error("Upload gagal");
 
 
 
+// 🔥 PATH FIRESTORE FIX
 await updateDoc(
 
 doc(
-
 db,
-
-'artifacts',
-
-appId,
-
-'public',
-
-'data',
-
-'bookings',
-
+"bookings",
 bookingId
-
 ),
 
 {
@@ -1541,7 +1579,7 @@ startPhoto: data.secure_url,
 
 status: "Ongoing",
 
-startedAt: new Date()
+startedAt: serverTimestamp()
 
 }
 
@@ -1553,6 +1591,8 @@ alert("Booking dimulai!");
 
 window.loadBookings();
 
+}
+
 catch(err) {
 
 console.error(err);
@@ -1563,43 +1603,78 @@ alert("Gagal upload foto awal");
 
 };
 
-const data = await res.json();
 
 
+
+// ================================
+// FINISH BOOKING
+// ================================
+
+window.finishBooking = async (bookingId) => {
+
+console.log("FINISH BOOKING:", bookingId);
+
+const fileInput =
+document.getElementById(`finish-photo-${bookingId}`);
+
+if(!fileInput || !fileInput.files[0]) {
+
+alert("Upload foto akhir dulu!");
+return;
+
+}
+
+const file =
+fileInput.files[0];
+
+try {
+
+const formData = new FormData();
+
+formData.append("file", file);
+
+formData.append(
+"upload_preset",
+"traininghub"
+);
+
+const res = await fetch(
+
+"https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
+
+{
+method: "POST",
+body: formData
+}
+
+);
+
+const data =
+await res.json();
+
+console.log("Cloudinary Finish:", data);
 
 if(!data.secure_url)
-
 throw new Error("Upload gagal");
 
 
 
+// 🔥 PATH FIRESTORE FIX
 await updateDoc(
 
 doc(
-
 db,
-
-'artifacts',
-
-appId,
-
-'public',
-
-'data',
-
-'bookings',
-
+"bookings",
 bookingId
-
 ),
 
 {
 
 finishPhoto: data.secure_url,
 
-status: "Finished",
+status: "Completed",
 
-finishedAt: new Date()
+finishedAt: serverTimestamp()
 
 }
 
@@ -1625,370 +1700,95 @@ alert("Gagal upload foto akhir");
 
 footer.classList.toggle('hide', footer.innerHTML === '');
 document.getElementById('modal-detail').classList.remove('hide');
+
+
+// ================================
+// SCANNER (TIDAK DIUBAH)
+// ================================
+
+window.startScanner = (bookingId) => {
+document.getElementById('modal-scanner').classList.remove('hide');
+html5QrCode = new Html5Qrcode("reader");
+
+const config = {
+fps: 10,
+qrbox: { width: 250, height: 250 }
 };
 
-        window.startScanner = (bookingId) => {
-            document.getElementById('modal-scanner').classList.remove('hide');
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            
-            html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
-                if (decodedText === `finish-booking-${bookingId}`) {
-                    window.stopScanner();
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { 
-                        status: 'Completed',
-                        finishedAt: serverTimestamp()
-                    });
-                    window.closeModal('modal-detail');
-                    alert("Pesanan berhasil diselesaikan!");
-                }
-            }).catch(err => {
-                console.error("Scanner Error:", err);
-            });
-        };
+html5QrCode.start(
+{ facingMode: "environment" },
+config,
 
-        window.stopScanner = () => {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('modal-scanner').classList.add('hide');
-                }).catch(err => {
-                    console.error(err);
-                    document.getElementById('modal-scanner').classList.add('hide');
-                });
-            } else {
-                document.getElementById('modal-scanner').classList.add('hide');
-            }
-        };
+async (decodedText) => {
 
-        window.editBooking = (id) => {
-            const b = localState.bookings.find(x => x.id === id);
-            if(!b) return;
-            
-            window.closeModal('modal-detail');
-            document.getElementById('booking-modal-title').innerText = "Edit Pesanan";
-            document.getElementById('edit-booking-id').value = b.id;
-            window.toggleBookingType(b.type);
-            document.getElementById('book-room').value = b.roomId || "";
-            document.getElementById('book-goal').value = b.goal;
-            document.getElementById('book-date').value = b.date;
-            document.getElementById('book-start').value = b.start;
-            document.getElementById('book-end').value = b.end;
-            window.validateToolSelection();
-            document.getElementById('modal-booking').classList.remove('hide');
-        };
+if(decodedText === `finish-booking-${bookingId}`) {
 
-        function renderMaster() {
-            document.getElementById('master-room-list').innerHTML = localState.rooms.map(r => `
-                <div class="p-4 border-b last:border-0 flex justify-between items-center group">
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <p class="font-bold text-sm truncate">${r.name}</p>
-                            <span class="shrink-0 text-[7px] font-black uppercase px-1 py-0.5 rounded ${r.status === 'Open' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">${r.status === 'Open' ? 'Tersedia' : 'Tutup'}</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 shrink-0">
-                        <button class="text-indigo-500 text-[10px] font-bold" onclick="window.openMasterModal('room', '${r.id}')">Edit</button>
-                        <button class="text-rose-500 text-[10px] font-bold" onclick="window.deleteMaster('rooms', '${r.id}')">Hapus</button>
-                    </div>
-                </div>`).join('');
+window.stopScanner();
 
-            document.getElementById('master-tool-list').innerHTML = localState.tools.map(t => `
-                <div class="p-4 border-b last:border-0 flex justify-between items-center group">
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <p class="font-bold text-sm truncate">${t.name}</p>
-                            <span class="shrink-0 text-[7px] font-black uppercase px-1 py-0.5 rounded ${t.status === 'Open' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">${t.status === 'Open' ? 'Tersedia' : 'Tutup'}</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 shrink-0">
-                        <button class="text-indigo-500 text-[10px] font-bold" onclick="window.openMasterModal('tool', '${t.id}')">Edit</button>
-                        <button class="text-rose-500 text-[10px] font-bold" onclick="window.deleteMaster('tools', '${t.id}')">Hapus</button>
-                    </div>
-                </div>`).join('');
-        }
+await updateDoc(
 
-        window.deleteMaster = async (coll, id) => { if(confirm("Hapus aset ini?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', coll, id)); };
+doc(
+db,
+"bookings",
+bookingId
+),
 
-        document.getElementById('form-booking').onsubmit = async (e) => {
-            e.preventDefault();
-            const date = document.getElementById('book-date').value;
-            const start = document.getElementById('book-start').value;
-            const end = document.getElementById('book-end').value;
-            const roomId = document.getElementById('book-room').value;
-            const editId = document.getElementById('edit-booking-id').value;
-
-            const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(c => {
-                const t = localState.tools.find(x => x.id === c.value);
-                return { id: t.id, name: t.name };
-            });
-
-            const bookingData = {
-    		type: bookingType, 
-    		roomId: bookingType === 'room' ? roomId : null,
-    		userName: currentUser.username, 
-    		userUid: currentUser.uid, 
-    		dept: currentUser.dept || 'Umum',
-    		name: currentUser.username, department: currentUser.dept || 'Umum',
-    		goal: document.getElementById('book-goal').value, 
-    		date, start, end,
-    		tools: selectedTools, 
-    		status: 'Pending',
-		startedAt: null, finishedAt: null, startPhoto: null, endPhoto: null,
-		createdAt: serverTimestamp(),
-		};
-
-		await addDoc(collection(db, "bookings"), bookingData);
-
-            if(editId) {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', editId), bookingData);
-            } else {
-                bookingData.createdAt = serverTimestamp();
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), bookingData);
-            }
-            
-            window.closeModal('modal-booking');
-            window.showView('riwayat', 'Pesanan Saya');
-        };
-
-        document.getElementById('form-master').onsubmit = async (e) => {
-            e.preventDefault();
-            const type = document.getElementById('master-type').value;
-            const id = document.getElementById('master-id').value;
-            const extra = document.getElementById('master-extra').value;
-            const data = { 
-                name: document.getElementById('master-name').value, 
-                status: document.getElementById('master-status').value 
-            };
-            if(type === 'room') data.capacity = extra; else data.pos = extra;
-            
-            if(id) {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', type === 'room' ? 'rooms' : 'tools', id), data);
-            } else {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', type === 'room' ? 'rooms' : 'tools'), data);
-            }
-            
-            window.closeModal('modal-master');
-        };
-
-		// ===== TAMBAHAN TIMESTAMP DETAIL PESANAN =====
-
-function formatTime(ts){
-    if(!ts) return "-";
-    try{
-        return ts.toDate().toLocaleString("id-ID");
-    }catch{
-        return "-";
-    }
+{
+status: "Completed",
+finishedAt: serverTimestamp()
 }
 
-function injectBookingTimes(b){
+);
 
-    const created  = formatTime(b.createdAt);
-    const approved = formatTime(b.approvedAt);
-    const rejected = formatTime(b.rejectedAt);
-    const started  = formatTime(b.startedAt);
-    const finished = formatTime(b.finishedAt);
+window.closeModal('modal-detail');
 
-    return `
+alert("Pesanan berhasil diselesaikan!");
 
-    <div class="mt-4 border-t pt-3 text-xs text-slate-600 space-y-2">
-
-        <div><b>Dibuat:</b> ${created}</div>
-
-        ${approved !== "-" ? `<div><b>Disetujui:</b> ${approved}</div>` : ""}
-
-        ${rejected !== "-" ? `<div><b>Ditolak:</b> ${rejected}</div>` : ""}
-
-        ${started !== "-" ? `<div><b>Actual Mulai:</b> ${started}</div>` : ""}
-
-        ${finished !== "-" ? `<div><b>Actual Selesai:</b> ${finished}</div>` : ""}
-
-        ${b.startPhoto ? `
-        <div class="mt-3">
-            <b>Foto Awal:</b>
-            <img src="${b.startPhoto}" 
-                 class="mt-1 rounded-xl max-h-40 border object-cover"/>
-        </div>
-        ` : ""}
-
-        ${b.finishPhoto ? `
-        <div class="mt-3">
-            <b>Foto Akhir:</b>
-            <img src="${b.finishPhoto}" 
-                 class="mt-1 rounded-xl max-h-40 border object-cover"/>
-        </div>
-        ` : ""}
-
-    </div>
-
-    `;
 }
 
-const filterEl = document.getElementById('global-time-filter');
-if (filterEl) {
-    filterEl.addEventListener('input', (e) => window.handleTimeFilterChange(e.target.value));
 }
 
-window.updateBookingStatus = async (id, status) => {
-    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
+).catch(err => {
 
-    if(status === 'Ongoing') {
-        await updateDoc(docRef, {
-            status: 'Ongoing',
-            startedAt: serverTimestamp()
-        });
-    } else {
-        await updateDoc(docRef, { status });
-    }
-};
-		
-        initAuth();
-// === PREVIEW FOTO ===
-window.previewStartPhoto = (bookingId) => {
-    const input = document.getElementById(`start-photo-${bookingId}`);
-    const file = input.files[0];
+console.error("Scanner Error:", err);
 
-    if (!file) return;
+});
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const preview = document.getElementById(`preview-${bookingId}`);
-        preview.src = e.target.result;
-        preview.classList.remove("hidden");
-    };
-    reader.readAsDataURL(file);
 };
 
-window.startBooking = async (bookingId) => {
+window.stopScanner = () => {
 
-    console.log("START BOOKING ID:", bookingId);
+if (html5QrCode) {
 
-    const fileInput = document.getElementById(`start-photo-${bookingId}`);
+html5QrCode.stop()
 
-    if (!fileInput) {
-        alert("❌ Input foto tidak ditemukan!");
-        return;
-    }
+.then(() => {
 
-    const file = fileInput.files[0];
+document
+.getElementById('modal-scanner')
+.classList.add('hide');
 
-    if (!file) {
-        alert("⚠️ Upload foto dulu sebelum klik Mulai!");
-        return;
-    }
+})
 
-    try {
+.catch(err => {
 
-        // 🔥 Upload ke Cloudinary
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "traininghub");
+console.error(err);
 
-        const response = await fetch(
-            "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
-            {
-                method: "POST",
-                body: formData
-            }
-        );
+document
+.getElementById('modal-scanner')
+.classList.add('hide');
 
-        const data = await response.json();
+});
 
-        console.log("Cloudinary result:", data);
+}
 
-        if (!data.secure_url) {
-            throw new Error("Upload gagal ke Cloudinary");
-        }
+else {
 
-        const photoURL = data.secure_url;
+document
+.getElementById('modal-scanner')
+.classList.add('hide');
 
-        console.log("Photo URL:", photoURL);
-
-        // 🔥 UPDATE FIRESTORE (PATH BENAR)
-        await updateDoc(
-            doc(db, "bookings", bookingId),
-            {
-                startPhoto: photoURL,
-                status: "Ongoing",   // ✅ disamakan
-                startTime: new Date()
-            }
-        );
-
-        alert("✅ Booking dimulai!");
-
-        window.loadBookings();
-
-    } catch (error) {
-
-        console.error("Upload error:", error);
-        alert("❌ Gagal upload foto awal");
-
-    }
-};
-
-
-
-window.finishBooking = async (bookingId) => {
-
-    console.log("FINISH BOOKING ID:", bookingId);
-
-    const fileInput = document.getElementById(`finish-photo-${bookingId}`);
-
-    if (!fileInput) {
-        alert("❌ Input foto akhir tidak ditemukan!");
-        return;
-    }
-
-    const file = fileInput.files[0];
-
-    if (!file) {
-        alert("⚠️ Upload foto akhir dulu!");
-        return;
-    }
-
-    try {
-
-        // 🔥 Upload Cloudinary
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "traininghub");
-
-        const response = await fetch(
-            "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
-            {
-                method: "POST",
-                body: formData
-            }
-        );
-
-        const data = await response.json();
-
-        if (!data.secure_url) {
-            throw new Error("Upload gagal ke Cloudinary");
-        }
-
-        const photoURL = data.secure_url;
-
-        // 🔥 UPDATE FIRESTORE
-        await updateDoc(
-            doc(db, "bookings", bookingId),
-            {
-                finishPhoto: photoURL,
-                status: "Selesai",
-                finishTime: new Date()
-            }
-        );
-
-        alert("✅ Booking selesai!");
-
-        window.loadBookings();
-
-    } catch (err) {
-
-        console.error("ERROR:", err);
-        alert("❌ Gagal upload foto akhir!");
-
-    }
+}
 
 };
     </script>
