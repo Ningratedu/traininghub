@@ -1423,6 +1423,75 @@ function injectBookingTimes(b){
         ${b.finishPhoto ? `<img src="${b.finishPhoto}" class="mt-2 rounded max-h-40"/>` : ""}
     </div>`;
 }
+// ================= FIX SUBMIT FORM BOOKING =================
+document.getElementById('form-booking').addEventListener('submit', async (e) => {
+
+    e.preventDefault(); // 🔥 BIAR GAK RELOAD / BALIK LOGIN
+
+    try {
+
+        const date = document.getElementById('book-date').value;
+        const start = document.getElementById('book-start').value;
+        const end = document.getElementById('book-end').value;
+        const roomId = document.getElementById('book-room').value;
+        const editId = document.getElementById('edit-booking-id').value;
+
+        const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(c => {
+            const t = localState.tools.find(x => x.id === c.value);
+            return { id: t.id, name: t.name };
+        });
+
+        const bookingData = {
+            type: bookingType,
+            roomId: bookingType === 'room' ? roomId : null,
+            userName: currentUser.username,
+            userUid: currentUser.uid,
+            dept: currentUser.dept || 'Umum',
+            name: currentUser.username,
+            department: currentUser.dept || 'Umum',
+            goal: document.getElementById('book-goal').value,
+            date,
+            start,
+            end,
+            tools: selectedTools,
+            status: 'Pending',
+            startedAt: null,
+            finishedAt: null,
+            startPhoto: null,
+            finishPhoto: null,
+            createdAt: serverTimestamp(),
+        };
+
+        if (editId) {
+
+            await updateDoc(
+                doc(db, 'artifacts', appId, 'public', 'data', 'bookings', editId),
+                bookingData
+            );
+
+        } else {
+
+            await addDoc(
+                collection(db, 'artifacts', appId, 'public', 'data', 'bookings'),
+                bookingData
+            );
+
+        }
+
+        alert("✅ Pesanan berhasil disimpan");
+
+        window.closeModal('modal-booking');
+        window.showView('riwayat','Pesanan Saya');
+
+    } catch (err) {
+
+        console.error("ERROR SIMPAN:", err);
+        alert("❌ Gagal simpan pesanan");
+
+    }
+
+});
+		
     </script>
 </body>
 </html>
