@@ -768,81 +768,26 @@ function calculateFilterRange() {
             });
         }
 
-        // ===============================
-// AUTH HANDLERS (FIX PERSIST LOGIN)
-// ===============================
-
-// 🔥 AUTO LOGIN SAAT REFRESH
-const savedUser = localStorage.getItem('currentUser');
-
-if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-
-    document.getElementById('login-screen')?.classList.add('hide');
-
-    initSession();
-}
-
-
-// 🔥 LOGIN SUBMIT
-document.getElementById('form-login').onsubmit = async (e) => {
-    e.preventDefault();
-
-    const u = document.getElementById('login-username').value;
-    const p = document.getElementById('login-password').value;
-
-    // === ADMIN LOGIN ===
-    if (u === 'admin' && p === ADMIN_PASS) {
-
-        currentUser = {
-            role: 'admin',
-            username: 'Administrator',
-            uid: 'admin-123'
+        // AUTH HANDLERS
+        document.getElementById('form-login').onsubmit = async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value;
+            const p = document.getElementById('login-password').value;
+            if(u === 'admin' && p === ADMIN_PASS) {
+                currentUser = { role: 'admin', username: 'Administrator', uid: 'admin-123' };
+                document.getElementById('login-screen').classList.add('hide');
+                initSession();
+            } else {
+                const found = localState.users.find(x => x.username === u && x.password === p);
+                if(found) { 
+                    currentUser = {...found, uid: found.id}; 
+                    document.getElementById('login-screen').classList.add('hide'); 
+                    initSession(); 
+                } else {
+                    document.getElementById('login-error').classList.remove('hide');
+                }
+            }
         };
-
-        // 🔥 SIMPAN LOGIN
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-        document.getElementById('login-screen').classList.add('hide');
-
-        initSession();
-
-        return;
-    }
-
-    // === USER LOGIN ===
-    const found = localState.users.find(x => x.username === u && x.password === p);
-
-    if (found) {
-
-        currentUser = {
-            ...found,
-            uid: found.id
-        };
-
-        // 🔥 SIMPAN LOGIN
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-        document.getElementById('login-screen').classList.add('hide');
-
-        initSession();
-
-    } else {
-
-        document.getElementById('login-error').classList.remove('hide');
-
-    }
-};
-
-
-// 🔥 OPTIONAL: LOGOUT FUNCTION (BIAR BERSIH)
-window.logout = () => {
-
-    localStorage.removeItem('currentUser');
-
-    location.reload();
-
-};
 
         document.getElementById('form-register').onsubmit = async (e) => {
             e.preventDefault();
@@ -1470,6 +1415,7 @@ function injectBookingTimes(b){
     return `
     <div class="col-span-2 text-xs space-y-1 border-t pt-2">
         <div>Dibuat: ${formatTime(b.createdAt)}</div>
+		<div>Diapprove: ${formatTime(b.approvedAt)}</div>
         <div>Mulai: ${formatTime(b.startedAt)}</div>
         <div>Selesai: ${formatTime(b.finishedAt)}</div>
 
