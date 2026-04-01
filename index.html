@@ -293,7 +293,7 @@
     </div>
 
 	<!-- VIEW SEMUA PESANAN -->
-<div id="all-bookings" class="view hide p-6 space-y-4">
+<div id="view-all-bookings" class="view hide p-6 space-y-4">
 
     <!-- FILTER -->
     <div class="flex flex-col md:flex-row gap-3">
@@ -937,6 +937,7 @@ function calculateFilterRange() {
             if(titleText) {
                 document.getElementById('view-title').innerText = titleText;
             }
+			if(view === 'all-bookings') renderAllBookings();
 
             // Close mobile sidebar after selecting view
             const sidebar = document.getElementById('mobile-sidebar');
@@ -1223,6 +1224,42 @@ function calculateFilterRange() {
         </div>
     `).join('');
 }
+		window.renderAllBookings = () => {
+    const body = document.getElementById('all-bookings-body');
+    const list = [...localState.bookings].sort((a,b) => b.date.localeCompare(a.date));
+
+    body.innerHTML = list.map(b => {
+        const room = b.roomId 
+            ? (localState.rooms.find(r => r.id == b.roomId)?.name || '-') 
+            : '-';
+
+        const tools = (b.tools || []).map(t => t.name).join(', ') || '-';
+
+        const overdue = 
+            (b.status === 'Approved' || b.status === 'Ongoing') &&
+            new Date(b.date) < new Date();
+
+        return `
+        <tr class="${overdue ? 'bg-red-50' : ''}">
+            <td class="p-2">${b.date}</td>
+            <td class="p-2">${b.userName}</td>
+            <td class="p-2">${b.dept || '-'}</td>
+            <td class="p-2">${room}</td>
+            <td class="p-2 text-[10px]">${tools}</td>
+            <td class="p-2">${b.goal}</td>
+            <td class="p-2">${b.start}</td>
+            <td class="p-2">${b.startPhoto ? '✅' : '-'}</td>
+            <td class="p-2">${b.end}</td>
+            <td class="p-2">${b.finishPhoto ? '✅' : '-'}</td>
+            <td class="p-2">
+                <span class="px-2 py-1 text-[9px] rounded ${getStatusClass(b.status)}">
+                    ${b.status}
+                </span>
+            </td>
+        </tr>
+        `;
+    }).join('');
+};
 
 // ================= STATUS UPDATE (FIXED SINGLE VERSION) =================
 window.updateBookingStatus = async (id, status) => {
