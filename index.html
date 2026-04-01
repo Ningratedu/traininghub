@@ -1223,6 +1223,8 @@ window.openDetail = (id) => {
 
             <div class="col-span-2 text-xs">${b.date}</div>
 
+			<div class="col-span-2 text-xs">${b.time}</div>
+
             <div class="col-span-2 bg-slate-50 p-2 rounded">${b.goal}</div>
 
            ${room ? `<div class="col-span-2 text-xs font-bold">${room.name}</div>` : ''}
@@ -1274,14 +1276,27 @@ ${qrSection}
     (b.status || "").toLowerCase() === 'approved' &&
     b.userUid == currentUser.uid
 ){
-            footer.innerHTML = `
-                <input type="file" id="start-photo-${b.id}" accept="image/*"/>
-                <button onclick="window.startBooking('${b.id}')"
-				class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
-				Mulai Penggunaan
-				</button>
-            `;
-        }
+    footer.innerHTML = `
+
+        <div class="w-full">
+            <label class="text-[10px] font-bold text-slate-400">Upload Foto Awal</label>
+            
+            <input 
+                type="file" 
+                id="start-photo-${b.id}" 
+                accept="image/*"
+                class="w-full text-xs mt-1 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-indigo-50 file:text-indigo-600"
+            />
+        </div>
+
+        <button 
+            onclick="window.startBooking('${b.id}')"
+            class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-sm mt-2">
+            Mulai Penggunaan
+        </button>
+
+    `;
+}
 
        else if(b.status === 'Ongoing' && b.userUid === currentUser.uid) {
 
