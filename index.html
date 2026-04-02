@@ -1318,6 +1318,30 @@ window.sortAllBookings = (field) => {
     renderAllBookings();
 };
 
+		function getUsageStatus(b){
+
+    if(!b.startedAt || !b.finishedAt) return '-';
+
+    const plannedStart = new Date(`${b.date} ${b.start}`);
+    const plannedEnd   = new Date(`${b.date} ${b.end}`);
+
+    const actualStart  = new Date(b.startedAt);
+    const actualEnd    = new Date(b.finishedAt);
+
+    const diffStart = (actualStart - plannedStart) / 60000;
+    const diffEnd   = (actualEnd - plannedEnd) / 60000;
+
+    const isLate = diffStart > 30;
+    const isOver = diffEnd > 30;
+
+    if(isLate && isOver) return 'Late+Over';
+    if(isLate && !isOver) return 'Late+Ontime';
+    if(!isLate && isOver) return 'Over';
+    if(!isLate && !isOver) return 'Ontime';
+
+    return '-';
+}
+		
 function renderAllBookings() {
 
     let data = getFilteredBookings();
@@ -1373,10 +1397,29 @@ function renderAllBookings() {
             <td class="px-3 py-2">${b.dept}</td>
             <td class="px-3 py-2">${roomName}</td>
             <td class="px-3 py-2">${tools}</td>
-            <td class="px-3 py-2">${b.startedAt ? '✔️' : '-'}</td>
-            <td class="px-3 py-2">${b.finishedAt ? '✔️' : '-'}</td>
-            <td class="px-3 py-2">${b.startPhoto ? '📷' : '-'}</td>
-            <td class="px-3 py-2">${b.finishPhoto ? '📷' : '-'}</td>
+            <td class="px-3 py-2 text-xs">
+    ${b.startedAt ? new Date(b.startedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-'}
+</td>
+
+<td class="px-3 py-2 text-xs">
+    ${b.finishedAt ? new Date(b.finishedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-'}
+</td>
+
+<td class="px-3 py-2 text-center">
+    ${b.startPhoto 
+        ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+        : '-'}
+</td>
+
+<td class="px-3 py-2 text-center">
+    ${b.finishPhoto 
+        ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+        : '-'}
+</td>
+
+<td class="px-3 py-2 font-semibold text-xs">
+    ${getUsageStatus(b)}
+</td>
             <td class="px-3 py-2">${b.status === 'Ongoing' ? 'Ongoing' : '-'}</td>
             <td class="px-3 py-2 font-semibold">${b.status}</td>
 
