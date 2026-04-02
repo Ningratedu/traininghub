@@ -1417,14 +1417,16 @@ function renderAllBookings() {
         : '-'}
 </td>
 
-<td class="px-3 py-2 font-semibold text-xs">
-    ${getUsageStatus(b)}
-</td>
-            <td class="px-3 py-2">${b.status === 'Ongoing' ? 'Ongoing' : '-'}</td>
-            <td class="px-3 py-2 font-semibold">${b.status}</td>
+ <td class="px-3 py-2 text-center font-semibold">
+        ${getUsageStatus(b)}
+    </td>
 
-        </tr>
-        `;
+    <td class="px-3 py-2 text-center font-bold">
+        ${b.status}
+    </td>
+
+</tr>
+`;
     }).join('');
 }
 
