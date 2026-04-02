@@ -1501,9 +1501,48 @@ function renderMaster(){
                 </p>
             </div>
             <div class="min-w-0">
-                <p class="font-bold text-sm truncate">${b.goal}</p>
-                <p class="text-[10px] text-slate-500">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</p>
-                <p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p>
+                ${(() => {
+
+    // ambil nama ruangan dari roomId
+    const room =
+        localState.rooms.find(
+            r => String(r.id) === String(b.roomId)
+        );
+
+    const roomName =
+        room ? room.name : '-';
+
+    // ambil daftar alat
+    const toolsText =
+        (b.tools || [])
+        .map(t => t.name)
+        .join(', ') || '-';
+
+    return `
+        <p class="font-bold text-sm truncate">
+            ${b.goal}
+        </p>
+
+        <p class="text-[10px] text-slate-500">
+            ${(b.name || b.userName || '-')}
+            (${(b.department || b.dept || '-')})
+        </p>
+
+        <p class="text-[10px] text-slate-500">
+            Ruangan : ${roomName}
+        </p>
+
+        <p class="text-[10px] text-slate-500 truncate">
+            Alat : ${toolsText}
+        </p>
+
+        <p class="text-[10px] text-slate-400">
+            ${b.start} - ${b.end}
+        </p>
+
+    `;
+
+})()}
                 <p class="text-[10px] font-semibold ${
                     b.status === 'Pending' ? 'text-yellow-600' :
                     b.status === 'Approved' ? 'text-green-600' :
