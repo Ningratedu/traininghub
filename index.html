@@ -1140,33 +1140,105 @@ if(type === 'tool'){
         }
 
         function renderRiwayat() {
-            const my = getFilteredBookings().filter(b => b.userUid === currentUser.uid);
-            const container = document.getElementById('my-booking-list');
-            if(my.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada riwayat pesanan di periode ini</div>`;
-            else container.innerHTML = my.slice().reverse().map(b => `
-                <div class="card-pop bg-white p-4 rounded-2xl border flex justify-between items-center group">
-                    <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0">
-                        <p class="font-bold text-sm truncate">${b.goal}</p>
-			opendetail
-Ruangan : ${b.roomName || '-'}
-</p>
 
-opendetail
-Alat : ${(b.tools || []).join(', ') || '-'}
-</p>
-			opendetail${b.name || b.userName || '-'} • ${b.department || b.dept || '-'}</p>
-			<p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p>
-                    </div>
-                    <div class="flex items-center gap-3 shrink-0">
-                        <span onclick="window.openDetail('${b.id}')" class="text-[9px] font-black uppercase px-3 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
-                        ${b.status === 'Pending' ? `
-                            <button onclick="window.deleteBooking('${b.id}')" class="text-rose-400 hover:text-rose-600 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="fas fa-trash-alt text-sm"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>`).join('');
-        }
+    const my =
+        getFilteredBookings()
+        .filter(b => b.userUid === currentUser.uid);
+
+    const container =
+        document.getElementById('my-booking-list');
+
+    if(my.length === 0){
+
+        container.innerHTML =
+        `<div class="py-10 text-center text-slate-400 italic">
+        Belum ada riwayat pesanan di periode ini
+        </div>`;
+
+    }
+
+    else{
+
+        container.innerHTML =
+        my.slice().reverse().map(b => {
+
+            // 🔥 AMBIL NAMA RUANGAN DARI roomId
+            const room =
+                localState.rooms.find(
+                    r => String(r.id) === String(b.roomId)
+                );
+
+            const roomName =
+                room ? room.name : '-';
+
+            // 🔥 AMBIL NAMA TOOLS
+            const toolsText =
+                (b.tools || [])
+                .map(t => t.name)
+                .join(', ') || '-';
+
+            return `
+
+            <div class="card-pop bg-white p-4 rounded-2xl border flex justify-between items-center group">
+
+                <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0">
+
+                    <p class="font-bold text-sm truncate">
+                        ${b.goal}
+                    </p>
+
+                    <p class="text-[10px] text-slate-500 truncate">
+                        Ruangan : ${roomName}
+                    </p>
+
+                    <p class="text-[10px] text-slate-500 truncate">
+                        Alat : ${toolsText}
+                    </p>
+
+                    <p class="text-[10px] text-slate-500 truncate">
+                        ${b.name || b.userName || '-'} • 
+                        ${b.department || b.dept || '-'}
+                    </p>
+
+                    <p class="text-[10px] text-slate-400">
+                        ${b.start} - ${b.end}
+                    </p>
+
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+
+                    <span 
+                    onclick="window.openDetail('${b.id}')" 
+                    class="text-[9px] font-black uppercase px-3 py-1 rounded-full ${getStatusClass(b.status)}">
+
+                        ${b.status}
+
+                    </span>
+
+                    ${b.status === 'Pending' ? `
+
+                        <button 
+                        onclick="window.deleteBooking('${b.id}')" 
+                        class="text-rose-400 hover:text-rose-600 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+
+                            <i class="fas fa-trash-alt text-sm"></i>
+
+                        </button>
+
+                    ` : ''}
+
+                </div>
+
+            </div>
+
+            `;
+
+        }).join('');
+
+    }
+
+}
 
         window.deleteBooking = async (id) => {
             if(confirm("Batalkan dan hapus pesanan ini?")) {
