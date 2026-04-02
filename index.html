@@ -1350,11 +1350,22 @@ function renderAllBookings() {
     const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
 
     if(keyword){
-        data = data.filter(b =>
+    data = data.filter(b => {
+
+        const room = localState.rooms.find(r => r.id == b.roomId);
+        const roomName = room ? room.name : '';
+
+        const tools = (b.tools || []).map(t => t.name).join(', ');
+
+        return (
             (b.userName || '').toLowerCase().includes(keyword) ||
-            (b.dept || '').toLowerCase().includes(keyword)
+            (b.dept || '').toLowerCase().includes(keyword) ||
+            (roomName || '').toLowerCase().includes(keyword) ||
+            (tools || '').toLowerCase().includes(keyword) ||
+            (b.status || '').toLowerCase().includes(keyword)
         );
-    }
+    });
+}
 
     // SORT
     if(sortField){
@@ -1432,22 +1443,51 @@ function renderAllBookings() {
 
 		window.exportAllBookingsExcel = () => {
 
-    const data = getFilteredBookings();
+    let data = getFilteredBookings();
 
-    let csv = "Tanggal,Nama,Dept,Ruangan,Status\n";
+    const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
 
-    data.forEach(b => {
+    if(keyword){
+        data = data.filter(b => {
+
+            const room = localState.rooms.find(r => r.id == b.roomId);
+            const roomName = room ? room.name : '';
+
+            const tools = (b.tools || []).map(t => t.name).join(', ');
+
+            return (
+                (b.userName || '').toLowerCase().includes(keyword) ||
+                (b.dept || '').toLowerCase().includes(keyword) ||
+                (roomName || '').toLowerCase().includes(keyword) ||
+                (tools || '').toLowerCase().includes(keyword)
+            );
+        });
+    }
+
+    const rows = data.map(b => {
+
         const room = localState.rooms.find(r => r.id == b.roomId);
-        csv += `${b.date},${b.userName},${b.dept},${room?.name || '-'},${b.status}\n`;
+
+        return {
+            Tanggal: b.date,
+            Waktu: `${b.start} - ${b.end}`,
+            Nama: b.userName,
+            Departemen: b.dept,
+            Ruangan: room ? room.name : '-',
+            Alat: (b.tools || []).map(t => t.name).join(', '),
+            Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
+            Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
+            Penggunaan: getUsageStatus(b),
+            Status: b.status
+        };
     });
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = "semua_pesanan.csv";
-    a.click();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Semua Pesanan");
+
+    XLSX.writeFile(workbook, "semua_pesanan.xlsx");
 };
         window.deleteBooking = async (id) => {
             if(confirm("Batalkan dan hapus pesanan ini?")) {
@@ -2118,5 +2158,6 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 });
 		
     </script>
+	<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </body>
 </html>
