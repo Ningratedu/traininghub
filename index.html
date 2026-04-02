@@ -326,122 +326,116 @@
         </div>
     </div>
 
-	    <!-- MODAL TABEL STATISTIK -->
-	    <div id="modal-stat-table" class="fixed inset-0 z-[185] hide modal-overlay flex items-center justify-center p-4">
-	        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
-	            <div class="flex justify-between items-center mb-6">
-	                <h3 id="stat-table-title" class="text-xl font-black">Detail Data</h3>
-	                <button onclick="closeModal('modal-stat-table')"><i class="fas fa-times"></i></button>
-	            </div>
-	            <div class="overflow-x-auto border rounded-2xl">
-	                <table class="w-full text-left text-sm">
-	                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
-	                        <tr>
-	                            <th class="px-4 py-3">Peminjam</th>
-	                            <th class="px-4 py-3">Tujuan</th>
-	                            <th class="px-4 py-3">Unit</th>
-	                            <th class="px-4 py-3">Waktu</th>
-	                            <th class="px-4 py-3">Status</th>
-	                        </tr>
-	                    </thead>
-	                    <tbody id="stat-table-body" class="divide-y"></tbody>
-	                </table>
-	            </div>
-	        </div>
-	    </div>
-	
-	    <!-- MODAL RIWAYAT RUANGAN -->
-	    <div id="modal-room-history" class="fixed inset-0 z-[190] hide modal-overlay flex items-center justify-center p-4">
-	        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[80vh]">
-	            <div class="flex justify-between items-center mb-6">
-	                <h3 id="room-history-title" class="text-lg font-black text-indigo-600">Riwayat Penggunaan</h3>
-	                <button onclick="closeModal('modal-room-history')"><i class="fas fa-times text-slate-300"></i></button>
-	            </div>
-	            <div id="room-history-container" class="overflow-y-auto space-y-4"></div>
-	        </div>
-	    </div>
-	
-	    <!-- MODAL MASTER DATA -->
-	    <div id="modal-master" class="fixed inset-0 z-[170] hide modal-overlay flex items-center justify-center p-4">
-	        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
-	            <div class="flex justify-between items-center mb-6">
-	                <h3 id="master-modal-title" class="text-xl font-black">Tambah Data</h3>
-	                <button onclick="closeModal('modal-master')"><i class="fas fa-times"></i></button>
-	            </div>
-	            <form id="form-master" class="space-y-4">
-	                <input type="hidden" id="master-type">
-	                <input type="hidden" id="master-id">
-	                <div>
-	                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Nama Aset</label>
-	                    <input type="text" id="master-name" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
-	                </div>
-	                <div id="master-extra-field"></div>
-	               <div class="flex gap-3 pt-4">
-	
-	    <button 
-	        type="button" 
-	        onclick="closeModal('modal-master')" 
-	        class="flex-1 py-3 border rounded-xl">
-	
-	        Batal
-	
-	    </button>
-	
-	    <button 
-	        type="button" 
-	        id="btn-save-master" 
-	        class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">
-	
-	        Simpan
-	
-	    </button>
-	
-	</div>
-	
-	    <!-- MODAL DETAIL PEMESANAN -->
-	    <div id="modal-detail" class="fixed inset-0 z-[150] hide modal-overlay flex items-center justify-center p-4">
-	        <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-	            <div class="p-6 border-b flex justify-between items-center">
-	                <h3 class="text-xl font-black">Detail Pemesanan</h3>
-	                <button onclick="closeModal('modal-detail')"><i class="fas fa-times"></i></button>
-	            </div>
-	            <div id="detail-content" class="p-6 overflow-y-auto space-y-6 pb-32"></div>
-	            <div id="detail-footer" class="p-4 border-t bg-white flex gap-3 sticky bottom-0 z-10"></div>
-	        </div>
-	    </div>
-	
-	    <!-- MODAL FORM BOOKING -->
-	    <div id="modal-booking" class="fixed inset-0 z-[100] hide modal-overlay flex items-center justify-center p-4">
-	        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden">
-	            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-	                <h3 id="booking-modal-title" class="text-2xl font-black">Form Pemesanan</h3>
-	                <button onclick="closeModal('modal-booking')"><i class="fas fa-times"></i></button>
-	            </div>
-	            <form id="form-booking" class="p-8 grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
-	                <input type="hidden" id="edit-booking-id">
-	                <div class="col-span-2">
-	                    <div class="grid grid-cols-2 gap-3">
-	                        <button type="button" onclick="window.toggleBookingType('room')" id="btn-type-room" class="py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm">Ruangan & Alat</button>
-	                        <button type="button" onclick="window.toggleBookingType('tool')" id="btn-type-tool" class="py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-500 font-bold text-sm">Hanya Alat</button>
-	                    </div>
-	                </div>
-	                <div id="booking-room-field" class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Pilih Ruangan</label><select id="book-room" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></select></div>
-	                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Departemen</label><input type="text" id="book-dept" readonly class="w-full bg-slate-200 border-none rounded-xl px-4 py-3 text-sm text-slate-500"></div>
-	                <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Tujuan</label><input type="text" id="book-goal" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>
-	                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Tanggal</label><input type="date" id="book-date" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></div>
-	                <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
-	                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Mulai</label><input type="time" id="book-start" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
-	                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Selesai</label><input type="time" id="book-end" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
-	                </div>
-	                <div class="col-span-2 border-t pt-4">
-	                    <label class="text-[10px] font-bold uppercase text-slate-400">Pilih Alat</label>
-	                    <div id="tool-selection" class="flex flex-wrap gap-2 mt-2"></div>
-	                </div>
-	                <div id="booking-error-msg" class="col-span-2 text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg">Pilihan ruangan ini sudah dipesan pada waktu tersebut.</div>
-	                <button type="submit" id="btn-submit-booking" class="col-span-2 bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg">Simpan Pesanan</button>
-	            </form>
-	        </div>
-	    </div>
+    <!-- MODAL TABEL STATISTIK -->
+    <div id="modal-stat-table" class="fixed inset-0 z-[185] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="stat-table-title" class="text-xl font-black">Detail Data</h3>
+                <button onclick="closeModal('modal-stat-table')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="overflow-x-auto border rounded-2xl">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
+                        <tr>
+                            <th class="px-4 py-3">Peminjam</th>
+                            <th class="px-4 py-3">Tujuan</th>
+                            <th class="px-4 py-3">Unit</th>
+                            <th class="px-4 py-3">Waktu</th>
+                            <th class="px-4 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stat-table-body" class="divide-y"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RIWAYAT RUANGAN -->
+    <div id="modal-room-history" class="fixed inset-0 z-[190] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="room-history-title" class="text-lg font-black text-indigo-600">Riwayat Penggunaan</h3>
+                <button onclick="closeModal('modal-room-history')"><i class="fas fa-times text-slate-300"></i></button>
+            </div>
+            <div id="room-history-container" class="overflow-y-auto space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- MODAL MASTER DATA -->
+    <div id="modal-master" class="fixed inset-0 z-[170] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="master-modal-title" class="text-xl font-black">Tambah Data</h3>
+                <button onclick="closeModal('modal-master')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="form-master" class="space-y-4">
+                <input type="hidden" id="master-type">
+                <input type="hidden" id="master-id">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Nama Aset</label>
+                    <input type="text" id="master-name" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                </div>
+                <div id="master-extra-field"></div>
+                <!-- FIELD STATUS ASET -->
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Status Ketersediaan</label>
+                    <select id="master-status" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                        <option value="Open">Dibuka (Tersedia)</option>
+                        <option value="Closed">Ditutup (Perbaikan/Maintenance)</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal('modal-master')" class="flex-1 py-3 border rounded-xl">Batal</button>
+                    <button type="button" id="btn-save-master" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL PEMESANAN -->
+    <div id="modal-detail" class="fixed inset-0 z-[150] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-black">Detail Pemesanan</h3>
+                <button onclick="closeModal('modal-detail')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="detail-content" class="p-6 overflow-y-auto space-y-6 pb-32"></div>
+            <div id="detail-footer" class="p-4 border-t bg-white flex gap-3 sticky bottom-0 z-10"></div>
+        </div>
+    </div>
+
+    <!-- MODAL FORM BOOKING -->
+    <div id="modal-booking" class="fixed inset-0 z-[100] hide modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 id="booking-modal-title" class="text-2xl font-black">Form Pemesanan</h3>
+                <button onclick="closeModal('modal-booking')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="form-booking" class="p-8 grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
+                <input type="hidden" id="edit-booking-id">
+                <div class="col-span-2">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="window.toggleBookingType('room')" id="btn-type-room" class="py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm">Ruangan & Alat</button>
+                        <button type="button" onclick="window.toggleBookingType('tool')" id="btn-type-tool" class="py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-500 font-bold text-sm">Hanya Alat</button>
+                    </div>
+                </div>
+                <div id="booking-room-field" class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Pilih Ruangan</label><select id="book-room" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></select></div>
+                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Departemen</label><input type="text" id="book-dept" readonly class="w-full bg-slate-200 border-none rounded-xl px-4 py-3 text-sm text-slate-500"></div>
+                <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Tujuan</label><input type="text" id="book-goal" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>
+                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Tanggal</label><input type="date" id="book-date" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></div>
+                <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
+                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Mulai</label><input type="time" id="book-start" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
+                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Selesai</label><input type="time" id="book-end" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
+                </div>
+                <div class="col-span-2 border-t pt-4">
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Pilih Alat</label>
+                    <div id="tool-selection" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div id="booking-error-msg" class="col-span-2 text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg">Pilihan ruangan ini sudah dipesan pada waktu tersebut.</div>
+                <button type="submit" id="btn-submit-booking" class="col-span-2 bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg">Simpan Pesanan</button>
+            </form>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -852,127 +846,29 @@ function calculateFilterRange() {
         }
 
         window.openMasterModal = (type, existingId = null) => {
+            const isEdit = existingId !== null;
+            const title = type === 'room' ? (isEdit ? 'Edit Ruangan' : 'Tambah Ruangan') : (isEdit ? 'Edit Alat' : 'Tambah Alat');
+            document.getElementById('master-modal-title').innerText = title;
+            document.getElementById('master-type').value = type;
+            document.getElementById('master-id').value = existingId || '';
+            
+            const extra = document.getElementById('master-extra-field');
+            if(type === 'room') extra.innerHTML = `<div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Kapasitas Orang</label><input type="number" id="master-extra" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>`;
+            else extra.innerHTML = `<div><label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Lokasi Simpan</label><input type="text" id="master-extra" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>`;
+            
+            if(isEdit) {
+                const item = (type === 'room' ? localState.rooms : localState.tools).find(x => x.id === existingId);
+                document.getElementById('master-name').value = item.name;
+                document.getElementById('master-extra').value = type === 'room' ? item.capacity : item.pos;
+                document.getElementById('master-status').value = item.status || 'Open';
+            } else {
+                document.getElementById('master-name').value = '';
+                document.getElementById('master-status').value = 'Open';
+            }
+            
+            document.getElementById('modal-master').classList.remove('hide');
+        };
 
-    const isEdit = existingId !== null;
-
-    const title =
-        type === 'room'
-            ? (isEdit ? 'Edit Ruangan' : 'Tambah Ruangan')
-            : (isEdit ? 'Edit Alat' : 'Tambah Alat');
-
-    document
-        .getElementById('master-modal-title')
-        .innerText = title;
-
-    document
-        .getElementById('master-type')
-        .value = type;
-
-    document
-        .getElementById('master-id')
-        .value = existingId || '';
-
-
-
-    // ================= EXTRA FIELD =================
-
-    const extra =
-        document.getElementById('master-extra-field');
-
-    if(type === 'room') {
-
-        extra.innerHTML = `
-            <div>
-                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
-                    Kapasitas Orang
-                </label>
-
-                <input
-                    type="number"
-                    id="master-capacity"
-                    required
-                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
-            </div>
-        `;
-
-    }
-    else {
-
-        extra.innerHTML = `
-            <div>
-                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
-                    Lokasi Simpan
-                </label>
-
-                <input
-                    type="text"
-                    id="master-pos"
-                    required
-                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
-            </div>
-        `;
-
-    }
-
-
-
-    // ================= EDIT MODE =================
-
-    if(isEdit) {
-
-        const item =
-            (type === 'room'
-                ? localState.rooms
-                : localState.tools)
-            .find(x => x.id === existingId);
-
-        document
-            .getElementById('master-name')
-            .value = item.name;
-
-
-
-        if(type === 'room') {
-
-            document
-                .getElementById('master-capacity')
-                .value = item.capacity || 0;
-
-        }
-        else {
-
-            document
-                .getElementById('master-pos')
-                .value = item.pos || '';
-
-        }
-
-
-
-        document
-            .getElementById('master-status')
-            .value = item.status || 'Open';
-
-    }
-    else {
-
-        document
-            .getElementById('master-name')
-            .value = '';
-
-        document
-            .getElementById('master-status')
-            .value = 'Open';
-
-    }
-
-
-
-    document
-        .getElementById('modal-master')
-        .classList.remove('hide');
-
-};
 		// ================= DELETE MASTER ITEM =================
 window.deleteMasterItem = async (type, id) => {
 
@@ -1025,92 +921,68 @@ document
             : 'tools';
 
     let data = {
-        name: name,
-        status: status
+        name,
+        status
     };
 
-
-
-    // ================= ROOM =================
+    // FIELD TAMBAHAN
     if(type === 'room'){
 
-        const capacityInput =
+        const capacity =
             document.getElementById('master-capacity');
 
-        if(capacityInput){
-
+        if(capacity)
             data.capacity =
-                Number(capacityInput.value) || 0;
-
-        }
+                capacity.value || 0;
 
     }
 
-
-
-    // ================= TOOL =================
     if(type === 'tool'){
 
-        const posInput =
+        const pos =
             document.getElementById('master-pos');
 
-        if(posInput){
-
+        if(pos)
             data.pos =
-                posInput.value.trim();
-
-        }
+                pos.value || '';
 
     }
 
+    if(id){
 
-
-    try{
-
-        if(id){
-
-            // UPDATE
-            await updateDoc(
-                doc(
-                    db,
-                    'artifacts',
-                    appId,
-                    'public',
-                    'data',
-                    collectionName,
-                    id
-                ),
-                data
-            );
-
-        }
-        else{
-
-            // CREATE
-            await addDoc(
-                collection(
-                    db,
-                    'artifacts',
-                    appId,
-                    'public',
-                    'data',
-                    collectionName
-                ),
-                data
-            );
-
-        }
-
-        closeModal('modal-master');
+        // UPDATE
+        await updateDoc(
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                collectionName,
+                id
+            ),
+            data
+        );
 
     }
-    catch(err){
+    else{
 
-        console.error("SAVE ERROR:", err);
-
-        alert("Gagal menyimpan data");
+        // CREATE
+        await addDoc(
+            collection(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                collectionName
+            ),
+            data
+        );
 
     }
+
+    closeModal('modal-master');
 
 });
 		
@@ -1278,7 +1150,14 @@ document
                 <div class="card-pop bg-white p-4 rounded-2xl border flex justify-between items-center group">
                     <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0">
                         <p class="font-bold text-sm truncate">${b.goal}</p>
-			<p class="text-[10px] text-slate-500 truncate">${b.name || b.userName || '-'} • ${b.department || b.dept || '-'}</p>
+			opendetail
+Ruangan : ${b.roomName || '-'}
+</p>
+
+opendetail
+Alat : ${(b.tools || []).join(', ') || '-'}
+</p>
+			opendetail${b.name || b.userName || '-'} • ${b.department || b.dept || '-'}</p>
 			<p class="text-[10px] text-slate-400">${b.start} - ${b.end}</p>
                     </div>
                     <div class="flex items-center gap-3 shrink-0">
@@ -1615,7 +1494,7 @@ window.openDetail = (id) => {
 
             <div class="col-span-2 text-xs">${b.date}</div>
 
-			<div class="col-span-2 text-xs">${b.time}</div>
+			<div class="col-span-2 text-xs">${b.start} - ${b.end}</div>
 
             <div class="col-span-2 bg-slate-50 p-2 rounded">${b.goal}</div>
 
