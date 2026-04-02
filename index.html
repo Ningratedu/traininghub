@@ -1397,12 +1397,12 @@ function renderAllBookings() {
             <td class="px-3 py-2">${b.dept}</td>
             <td class="px-3 py-2">${roomName}</td>
             <td class="px-3 py-2">${tools}</td>
-            <td class="px-3 py-2 text-xs">
-    ${b.startedAt ? new Date(b.startedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-'}
+            <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
+    ${b.startedAt ? formatTime(b.startedAt) : '-'}
 </td>
 
-<td class="px-3 py-2 text-xs">
-    ${b.finishedAt ? new Date(b.finishedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-'}
+<td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
+    ${b.finishedAt ? formatTime(b.finishedAt) : '-'}
 </td>
 
 <td class="px-3 py-2 text-center">
