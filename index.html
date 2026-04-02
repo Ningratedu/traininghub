@@ -788,6 +788,7 @@ function calculateFilterRange() {
             if(activeView === 'approval') renderApproval();
             if(activeView === 'master-data') renderMaster();
             if(activeView === 'jadwal') renderJadwal();
+			if(activeView === 'all-bookings') renderAllBookings();
             updatePendingBadge();
         }
 
@@ -1286,7 +1287,105 @@ if(type === 'tool'){
     }
 
 }
+		let sortField = null;
+let sortAsc = true;
 
+window.sortAllBookings = (field) => {
+    if(sortField === field){
+        sortAsc = !sortAsc;
+    } else {
+        sortField = field;
+        sortAsc = true;
+    }
+    renderAllBookings();
+};
+
+function renderAllBookings() {
+
+    let data = getFilteredBookings();
+
+    // SEARCH
+    const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
+
+    if(keyword){
+        data = data.filter(b =>
+            (b.userName || '').toLowerCase().includes(keyword) ||
+            (b.dept || '').toLowerCase().includes(keyword)
+        );
+    }
+
+    // SORT
+    if(sortField){
+        data.sort((a,b)=>{
+            let v1 = a[sortField] || '';
+            let v2 = b[sortField] || '';
+            return sortAsc 
+                ? v1.localeCompare(v2) 
+                : v2.localeCompare(v1);
+        });
+    }
+
+    const tbody = document.getElementById('all-bookings-body');
+
+    if(!tbody) return;
+
+    if(data.length === 0){
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="12" class="text-center py-6 text-slate-400">
+                    Tidak ada data
+                </td>
+            </tr>`;
+        return;
+    }
+
+    tbody.innerHTML = data.map(b => {
+
+        const room = localState.rooms.find(r => r.id == b.roomId);
+        const roomName = room ? room.name : '-';
+
+        const tools = (b.tools || []).map(t => t.name).join(', ') || '-';
+
+        return `
+        <tr class="hover:bg-slate-50">
+
+            <td class="px-3 py-2">${b.date}</td>
+            <td class="px-3 py-2">${b.start} - ${b.end}</td>
+            <td class="px-3 py-2">${b.userName}</td>
+            <td class="px-3 py-2">${b.dept}</td>
+            <td class="px-3 py-2">${roomName}</td>
+            <td class="px-3 py-2">${tools}</td>
+            <td class="px-3 py-2">${b.startedAt ? '✔️' : '-'}</td>
+            <td class="px-3 py-2">${b.finishedAt ? '✔️' : '-'}</td>
+            <td class="px-3 py-2">${b.startPhoto ? '📷' : '-'}</td>
+            <td class="px-3 py-2">${b.finishPhoto ? '📷' : '-'}</td>
+            <td class="px-3 py-2">${b.status === 'Ongoing' ? 'Ongoing' : '-'}</td>
+            <td class="px-3 py-2 font-semibold">${b.status}</td>
+
+        </tr>
+        `;
+    }).join('');
+}
+
+		window.exportAllBookingsExcel = () => {
+
+    const data = getFilteredBookings();
+
+    let csv = "Tanggal,Nama,Dept,Ruangan,Status\n";
+
+    data.forEach(b => {
+        const room = localState.rooms.find(r => r.id == b.roomId);
+        csv += `${b.date},${b.userName},${b.dept},${room?.name || '-'},${b.status}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "semua_pesanan.csv";
+    a.click();
+};
         window.deleteBooking = async (id) => {
             if(confirm("Batalkan dan hapus pesanan ini?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id));
