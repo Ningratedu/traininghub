@@ -312,27 +312,45 @@
 
     </div>
 
-    <div class="overflow-x-auto bg-white rounded-2xl border">
-        <table class="w-full text-sm">
-            <thead>
-                <tr>
-                    <th onclick="sortAllBookings('date')">Tanggal</th>
-                    <th>Waktu</th>
-                    <th>Nama</th>
-                    <th>Dept</th>
-                    <th>Ruangan</th>
-                    <th>Alat</th>
-                    <th>Mulai</th>
-                    <th>Selesai</th>
-                    <th>Foto Awal</th>
-                    <th>Foto Akhir</th>
-                    <th>Penggunaan</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="all-bookings-body"></tbody>
-        </table>
-    </div>
+    <div class="overflow-auto max-h-[500px] bg-white rounded-2xl border shadow-sm">
+
+    <table class="min-w-[1400px] w-full text-sm">
+
+        <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 sticky top-0 z-10">
+            <tr>
+
+                <th onclick="sortAllBookings('date')" class="px-3 py-2 min-w-[120px] cursor-pointer text-left">Tanggal</th>
+
+                <th onclick="sortAllBookings('start')" class="px-3 py-2 min-w-[140px] cursor-pointer text-left">Waktu</th>
+
+                <th onclick="sortAllBookings('userName')" class="px-3 py-2 min-w-[160px] cursor-pointer text-left">Nama</th>
+
+                <th onclick="sortAllBookings('dept')" class="px-3 py-2 min-w-[140px] cursor-pointer text-left">Departemen</th>
+
+                <th onclick="sortAllBookings('roomId')" class="px-3 py-2 min-w-[180px] cursor-pointer text-left">Ruangan</th>
+
+                <th onclick="sortAllBookings('tools')" class="px-3 py-2 min-w-[220px] cursor-pointer text-left">Alat</th>
+
+                <th onclick="sortAllBookings('startedAt')" class="px-3 py-2 min-w-[100px] cursor-pointer text-center">Mulai</th>
+
+                <th onclick="sortAllBookings('finishedAt')" class="px-3 py-2 min-w-[100px] cursor-pointer text-center">Selesai</th>
+
+                <th class="px-3 py-2 min-w-[120px] text-center">Foto Awal</th>
+
+                <th class="px-3 py-2 min-w-[120px] text-center">Foto Akhir</th>
+
+                <th onclick="sortAllBookings('usage')" class="px-3 py-2 min-w-[140px] cursor-pointer text-center">Penggunaan</th>
+
+                <th onclick="sortAllBookings('status')" class="px-3 py-2 min-w-[140px] cursor-pointer text-center">Status</th>
+
+            </tr>
+        </thead>
+
+        <tbody id="all-bookings-body" class="divide-y"></tbody>
+
+    </table>
+
+</div>
 
 </div>
             </div>
