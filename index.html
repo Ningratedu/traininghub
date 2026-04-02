@@ -179,27 +179,20 @@
                     <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
                     <div class="relative group w-full sm:w-auto">
                         <select id="global-time-filter" onchange="window.handleTimeFilterChange(this.value)" class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 pr-8 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="this-month">Bulan Ini</option>
-                            <option value="last-month">Bulan Lalu</option>
-                            <option value="next-month">Bulan Depan</option>
-                            <option value="custom">Kustom...</option>
+                            <option value="today">Hari ini</option>
+							<option value="yesterday">Kemarin</option>
+							<option value="tomorrow">Besok</option>
+							<option value="this-week">Minggu ini</option>
+							<option value="last-week">Last week</option>
+							<option value="next-week">Next week</option>
+							<option value="this-month">Bulan ini</option>
+							<option value="last-month">Bulan lalu</option>
+							<option value="next-month">Bulan depan</option>
+							<option value="custom">Kustom...</option>
                         </select>
                         <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
                     </div>
                 </div>
-		
-		<div id="custom-date-container" class="hide mt-2 flex flex-col gap-2 w-full max-w-xs">
-    <input type="date" id="filter-start"
-        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
-
-    <input type="date" id="filter-end"
-        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
-
-    <button onclick="applyCustomFilter()"
-        class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-lg w-full">
-        Terapkan
-    </button>
-</div>
 		
                 <div id="header-actions">
                     <div id="header-actions">
@@ -563,26 +556,16 @@ import {
 
         window.openRegister = () => document.getElementById('modal-register').classList.remove('hide');
 
-        window.handleTimeFilterChange = (val) => {
-    filterMode = val;
+        window.handleTimeFilterChange = (mode) => {
+    filterMode = mode;
 
-    const customContainer = document.getElementById('custom-date-container');
-
-    if (val === 'custom') {
-        if (customContainer) customContainer.classList.remove('hide');
-
-        document.getElementById('filter-start').value = filterRange.start || '';
-        document.getElementById('filter-end').value = filterRange.end || '';
-
+    if(mode === 'custom'){
+        document.getElementById('modal-filter').classList.remove('hide');
         return;
     }
 
-    if (customContainer) customContainer.classList.add('hide');
-
     calculateFilterRange();
     refreshUI();
-    renderJadwal();
-    setTimeout(() => renderJadwal(), 100);
 };
 
 
@@ -612,7 +595,51 @@ function calculateFilterRange() {
     const today = new Date();
     let start, end;
 
-    if (filterMode === 'this-month') {
+    if (filterMode === 'today') {
+        start = new Date(today);
+        end = new Date(today);
+
+    } else if (filterMode === 'yesterday') {
+        start = new Date(today);
+        start.setDate(start.getDate() - 1);
+        end = new Date(start);
+
+    } else if (filterMode === 'tomorrow') {
+        start = new Date(today);
+        start.setDate(start.getDate() + 1);
+        end = new Date(start);
+
+    } else if (filterMode === 'this-week') {
+        const first = new Date(today);
+        first.setDate(today.getDate() - today.getDay());
+
+        const last = new Date(first);
+        last.setDate(first.getDate() + 6);
+
+        start = first;
+        end = last;
+
+    } else if (filterMode === 'last-week') {
+        const first = new Date(today);
+        first.setDate(today.getDate() - today.getDay() - 7);
+
+        const last = new Date(first);
+        last.setDate(first.getDate() + 6);
+
+        start = first;
+        end = last;
+
+    } else if (filterMode === 'next-week') {
+        const first = new Date(today);
+        first.setDate(today.getDate() - today.getDay() + 7);
+
+        const last = new Date(first);
+        last.setDate(first.getDate() + 6);
+
+        start = first;
+        end = last;
+
+    } else if (filterMode === 'this-month') {
         start = new Date(today.getFullYear(), today.getMonth(), 1);
         end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
@@ -628,16 +655,12 @@ function calculateFilterRange() {
         return;
     }
 
+    // ⛔ PENTING: tetap pakai format string (biar gak rusak getFilteredBookings)
     filterRange = {
         start: start.toISOString().split('T')[0],
         end: end.toISOString().split('T')[0]
     };
 }
-
-        function getFilteredBookings() {
-            if(!filterRange.start || !filterRange.end) return localState.bookings;
-            return localState.bookings.filter(b => b.date >= filterRange.start && b.date <= filterRange.end);
-        }
 
         // STATS RENDERING
         function renderAdminDashboard() {
@@ -2169,6 +2192,27 @@ document.addEventListener('input', (e) => {
     }
 });
 </script>
+<div id="modal-filter" class="modal hide">
+    <div class="modal-content">
+        <h3 class="text-sm font-bold mb-3">Filter Tanggal</h3>
 
+        <input type="date" id="modal-start"
+            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full mb-2">
+
+        <input type="date" id="modal-end"
+            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
+
+        <div class="flex gap-2 mt-3">
+            <button onclick="applyCustomFilter()"
+                class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-lg w-full">
+                Terapkan
+            </button>
+            <button onclick="closeFilterModal()"
+                class="bg-slate-200 text-xs font-bold px-3 py-2 rounded-lg w-full">
+                Batal
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
