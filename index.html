@@ -386,7 +386,7 @@
                 </div>
                 <div class="flex gap-3 pt-4">
                     <button type="button" onclick="closeModal('modal-master')" class="flex-1 py-3 border rounded-xl">Batal</button>
-                    <button type="submit" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">Simpan</button>
+                    <button type="button" id="btn-save-master" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">
                 </div>
             </form>
         </div>
@@ -892,6 +892,99 @@ window.deleteMasterItem = async (type, id) => {
     );
 
 };
+
+		// ================= SAVE MASTER =================
+document
+.getElementById('btn-save-master')
+.addEventListener('click', async () => {
+
+    const type =
+        document.getElementById('master-type').value;
+
+    const id =
+        document.getElementById('master-id').value;
+
+    const name =
+        document.getElementById('master-name').value;
+
+    const status =
+        document.getElementById('master-status').value;
+
+    if(!name){
+        alert("Nama wajib diisi");
+        return;
+    }
+
+    const collectionName =
+        type === 'room'
+            ? 'rooms'
+            : 'tools';
+
+    let data = {
+        name,
+        status
+    };
+
+    // FIELD TAMBAHAN
+    if(type === 'room'){
+
+        const capacity =
+            document.getElementById('master-capacity');
+
+        if(capacity)
+            data.capacity =
+                capacity.value || 0;
+
+    }
+
+    if(type === 'tool'){
+
+        const pos =
+            document.getElementById('master-pos');
+
+        if(pos)
+            data.pos =
+                pos.value || '';
+
+    }
+
+    if(id){
+
+        // UPDATE
+        await updateDoc(
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                collectionName,
+                id
+            ),
+            data
+        );
+
+    }
+    else{
+
+        // CREATE
+        await addDoc(
+            collection(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                collectionName
+            ),
+            data
+        );
+
+    }
+
+    closeModal('modal-master');
+
+});
 		
         window.toggleBookingType = (type) => {
             bookingType = type;
