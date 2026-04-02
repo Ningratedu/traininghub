@@ -1101,6 +1101,88 @@ function calculateFilterRange() {
                 `;
             }).join('');
         }
+		// ================= MASTER DATA RENDER =================
+function renderMaster(){
+
+    const roomContainer =
+        document.getElementById('master-room-list');
+
+    const toolContainer =
+        document.getElementById('master-tool-list');
+
+    if(!roomContainer || !toolContainer) return;
+
+    // ===== ROOM =====
+    if(localState.rooms.length === 0){
+
+        roomContainer.innerHTML =
+        `<div class="p-4 text-xs text-slate-400 italic">
+            Belum ada data ruangan
+        </div>`;
+
+    }
+    else{
+
+        roomContainer.innerHTML =
+        localState.rooms.map(r => `
+
+            <div class="p-4 border-b flex justify-between">
+
+                <span class="text-sm font-bold">
+                    ${r.name}
+                </span>
+
+                <span class="text-[10px] px-2 py-1 rounded
+                ${r.status === 'Open'
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : 'bg-rose-100 text-rose-600'}">
+
+                    ${r.status}
+
+                </span>
+
+            </div>
+
+        `).join('');
+
+    }
+
+    // ===== TOOL =====
+    if(localState.tools.length === 0){
+
+        toolContainer.innerHTML =
+        `<div class="p-4 text-xs text-slate-400 italic">
+            Belum ada data alat
+        </div>`;
+
+    }
+    else{
+
+        toolContainer.innerHTML =
+        localState.tools.map(t => `
+
+            <div class="p-4 border-b flex justify-between">
+
+                <span class="text-sm font-bold">
+                    ${t.name}
+                </span>
+
+                <span class="text-[10px] px-2 py-1 rounded
+                ${t.status === 'Open'
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : 'bg-rose-100 text-rose-600'}">
+
+                    ${t.status}
+
+                </span>
+
+            </div>
+
+        `).join('');
+
+    }
+
+}
 
         window.processPartialApproval = async (id) => {
             const b = localState.bookings.find(x => x.id === id);
