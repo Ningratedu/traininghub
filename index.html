@@ -2280,16 +2280,19 @@ document.addEventListener('input', (e) => {
 });
 	window.logout = () => {
 
-    // 🔥 hapus semua session
     localStorage.removeItem("traininghub_user");
 
-    // 🔥 reset memory
+    localStorage.setItem(
+        "just_logged_out",
+        "true"
+    );
+
     currentUser = null;
 
-    // 🔥 paksa reload halaman
     location.reload();
 
 };
+	
 </script>
 
 </body>
