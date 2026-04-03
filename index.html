@@ -170,7 +170,10 @@
         </aside>
 
         <main class="flex-1 flex flex-col min-w-0">
+    
     <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
+        
+        <!-- KIRI -->
         <div class="flex items-center gap-4">
             
             <!-- MOBILE MENU TOGGLE -->
@@ -178,37 +181,37 @@
                 <i class="fas fa-bars"></i>
             </button>
 
-            <h2 class="text-lg md:text-xl font-bold text-slate-900 truncate" id="view-title">Dashboard</h2>
+            <h2 class="text-lg md:text-xl font-bold text-slate-900 truncate" id="view-title">
+                Dashboard
+            </h2>
 
             <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
 
-            <!-- FILTER -->
-            <div class="flex flex-col w-full sm:w-auto">
-
-                <span class="text-[10px] text-slate-500 font-medium mb-1">
-                    Menampilkan
-                </span>
-
-                <div class="relative group">
-                    <select id="global-time-filter"
-                        onchange="window.handleTimeFilterChange(this.value)"
-                        class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 pr-2 w-24 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500"
-                        style="background-image: none;">
-                        
-                        <option value="this-month">Bulan Ini</option>
-                        <option value="last-month">Bulan Lalu</option>
-                        <option value="next-month">Bulan Depan</option>
-                        <option value="custom">Kustom...</option>
-                    </select>
-                </div>
-
-            </div>
         </div>
 
-        <!-- (KANAN HEADER BIAR TETAP AMAN, KALAU ADA KONTEN LAIN) -->
-        <div></div>
+        <!-- KANAN (FILTER) -->
+        <div class="flex flex-col items-end">
+
+            <span class="text-[10px] text-slate-500 font-medium mb-1">
+                Menampilkan
+            </span>
+
+            <select id="global-time-filter"
+                onchange="window.handleTimeFilterChange(this.value)"
+                class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 pr-2 w-24 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500"
+                style="background-image: none;">
+                
+                <option value="this-month">Bulan Ini</option>
+                <option value="last-month">Bulan Lalu</option>
+                <option value="next-month">Bulan Depan</option>
+                <option value="custom">Kustom...</option>
+            </select>
+
+        </div>
+
     </header>
 
+    <!-- CUSTOM DATE (TETAP SAMA, GAK DIUBAH BIAR AMAN) -->
     <div id="custom-date-container" class="hide mt-2 flex flex-col gap-2 w-full max-w-xs">
         <input type="date" id="filter-start"
             class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
@@ -221,6 +224,7 @@
             Terapkan
         </button>
     </div>
+
 </main>
 		
                 <div id="header-actions">
