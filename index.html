@@ -1010,7 +1010,7 @@ function calculateFilterRange() {
                 
                 return `
 						<div 
-						onclick="showAssetBookings('${item.id}','${type}', \`${item.name}\`)"
+						onclick="showAssetBookings('${item.id}','${type}', decodeURIComponent('${encodeURIComponent(item.name)}'))"
 						class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center relative overflow-hidden cursor-pointer ${isClosed ? 'opacity-60 grayscale' : ''}">
                         ${isClosed ? '<div class="absolute inset-0 bg-slate-900/5 flex items-center justify-center"><span class="bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-full">DITUTUP (PERBAIKAN)</span></div>' : ''}
                         ${isOccupied && !isClosed ? '<div class="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black px-2 py-1 rounded-bl-lg">DIPESAN</div>' : ''}
@@ -2404,7 +2404,7 @@ document.addEventListener('input', (e) => {
 	
 <!-- 🔥 MODAL RIWAYAT ASSET -->
 <div id="asset-booking-modal"
-     class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[9999] pl-72 pr-4 pt-4 pb-4">
+     class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[9999] p-4">
 
     <div class="bg-white rounded-3xl w-full max-w-6xl p-6 shadow-xl relative z-[10000]">
 
