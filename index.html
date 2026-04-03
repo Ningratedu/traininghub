@@ -1553,6 +1553,31 @@ window.renderAllBookings = function() {
     }).join('');
 }
 
+		// 🔥 DIPANGGIL SAAT CARD RUANGAN / ALAT DIKLIK
+window.showAssetBookings = (id, type, name) => {
+
+    // simpan filter
+    window.assetFilter = { id, type, name };
+
+    // ubah judul
+    const title =
+        document.querySelector('#view-all-bookings h4');
+
+    if(title){
+
+        title.innerText =
+            `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
+
+    }
+
+    // buka halaman semua pesanan
+    showView('all-bookings','Semua Pesanan');
+
+    // render ulang tabel
+    renderAllBookings();
+
+};
+		
 		window.exportAllBookingsExcel = () => {
 
     let data = getFilteredBookings();
