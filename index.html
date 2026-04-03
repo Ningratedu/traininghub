@@ -1196,8 +1196,6 @@ if(type === 'tool'){
             refreshUI();
         };
 
-        window.logout = () => location.reload();
-
         window.switchDashTab = (type) => {
             document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('tab-active', 'text-slate-500'));
             document.getElementById('tab-' + type).classList.add('tab-active');
