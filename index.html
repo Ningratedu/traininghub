@@ -176,7 +176,6 @@
         <!-- KIRI -->
         <div class="flex items-center gap-4">
             
-            <!-- MOBILE MENU TOGGLE -->
             <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-xl text-slate-600">
                 <i class="fas fa-bars"></i>
             </button>
@@ -186,44 +185,52 @@
             </h2>
 
             <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
-
         </div>
 
-        <!-- KANAN (FILTER) -->
-        <div class="flex flex-col items-end">
+        <!-- KANAN -->
+        <div class="flex flex-col items-end gap-1">
 
-            <span class="text-[10px] text-slate-500 font-medium mb-1">
+            <span class="text-[10px] text-slate-500 font-medium">
                 Menampilkan
             </span>
 
-            <select id="global-time-filter"
-                onchange="window.handleTimeFilterChange(this.value)"
-                class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 pr-2 w-24 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500"
-                style="background-image: none;">
-                
-                <option value="this-month">Bulan Ini</option>
-                <option value="last-month">Bulan Lalu</option>
-                <option value="next-month">Bulan Depan</option>
-                <option value="custom">Kustom...</option>
-            </select>
+            <div class="flex items-center gap-2">
+
+                <!-- SELECT -->
+                <select id="global-time-filter"
+                    onchange="window.handleTimeFilterChange(this.value)"
+                    class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 w-24 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500"
+                    style="background-image: none;">
+                    
+                    <option value="this-month">Bulan Ini</option>
+                    <option value="last-month">Bulan Lalu</option>
+                    <option value="next-month">Bulan Depan</option>
+                    <option value="custom">Kustom...</option>
+                </select>
+
+                <!-- CUSTOM DATE (INLINE, BUKAN KE BAWAH) -->
+                <div id="custom-date-container" class="hidden items-center gap-1">
+
+                    <input type="date" id="filter-start"
+                        class="bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-[10px] w-[110px]">
+
+                    <span class="text-[10px] text-slate-400">-</span>
+
+                    <input type="date" id="filter-end"
+                        class="bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-[10px] w-[110px]">
+
+                    <button onclick="applyCustomFilter()"
+                        class="bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-md">
+                        OK
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
     </header>
-
-    <!-- CUSTOM DATE (TETAP SAMA, GAK DIUBAH BIAR AMAN) -->
-    <div id="custom-date-container" class="hide mt-2 flex flex-col gap-2 w-full max-w-xs">
-        <input type="date" id="filter-start"
-            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
-
-        <input type="date" id="filter-end"
-            class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
-
-        <button onclick="applyCustomFilter()"
-            class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-lg w-full">
-            Terapkan
-        </button>
-    </div>
 
 </main>
 		
