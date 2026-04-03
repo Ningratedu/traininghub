@@ -170,69 +170,37 @@
         </aside>
 
         <main class="flex-1 flex flex-col min-w-0">
-    
-    <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
-        
-        <!-- KIRI -->
-        <div class="flex items-center gap-4">
-            
-            <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-xl text-slate-600">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <h2 class="text-lg md:text-xl font-bold text-slate-900 truncate" id="view-title">
-                Dashboard
-            </h2>
-
-            <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
-        </div>
-
-        <!-- KANAN -->
-        <div class="flex flex-col items-end gap-1">
-
-            <span class="text-[10px] text-slate-500 font-medium">
-                Menampilkan
-            </span>
-
-            <div class="flex items-center gap-2">
-
-                <!-- SELECT -->
-                <select id="global-time-filter"
-                    onchange="window.handleTimeFilterChange(this.value)"
-                    class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 w-24 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500"
-                    style="background-image: none;">
-                    
-                    <option value="this-month">Bulan Ini</option>
-                    <option value="last-month">Bulan Lalu</option>
-                    <option value="next-month">Bulan Depan</option>
-                    <option value="custom">Kustom...</option>
-                </select>
-
-                <!-- CUSTOM DATE (INLINE, BUKAN KE BAWAH) -->
-                <div id="custom-date-container" class="hidden items-center gap-1">
-
-                    <input type="date" id="filter-start"
-                        class="bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-[10px] w-[110px]">
-
-                    <span class="text-[10px] text-slate-400">-</span>
-
-                    <input type="date" id="filter-end"
-                        class="bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-[10px] w-[110px]">
-
-                    <button onclick="applyCustomFilter()"
-                        class="bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-md">
-                        OK
+            <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <!-- MOBILE MENU TOGGLE -->
+                    <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-xl text-slate-600">
+                        <i class="fas fa-bars"></i>
                     </button>
-
+                    <h2 class="text-lg md:text-xl font-bold text-slate-900 truncate" id="view-title">Dashboard</h2>
+                    <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
+                    <div class="relative group w-full sm:w-auto">
+                        <select id="global-time-filter" onchange="window.handleTimeFilterChange(this.value)" class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 pr-8 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="this-month">Bulan Ini</option>
+                            <option value="last-month">Bulan Lalu</option>
+                            <option value="next-month">Bulan Depan</option>
+                            <option value="custom">Kustom...</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                    </div>
                 </div>
+		
+		<div id="custom-date-container" class="hide mt-2 flex flex-col gap-2 w-full max-w-xs">
+    <input type="date" id="filter-start"
+        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
 
-            </div>
+    <input type="date" id="filter-end"
+        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
 
-        </div>
-
-    </header>
-
-</main>
+    <button onclick="applyCustomFilter()"
+        class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-lg w-full">
+        Terapkan
+    </button>
+</div>
 		
                 <div id="header-actions">
                     <div id="header-actions">
