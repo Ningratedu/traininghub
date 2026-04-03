@@ -2241,11 +2241,21 @@ document.addEventListener('input', (e) => {
 });
 	window.logout = () => {
 
+    // hapus session
     localStorage.removeItem(
         "traininghub_user"
     );
 
-    location.reload();
+    currentUser = null;
+
+    // tampilkan login
+    document
+        .getElementById('login-screen')
+        .classList.remove('hide');
+
+    // sembunyikan semua view/dashboard
+    document.querySelectorAll('.view')
+        .forEach(v => v.classList.add('hide'));
 
 };
 </script>
