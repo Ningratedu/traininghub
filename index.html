@@ -2282,27 +2282,14 @@ document.addEventListener('input', (e) => {
 });
 	window.logout = () => {
 
-    // tandai logout
-    localStorage.setItem(
-        "just_logged_out",
-        "true"
-    );
+    // 🔥 hapus semua session
+    localStorage.removeItem("traininghub_user");
 
-    // hapus session
-    localStorage.removeItem(
-        "traininghub_user"
-    );
-
+    // 🔥 reset memory
     currentUser = null;
 
-    // tampilkan login
-    document
-        .getElementById('login-screen')
-        .classList.remove('hide');
-
-    // sembunyikan semua view
-    document.querySelectorAll('.view')
-        .forEach(v => v.classList.add('hide'));
+    // 🔥 paksa reload halaman
+    location.reload();
 
 };
 </script>
