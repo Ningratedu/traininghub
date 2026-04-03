@@ -2247,9 +2247,14 @@ document.addEventListener('input', (e) => {
 });
 	window.logout = () => {
 
+    console.log("Logout clicked");
+
     // hapus session
-    localStorage.removeItem(
-        "traininghub_user"
+    localStorage.removeItem("traininghub_user");
+
+    console.log(
+        "Session after remove:",
+        localStorage.getItem("traininghub_user")
     );
 
     currentUser = null;
@@ -2259,7 +2264,7 @@ document.addEventListener('input', (e) => {
         .getElementById('login-screen')
         .classList.remove('hide');
 
-    // sembunyikan semua view/dashboard
+    // sembunyikan semua halaman
     document.querySelectorAll('.view')
         .forEach(v => v.classList.add('hide'));
 
