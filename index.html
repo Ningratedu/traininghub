@@ -1553,21 +1553,20 @@ window.renderAllBookings = function() {
     }).join('');
 }
 
-		// 🔥 TAMPILKAN BOOKING BERDASARKAN RUANGAN / ALAT
+		// 🔥 TAMPILKAN MODAL RIWAYAT RUANGAN / ALAT
 window.showAssetBookings = (id, type, name) => {
 
-    // ambil data booking sesuai filter tanggal
     let data = getFilteredBookings();
 
-    // filter berdasarkan asset
+    // FILTER DATA
     if(type === 'room'){
 
-        data = data.filter(b => 
+        data = data.filter(b =>
             b.roomId === id
         );
 
-    } 
-    else {
+    }
+    else{
 
         data = data.filter(b =>
             (b.tools || [])
@@ -1576,28 +1575,30 @@ window.showAssetBookings = (id, type, name) => {
 
     }
 
-    // ubah judul tabel
+    // UBAH JUDUL
     const title =
-        document.getElementById('all-bookings-title');
+        document.getElementById('asset-modal-title');
 
     if(title){
 
         title.innerText =
-            `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
+        `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
 
     }
 
+    // ISI TABEL
     const tbody =
-        document.getElementById('all-bookings-body');
+        document.getElementById('asset-booking-body');
 
-    // kalau kosong
+    if(!tbody) return;
+
     if(data.length === 0){
 
         tbody.innerHTML = `
         <tr>
-            <td colspan="10"
-                class="text-center py-6 text-slate-400 italic">
-                Tidak ada pesanan pada periode ini
+            <td colspan="6"
+                class="text-center py-6 text-slate-400">
+                Tidak ada pesanan
             </td>
         </tr>`;
 
@@ -1607,23 +1608,14 @@ window.showAssetBookings = (id, type, name) => {
         tbody.innerHTML =
         data.map(b => {
 
-            const room =
-                localState.rooms
-                .find(r => r.id == b.roomId);
-
-            const tools =
-                (b.tools || [])
-                .map(t => t.name)
-                .join(', ');
-
             return `
 <tr>
 
-<td class="px-3 py-2 text-center">
+<td class="px-3 py-2">
 ${b.date}
 </td>
 
-<td class="px-3 py-2 text-center">
+<td class="px-3 py-2">
 ${b.start} - ${b.end}
 </td>
 
@@ -1636,14 +1628,10 @@ ${b.dept}
 </td>
 
 <td class="px-3 py-2">
-${room ? room.name : '-'}
+${b.goal || '-'}
 </td>
 
-<td class="px-3 py-2">
-${tools || '-'}
-</td>
-
-<td class="px-3 py-2 text-center">
+<td class="px-3 py-2 text-center font-semibold">
 ${b.status}
 </td>
 
@@ -1654,8 +1642,19 @@ ${b.status}
 
     }
 
-    // tampilkan view semua pesanan
-    showView('all-bookings','Semua Pesanan');
+    // TAMPILKAN MODAL
+    document
+        .getElementById('asset-booking-modal')
+        .classList
+        .remove('hidden');
+
+};
+		window.closeAssetModal = () => {
+
+    document
+        .getElementById('asset-booking-modal')
+        .classList
+        .add('hidden');
 
 };
 		
@@ -2402,6 +2401,58 @@ document.addEventListener('input', (e) => {
 };
 	
 </script>
+	
+<!-- 🔥 MODAL RIWAYAT ASSET -->
+<div id="asset-booking-modal"
+     class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
 
+    <div class="bg-white w-[95%] max-w-6xl rounded-3xl shadow-xl p-6 relative">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between mb-4">
+
+            <h4 id="asset-modal-title"
+                class="font-bold text-lg text-slate-800">
+                Riwayat
+            </h4>
+
+            <button onclick="closeAssetModal()"
+                    class="text-slate-400 hover:text-slate-700 text-xl">
+                ✕
+            </button>
+
+        </div>
+
+        <!-- TABLE -->
+        <div class="overflow-auto max-h-[70vh]">
+
+            <table class="min-w-full text-sm border">
+
+                <thead class="bg-slate-100">
+
+                    <tr>
+
+                        <th class="px-3 py-2">Tanggal</th>
+                        <th class="px-3 py-2">Waktu</th>
+                        <th class="px-3 py-2">User</th>
+                        <th class="px-3 py-2">Departemen</th>
+                        <th class="px-3 py-2">Tujuan</th>
+                        <th class="px-3 py-2">Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="asset-booking-body">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
 </body>
 </html>
