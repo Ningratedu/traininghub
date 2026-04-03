@@ -968,17 +968,36 @@ function calculateFilterRange() {
         };
 
         function initSession() {
-            document.getElementById('user-display').innerText = currentUser.username;
-            document.getElementById('role-label').innerText = currentUser.role.toUpperCase();
-            const isAdmin = currentUser.role === 'admin';
-            document.getElementById('admin-menu-section').classList.toggle('hide', !isAdmin);
-            document.getElementById('user-menu-section').classList.toggle('hide', isAdmin);
-            document.getElementById('header-actions').classList.toggle('hide', isAdmin);
-            document.getElementById('admin-dashboard-ui').classList.toggle('hide', !isAdmin);
-            document.getElementById('user-dashboard-ui').classList.toggle('hide', isAdmin);
-            calculateFilterRange();
-            window.showView('dashboard', 'Dashboard');
-        }
+
+    // 🔥 PENGAMAN WAJIB
+    if(!currentUser){
+        return;
+    }
+
+    document.getElementById('user-display').innerText = currentUser.username;
+    document.getElementById('role-label').innerText = currentUser.role.toUpperCase();
+
+    const isAdmin = currentUser.role === 'admin';
+
+    document.getElementById('admin-menu-section')
+        .classList.toggle('hide', !isAdmin);
+
+    document.getElementById('user-menu-section')
+        .classList.toggle('hide', isAdmin);
+
+    document.getElementById('header-actions')
+        .classList.toggle('hide', isAdmin);
+
+    document.getElementById('admin-dashboard-ui')
+        .classList.toggle('hide', !isAdmin);
+
+    document.getElementById('user-dashboard-ui')
+        .classList.toggle('hide', isAdmin);
+
+    calculateFilterRange();
+
+    window.showView('dashboard', 'Dashboard');
+}
 
         function renderAvailableAssets(type) {
             const list = type === 'room' ? localState.rooms : localState.tools;
