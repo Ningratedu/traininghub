@@ -539,6 +539,23 @@ import {
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
 
+    // 🔥 cek apakah habis logout
+    const justLogout =
+        localStorage.getItem("just_logged_out");
+
+    if(justLogout){
+
+        // hapus flag logout
+        localStorage.removeItem("just_logged_out");
+
+        // tampilkan login
+        document
+            .getElementById('login-screen')
+            .classList.remove('hide');
+
+        return; // STOP auto login
+    }
+
     const savedUser =
         localStorage.getItem("traininghub_user");
 
@@ -564,7 +581,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
 });
-
 let bookingType = 'room';
 const ADMIN_PASS = "1234";
 let deptChart = null;
@@ -2247,14 +2263,15 @@ document.addEventListener('input', (e) => {
 });
 	window.logout = () => {
 
-    console.log("Logout clicked");
+    // tandai logout
+    localStorage.setItem(
+        "just_logged_out",
+        "true"
+    );
 
     // hapus session
-    localStorage.removeItem("traininghub_user");
-
-    console.log(
-        "Session after remove:",
-        localStorage.getItem("traininghub_user")
+    localStorage.removeItem(
+        "traininghub_user"
     );
 
     currentUser = null;
@@ -2264,7 +2281,7 @@ document.addEventListener('input', (e) => {
         .getElementById('login-screen')
         .classList.remove('hide');
 
-    // sembunyikan semua halaman
+    // sembunyikan semua view
     document.querySelectorAll('.view')
         .forEach(v => v.classList.add('hide'));
 
