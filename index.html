@@ -535,6 +535,34 @@ import {
 	signInAnonymously(auth).catch(err => console.error(err));
 	
         let currentUser = null;
+
+// 🔥 restore session saat refresh
+window.addEventListener("DOMContentLoaded", () => {
+
+    const savedUser =
+        localStorage.getItem("traininghub_user");
+
+    if(savedUser){
+
+        currentUser =
+            JSON.parse(savedUser);
+
+        document
+            .getElementById('login-screen')
+            .classList.add('hide');
+
+        setTimeout(()=>{
+            initSession();
+        },200);
+
+    }
+
+});
+
+let bookingType = 'room';
+const ADMIN_PASS = "1234";
+let deptChart = null;
+let html5QrCode = null;
         let bookingType = 'room';
         const ADMIN_PASS = "1234";
         let deptChart = null;
@@ -847,20 +875,63 @@ function calculateFilterRange() {
             e.preventDefault();
             const u = document.getElementById('login-username').value;
             const p = document.getElementById('login-password').value;
-            if(u === 'admin' && p === ADMIN_PASS) {
-                currentUser = { role: 'admin', username: 'Administrator', uid: 'admin-123' };
-                document.getElementById('login-screen').classList.add('hide');
-                initSession();
-            } else {
-                const found = localState.users.find(x => x.username === u && x.password === p);
-                if(found) { 
-                    currentUser = {...found, uid: found.id}; 
-                    document.getElementById('login-screen').classList.add('hide'); 
-                    initSession(); 
-                } else {
-                    document.getElementById('login-error').classList.remove('hide');
-                }
-            }
+	            if(u === 'admin' && p === ADMIN_PASS) {
+
+    currentUser = { 
+        role: 'admin',
+        username: 'Administrator',
+        uid: 'admin-123'
+    };
+
+    // 🔥 simpan session ADMIN
+    localStorage.setItem(
+        "traininghub_user",
+        JSON.stringify(currentUser)
+    );
+
+    document
+        .getElementById('login-screen')
+        .classList.add('hide');
+
+    initSession();
+
+} else {
+
+    const found =
+        localState.users.find(
+            x =>
+            x.username === u &&
+            x.password === p
+        );
+
+    if(found) {
+
+        currentUser = {
+            ...found,
+            uid: found.id
+        };
+
+        // 🔥 simpan session USER
+        localStorage.setItem(
+            "traininghub_user",
+            JSON.stringify(currentUser)
+        );
+
+        document
+            .getElementById('login-screen')
+            .classList.add('hide');
+
+        initSession();
+
+    } else {
+
+        document
+            .getElementById('login-error')
+            .classList.remove('hide');
+
+    }
+
+}
         };
 
         document.getElementById('form-register').onsubmit = async (e) => {
@@ -2172,6 +2243,15 @@ document.addEventListener('input', (e) => {
         renderAllBookings();
     }
 });
+	window.logout = () => {
+
+    localStorage.removeItem(
+        "traininghub_user"
+    );
+
+    location.reload();
+
+};
 </script>
 
 </body>
