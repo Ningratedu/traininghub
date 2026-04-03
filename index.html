@@ -1553,15 +1553,32 @@ window.renderAllBookings = function() {
     }).join('');
 }
 
-		// 🔥 DIPANGGIL SAAT CARD RUANGAN / ALAT DIKLIK
+		// 🔥 TAMPILKAN BOOKING BERDASARKAN RUANGAN / ALAT
 window.showAssetBookings = (id, type, name) => {
 
-    // simpan filter
-    window.assetFilter = { id, type, name };
+    // ambil data booking sesuai filter tanggal
+    let data = getFilteredBookings();
 
-    // ubah judul
+    // filter berdasarkan asset
+    if(type === 'room'){
+
+        data = data.filter(b => 
+            b.roomId === id
+        );
+
+    } 
+    else {
+
+        data = data.filter(b =>
+            (b.tools || [])
+            .some(t => t.id === id)
+        );
+
+    }
+
+    // ubah judul tabel
     const title =
-        document.querySelector('#view-all-bookings h4');
+        document.getElementById('all-bookings-title');
 
     if(title){
 
@@ -1570,11 +1587,75 @@ window.showAssetBookings = (id, type, name) => {
 
     }
 
-    // buka halaman semua pesanan
-    showView('all-bookings','Semua Pesanan');
+    const tbody =
+        document.getElementById('all-bookings-body');
 
-    // render ulang tabel
-    renderAllBookings();
+    // kalau kosong
+    if(data.length === 0){
+
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="10"
+                class="text-center py-6 text-slate-400 italic">
+                Tidak ada pesanan pada periode ini
+            </td>
+        </tr>`;
+
+    }
+    else{
+
+        tbody.innerHTML =
+        data.map(b => {
+
+            const room =
+                localState.rooms
+                .find(r => r.id == b.roomId);
+
+            const tools =
+                (b.tools || [])
+                .map(t => t.name)
+                .join(', ');
+
+            return `
+<tr>
+
+<td class="px-3 py-2 text-center">
+${b.date}
+</td>
+
+<td class="px-3 py-2 text-center">
+${b.start} - ${b.end}
+</td>
+
+<td class="px-3 py-2">
+${b.userName}
+</td>
+
+<td class="px-3 py-2">
+${b.dept}
+</td>
+
+<td class="px-3 py-2">
+${room ? room.name : '-'}
+</td>
+
+<td class="px-3 py-2">
+${tools || '-'}
+</td>
+
+<td class="px-3 py-2 text-center">
+${b.status}
+</td>
+
+</tr>
+`;
+
+        }).join('');
+
+    }
+
+    // tampilkan view semua pesanan
+    showView('all-bookings','Semua Pesanan');
 
 };
 		
