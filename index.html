@@ -1038,11 +1038,10 @@ window.showView('dashboard', 'Dashboard');
 // 🔥 AUTO BUKA SIDEBAR DI HP
 setTimeout(() => {
     if (window.innerWidth < 768) {
-        const sidebar = document.getElementById('sidebar');
+        const sidebar = document.getElementById('mobile-sidebar');
         if (!sidebar) return;
 
-        sidebar.classList.remove('-translate-x-full', 'hidden');
-        sidebar.classList.add('translate-x-0');
+        sidebar.classList.add('sidebar-open');
     }
 }, 150);
 		}			
