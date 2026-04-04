@@ -499,6 +499,15 @@
                     <label class="text-[10px] font-bold uppercase text-slate-400">Pilih Alat</label>
                     <div id="tool-selection" class="flex flex-wrap gap-2 mt-2"></div>
                 </div>
+				<div class="col-span-2">
+    <label class="text-[10px] font-bold uppercase text-slate-400">Catatan Tambahan</label>
+    <textarea 
+        id="book-notes" 
+        rows="3"
+        placeholder="Tulis catatan tambahan di sini (opsional)..."
+        class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm resize-none">
+    </textarea>
+				</div>
                 <div id="booking-error-msg" class="col-span-2 text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg">Pilihan ruangan ini sudah dipesan pada waktu tersebut.</div>
                 <button type="submit" id="btn-submit-booking" class="col-span-2 bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg">Simpan Pesanan</button>
             </form>
