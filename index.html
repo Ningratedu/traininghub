@@ -1446,21 +1446,15 @@ if(type === 'tool'){
 
         </span>
 
-        ${b.status === 'Pending' ? `
+        <button onclick="window.editBooking('${b.id}')"
+class="text-indigo-400 hover:text-indigo-600 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+    <i class="fas fa-pen text-sm"></i>
+</button>
 
-            <button 
-            onclick="window.deleteBooking('${b.id}')" 
-            class="text-rose-400 hover:text-rose-600 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-
-                <i class="fas fa-trash-alt text-sm"></i>
-
-            </button>
-
-        ` : ''}
-
-    </div>
-
-</div>
+<button onclick="window.deleteBooking('${b.id}')"
+class="text-rose-400 hover:text-rose-600 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+    <i class="fas fa-trash-alt text-sm"></i>
+</button>
 
             `;
 
@@ -2012,7 +2006,9 @@ function renderMaster(){
         return;
     }
 
-    container.innerHTML = approved.map(b => `
+    container.innerHTML = approved
+.sort((a, b) => new Date(b.date) - new Date(a.date))
+.map(b => `
         <div onclick="window.openDetail('${b.id}')" class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex gap-4 cursor-pointer">
             <div class="text-center min-w-[50px]">
                 <p class="text-xl font-black text-slate-900">${b.date.split('-')[2]}</p>
