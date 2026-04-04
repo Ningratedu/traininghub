@@ -1044,17 +1044,33 @@ function calculateFilterRange() {
 
     calculateFilterRange();
 
-window.showView('dashboard', 'Dashboard');
+// 🔥 ambil halaman terakhir dari URL
+const hash =
+    window.location.hash.replace('#','');
 
-// 🔥 AUTO BUKA SIDEBAR DI HP
+if(hash){
+
+    window.showView(hash);
+
+} else {
+
+    window.showView('dashboard', 'Dashboard');
+
+}
+// 🔥 AUTO BUKA SIDEBAR DI HP (seperti klik ☰)
 setTimeout(() => {
-    if (window.innerWidth < 768) {
-        const sidebar = document.getElementById('mobile-sidebar');
-        if (!sidebar) return;
 
-        sidebar.classList.add('sidebar-open');
+    if (window.innerWidth < 768) {
+
+        if(window.toggleSidebar){
+
+            window.toggleSidebar();
+
+        }
+
     }
-}, 150);
+
+}, 300);
 		}			
         function renderAvailableAssets(type) {
             const list = type === 'room' ? localState.rooms : localState.tools;
