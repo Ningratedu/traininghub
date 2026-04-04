@@ -2066,34 +2066,69 @@ window.openDetail = (id) => {
     container.innerHTML = `
         <div class="grid grid-cols-2 gap-4">
 
-            <div class="col-span-2">
-                <span class="px-3 py-1 rounded-full text-xs font-bold ${getStatusClass(b.status)}">${b.status}</span>
-            </div>
+    <!-- STATUS -->
+    <div class="col-span-2">
+        <span class="px-3 py-1 rounded-full text-xs font-bold ${getStatusClass(b.status)}">
+            Status : ${b.status}
+        </span>
+    </div>
 
-			${room ? `<div class="col-span-2 bg-slate-70 p-2 rounded font-bold">${room.name}</div>` : ''}
-			
-            <div class="col-span-2">
-                <p class="font-bold">${b.userName}</p>
-                <p class="text-xs text-slate-500">${b.dept || '-'}</p>
-            </div>
+    <!-- RUANGAN -->
+    ${room ? `
+    <div class="col-span-2 bg-slate-70 p-2 rounded">
+        <span class="text-xs text-slate-500">Ruangan :</span>
+        <div class="font-bold">${room.name}</div>
+    </div>
+    ` : ''}
 
-            <div class="col-span-2 text-xs">${b.date}</div>
+    <!-- NAMA & DEPARTEMEN -->
+    <div class="col-span-2">
+        <span class="text-xs text-slate-500">Nama :</span>
+        <p class="font-bold">${b.userName}</p>
 
-			<div class="col-span-2 text-xs">${b.start} - ${b.end}</div>
+        <span class="text-xs text-slate-500">Departemen :</span>
+        <p class="text-xs text-slate-500">${b.dept || '-'}</p>
+    </div>
 
-            <div class="col-span-2 bg-slate-50 p-2 rounded">${b.goal}</div>
+    <!-- TANGGAL -->
+    <div class="col-span-2 text-xs">
+        <span class="text-slate-500">Tanggal :</span>
+        ${b.date}
+    </div>
 
-			<div class="col-span-2 bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
-    <span class="font-bold text-yellow-700">Catatan Pemesan:</span><br>
-    ${b.notes || 'Tidak ada catatan'}
+    <!-- WAKTU -->
+    <div class="col-span-2 text-xs">
+        <span class="text-slate-500">Waktu :</span>
+        ${b.start} - ${b.end}
+    </div>
+
+    <!-- AGENDA (bold italic) -->
+    <div class="col-span-2 bg-slate-50 p-2 rounded">
+        <span class="text-xs text-slate-500">Agenda :</span>
+        <div class="font-bold italic">
+            ${b.goal}
+        </div>
+    </div>
+
+    <!-- CATATAN PEMESAN -->
+    <div class="col-span-2 bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
+        <span class="font-bold text-yellow-700">
+            Catatan Pemesan:
+        </span><br>
+        ${b.notes || 'Tidak ada catatan'}
+    </div>
+
+    <!-- CATATAN ADMIN -->
+    ${b.adminNote ? `
+    <div class="col-span-2 bg-rose-50 border border-rose-200 p-3 rounded text-xs">
+        <span class="font-bold text-rose-700">
+            Catatan Admin:
+        </span><br>
+        ${b.adminNote}
+    </div>
+    ` : ''}
+
 </div>
-
-${b.adminNote ? `
-<div class="col-span-2 bg-rose-50 border border-rose-200 p-3 rounded text-xs">
-    <span class="font-bold text-rose-700">Catatan Admin:</span><br>
-    ${b.adminNote}
-</div>
-` : ''}
 
 <!-- ✅ TOOLS APPROVED SAJA -->
 <div class="col-span-2">
