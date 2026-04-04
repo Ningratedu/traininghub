@@ -2013,7 +2013,7 @@ function renderMaster(){
     } 
 
     container.innerHTML = approved
-.sort((a, b) => new Date(b.date) - new Date(a.date))
+.sort((a, b) => new Date(a.date) - new Date(b.date))
 .map(b => `
         <div onclick="window.openDetail('${b.id}')" class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex gap-4 cursor-pointer">
             <div class="text-center min-w-[50px]">
