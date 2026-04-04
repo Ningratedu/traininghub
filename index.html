@@ -1465,9 +1465,10 @@ if(type === 'tool'){
     <!-- ICON ACTION -->
     <div class="flex gap-2">
     ${b.status !== 'Completed' ? `
+${b.status === 'Pending' ? `
 <button onclick="window.editBooking('${b.id}')"
 class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
-<i class="fas fa-pen text-sm"></i>
+    <i class="fas fa-pen text-sm"></i>
 </button>
 ` : ``}
 
@@ -1807,10 +1808,10 @@ window.editBooking = (bookingId) => {
         return;
     }
 	// 🔥 BLOK JIKA COMPLETED
-    if (booking.status === 'Completed') {
-        alert("Booking yang sudah Completed tidak bisa diedit");
-        return;
-    }
+    if (booking.status !== 'Pending') {
+    alert("Hanya booking Pending yang bisa diedit");
+    return;
+}
 
     // Simpan ID edit
     document.getElementById(
