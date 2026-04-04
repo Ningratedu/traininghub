@@ -1197,6 +1197,10 @@ if(type === 'tool'){
         };
 
         window.showView = (id, titleText = null) => {
+			if (location.hash !== "#" + id) {
+    		history.pushState({ id, titleText }, "", "#" + id);
+			}
+			
             document.querySelectorAll('.view').forEach(v => v.classList.add('hide'));
             document.getElementById('view-' + id).classList.remove('hide');
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('sidebar-item-active', btn.dataset.view === id));
@@ -2461,6 +2465,17 @@ document.addEventListener('input', (e) => {
     location.reload();
 
 };
+	window.onpopstate = (event) => {
+    if (event.state) {
+        showView(event.state.id, event.state.titleText);
+    }
+};
+	window.addEventListener('load', () => {
+    const hash = location.hash.replace("#", "");
+    if (hash) {
+        showView(hash);
+    }
+});
 	
 </script>
 	
