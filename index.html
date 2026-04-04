@@ -641,11 +641,23 @@ let localState = {
         };
 
         window.toggleMobileSidebar = () => {
-            const sidebar = document.getElementById('mobile-sidebar');
-            const overlay = document.getElementById('mobile-sidebar-overlay');
-            sidebar.classList.toggle('sidebar-open');
-            overlay.classList.toggle('hide');
-        };
+    const sidebar = document.getElementById('mobile-sidebar');
+    const overlay = document.getElementById('mobile-sidebar-overlay');
+
+    if (!sidebar || !overlay) return;
+
+    const isOpen = sidebar.classList.contains('sidebar-open');
+
+    if (isOpen) {
+        // 🔴 TUTUP
+        sidebar.classList.remove('sidebar-open');
+        overlay.classList.add('hide');
+    } else {
+        // 🟢 BUKA
+        sidebar.classList.add('sidebar-open');
+        overlay.classList.remove('hide');
+    }
+};
 
         window.openRegister = () => document.getElementById('modal-register').classList.remove('hide');
 
