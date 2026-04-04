@@ -1446,24 +1446,26 @@ if(type === 'tool'){
 
     <!-- ICON ACTION -->
     <div class="flex gap-2">
-        <button onclick="window.editBooking('${b.id}')"
-        class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
-            <i class="fas fa-pen text-sm"></i>
-        </button>
+    <button onclick="window.editBooking('${b.id}')"
+    class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
+        <i class="fas fa-pen text-sm"></i>
+    </button>
 
-        <button onclick="window.deleteBooking('${b.id}')"
-        class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
-            <i class="fas fa-trash-alt text-sm"></i>
-        </button>
-    </div>
-
+    <button onclick="window.deleteBooking('${b.id}')"
+    class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
+        <i class="fas fa-trash-alt text-sm"></i>
+    </button>
 </div>
 
-            `;
+</div> <!-- ACTION -->
 
-        }).join('');
+</div> <!-- 🔥 CARD (WAJIB ADA) -->
 
-    }
+`;
+
+}).join('');
+
+}
 
 }
                 
