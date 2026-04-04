@@ -2341,6 +2341,7 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
             name: currentUser.username,
             department: currentUser.dept || 'Umum',
             goal: document.getElementById('book-goal').value,
+			notes: document.getElementById('book-notes').value,
             date,
             start,
             end,
