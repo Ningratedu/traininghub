@@ -1397,10 +1397,10 @@ if(type === 'tool'){
 
             return `
 
-            <div class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-4 items-start group">
+            <div class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group">
 
     <!-- 📅 TANGGAL -->
-    <div class="text-center min-w-[55px] leading-tight">
+    <div class="text-center min-w-[45px] leading-tight">
         <p class="text-xl font-black text-slate-900">
             ${b.date ? b.date.split('-')[2] : '-'}
         </p>
@@ -1435,27 +1435,26 @@ if(type === 'tool'){
     </div>
 
     <!-- 👉 ACTION -->
-    <div class="flex items-start gap-2 shrink-0">
+    <div class="flex flex-col items-end gap-2 shrink-0">
 
-        <!-- STATUS -->
-        <span 
-        onclick="window.openDetail('${b.id}')"
-        class="text-[9px] font-bold uppercase px-3 py-1 rounded-full whitespace-nowrap ${getStatusClass(b.status)}">
-            ${b.status}
-        </span>
+    <!-- STATUS -->
+    <span 
+    onclick="window.openDetail('${b.id}')"
+    class="text-[9px] font-bold uppercase px-3 py-1 rounded-full whitespace-nowrap ${getStatusClass(b.status)}">
+        ${b.status}
+    </span>
 
-        <!-- EDIT -->
+    <!-- ICON ACTION -->
+    <div class="flex gap-2">
         <button onclick="window.editBooking('${b.id}')"
         class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
             <i class="fas fa-pen text-sm"></i>
         </button>
 
-        <!-- DELETE -->
         <button onclick="window.deleteBooking('${b.id}')"
         class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
             <i class="fas fa-trash-alt text-sm"></i>
         </button>
-
     </div>
 
 </div>
