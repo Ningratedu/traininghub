@@ -1360,8 +1360,9 @@ if(type === 'tool'){
         function renderRiwayat() {
 
     const my =
-        getFilteredBookings()
-        .filter(b => b.userUid === currentUser.uid);
+    getFilteredBookings()
+    .filter(b => b.userUid === currentUser.uid)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const container =
         document.getElementById('my-booking-list');
