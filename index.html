@@ -1039,12 +1039,13 @@ window.showView('dashboard', 'Dashboard');
 setTimeout(() => {
     if (window.innerWidth < 768) {
         const sidebar = document.getElementById('sidebar');
-        if (sidebar) {
-            sidebar.classList.remove('-translate-x-full');
-            sidebar.classList.add('translate-x-0');
-        }
+        if (!sidebar) return;
+
+        sidebar.classList.remove('-translate-x-full', 'hidden');
+        sidebar.classList.add('translate-x-0');
     }
 }, 150);
+		}			
         function renderAvailableAssets(type) {
             const list = type === 'room' ? localState.rooms : localState.tools;
             const container = document.getElementById(type === 'room' ? 'available-rooms-list' : 'available-tools-list');
