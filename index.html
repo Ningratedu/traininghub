@@ -1462,9 +1462,9 @@ if(type === 'tool'){
         ${b.status}
     </span>
 
-    <!-- ICON ACTION -->
-    <div class="flex gap-2">
-    ${b.status !== 'Completed' ? `
+   <!-- ICON ACTION -->
+<div class="flex gap-2">
+
 ${b.status === 'Pending' ? `
 <button onclick="window.editBooking('${b.id}')"
 class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
@@ -1472,10 +1472,13 @@ class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transi
 </button>
 ` : ``}
 
-    <button onclick="window.deleteBooking('${b.id}')"
-    class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
-        <i class="fas fa-trash-alt text-sm"></i>
-    </button>
+${b.status !== 'Completed' ? `
+<button onclick="window.deleteBooking('${b.id}')"
+class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
+    <i class="fas fa-trash-alt text-sm"></i>
+</button>
+` : ``}
+
 </div>
 
 </div> <!-- ACTION -->
