@@ -654,7 +654,7 @@ let localState = {
         overlay.classList.add('hide');
     } else {
         // 🟢 BUKA
-        sidebar.classList.add('sidebar-open');
+        toggleMobileSidebar();
         overlay.classList.remove('hide');
     }
 };
@@ -1053,7 +1053,7 @@ setTimeout(() => {
         const sidebar = document.getElementById('mobile-sidebar');
         if (!sidebar) return;
 
-        sidebar.classList.add('sidebar-open');
+        toggleMobileSidebar();
     }
 }, 150);
 		}			
