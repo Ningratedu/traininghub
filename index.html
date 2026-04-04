@@ -640,6 +640,23 @@ let localState = {
             document.getElementById(id).classList.add('hide');
         };
 
+		window.openModal = (id) => {
+
+    const modal =
+        document.getElementById(id);
+
+    if (!modal) {
+        console.error(
+            "Modal tidak ditemukan:",
+            id
+        );
+        return;
+    }
+
+    modal.classList.remove('hide');
+
+};
+
         window.toggleMobileSidebar = () => {
             const sidebar = document.getElementById('mobile-sidebar');
             const overlay = document.getElementById('mobile-sidebar-overlay');
