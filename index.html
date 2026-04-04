@@ -1397,7 +1397,7 @@ if(type === 'tool'){
 
             return `
 
-            <div class="card-pop bg-white p-4 rounded-2xl border flex gap-4 items-center group">
+            <div class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-4 items-center group">
 
     <!-- 📅 KIRI: TANGGAL -->
     <div class="text-center min-w-[50px]">
@@ -1461,64 +1461,7 @@ if(type === 'tool'){
     </div>
 
 </div>
-                <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0">
-
-                    <p class="font-bold text-sm truncate">
-                        ${b.goal}
-                    </p>
-
-                    <p class="text-[10px] text-slate-500 truncate">
-                        Ruangan : ${roomName}
-                    </p>
-
-                    <p class="text-[10px] text-slate-500 truncate">
-                        Alat : ${toolsText}
-                    </p>
-
-                    <p class="text-[10px] text-slate-500 truncate">
-                        ${b.name || b.userName || '-'} • 
-                        ${b.department || b.dept || '-'}
-                    </p>
-
-                    <p class="text-[10px] text-slate-400">
-                        ${b.start} - ${b.end}
-                    </p>
-
-                </div>
-
-                <div class="flex items-center gap-3 shrink-0">
-
-                    <span 
-                    onclick="window.openDetail('${b.id}')" 
-                    class="text-[9px] font-black uppercase px-3 py-1 rounded-full ${getStatusClass(b.status)}">
-
-                        ${b.status}
-
-                    </span>
-
-                    ${b.status === 'Pending' ? `
-
-                        <button 
-                        onclick="window.deleteBooking('${b.id}')" 
-                        class="text-rose-400 hover:text-rose-600 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-
-                            <i class="fas fa-trash-alt text-sm"></i>
-
-                        </button>
-
-                    ` : ''}
-
-                </div>
-
-            </div>
-
-            `;
-
-        }).join('');
-
-    }
-
-}
+                
 		let sortField = null;
 let sortAsc = true;
 
