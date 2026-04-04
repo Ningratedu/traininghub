@@ -2082,9 +2082,16 @@ window.openDetail = (id) => {
             <div class="col-span-2 bg-slate-50 p-2 rounded">${b.goal}</div>
 
 			<div class="col-span-2 bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
-    <span class="font-bold text-yellow-700">Catatan:</span><br>
+    <span class="font-bold text-yellow-700">Catatan Pemesan:</span><br>
     ${b.notes || 'Tidak ada catatan'}
 </div>
+
+${b.adminNote ? `
+<div class="col-span-2 bg-rose-50 border border-rose-200 p-3 rounded text-xs">
+    <span class="font-bold text-rose-700">Catatan Admin:</span><br>
+    ${b.adminNote}
+</div>
+` : ''}
 
            ${room ? `<div class="col-span-2 text-xs font-bold">${room.name}</div>` : ''}
 
