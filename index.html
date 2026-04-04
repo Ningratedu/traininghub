@@ -2008,7 +2008,7 @@ function renderMaster(){
     if(approved.length === 0) {
         container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada jadwal pemakaian di periode ini</div>`;
         return;
-    }
+    } 
 
     container.innerHTML = approved
 .sort((a, b) => new Date(b.date) - new Date(a.date))
