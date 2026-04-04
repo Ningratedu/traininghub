@@ -43,10 +43,12 @@
 <body class="text-slate-700">
 
     <!-- SIDEBAR -->
-<div class="sidebar w-64 fixed h-full bg-white border-r border-slate-200 flex flex-col items-center pt-6">
-    <img src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png" 
-         alt="Logo" class="w-20 h-20 object-contain mb-2">
-    <span class="font-bold text-indigo-600 text-lg">TrainingHub</span>
+<div class="sidebar w-64 md:w-64 sm:w-20 fixed h-full bg-white border-r border-slate-200 flex flex-col items-center pt-6">
+    <!-- Logo sidebar responsive -->
+    <img src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png"
+         alt="Logo"
+         class="w-28 h-28 md:w-28 md:h-28 sm:w-16 sm:h-16 object-contain mb-4">
+    <span class="font-bold text-indigo-600 text-lg hidden sm:block">TrainingHub</span>
 
     <div class="mt-6 w-full">
         <div class="sidebar-item sidebar-item-active">Dashboard</div>
@@ -59,10 +61,11 @@
 <!-- LOGIN SCREEN -->
 <div id="login-screen" class="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
-        <div class="text-center mb-8">
-            <!-- Logo tanpa background kotak, lebih besar -->
-            <img src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png" 
-                 alt="Logo" class="w-28 h-28 mx-auto mb-4 object-contain">
+        <div class="text-center mb-6">
+            <!-- Logo login responsive -->
+            <img src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png"
+                 alt="Logo"
+                 class="w-36 h-36 md:w-36 md:h-36 sm:w-24 sm:h-24 mx-auto mb-3 object-contain">
             <h1 class="text-2xl font-black text-slate-900">TrainingHub</h1>
             <p class="text-slate-500 text-sm">RUMAH NINGRAT ASSET MANAGEMENT</p>
         </div>
@@ -70,18 +73,23 @@
         <form id="form-login" class="space-y-4">
             <div>
                 <label class="text-[10px] font-bold uppercase text-slate-400 mb-2 block">Username</label>
-                <input type="text" id="login-username" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="text" id="login-username" required
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <div>
                 <label class="text-[10px] font-bold uppercase text-slate-400 mb-2 block">Password</label>
-                <input type="password" id="login-password" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="password" id="login-password" required
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             <p id="login-error" class="text-rose-500 text-[10px] font-bold hide text-center">Username atau Password salah!</p>
-            <button type="submit" class="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Masuk Sekarang</button>
+            <button type="submit"
+                    class="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                Masuk Sekarang
+            </button>
         </form>
 
         <div class="mt-6 pt-6 border-t border-slate-100 text-center">
-            <p class="text-xs text-slate-500">Belum punya akun? 
+            <p class="text-xs text-slate-500">Belum punya akun?
                 <button onclick="openRegister()" class="text-indigo-600 font-bold hover:underline">Daftar Disini</button>
             </p>
         </div>
