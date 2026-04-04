@@ -1767,6 +1767,88 @@ ${b.status}
             }
         };
 
+		// ================================
+// EDIT BOOKING (FIX FINAL)
+// ================================
+
+window.editBooking = (bookingId) => {
+
+    console.log("EDIT ID:", bookingId);
+
+    const booking =
+        localState.bookings.find(
+            b => b.id === bookingId
+        );
+
+    if (!booking) {
+
+        console.log("DATA BOOKING:", localState.bookings);
+
+        alert("Booking tidak ditemukan");
+        return;
+    }
+
+    // Simpan ID edit
+    document.getElementById(
+        "edit-booking-id"
+    ).value = bookingId;
+
+    // Ubah judul modal
+    document.getElementById(
+        "booking-modal-title"
+    ).textContent = "Edit Pemesanan";
+
+    // Set tipe booking
+    bookingType = booking.type || "room";
+
+    window.toggleBookingType(bookingType);
+
+    // Isi field form
+    document.getElementById("book-room").value =
+        booking.roomId || "";
+
+    document.getElementById("book-goal").value =
+        booking.goal || "";
+
+    document.getElementById("book-notes").value =
+        booking.notes || "";
+
+    document.getElementById("book-date").value =
+        booking.date || "";
+
+    document.getElementById("book-start").value =
+        booking.start || "";
+
+    document.getElementById("book-end").value =
+        booking.end || "";
+
+    // Centang tools
+    setTimeout(() => {
+
+        if (booking.tools) {
+
+            booking.tools.forEach(t => {
+
+                const checkbox =
+                    document.querySelector(
+                        `input[name="tools"][value="${t.id}"]`
+                    );
+
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+
+            });
+
+        }
+
+    }, 300);
+
+    // Buka modal
+    openModal("modal-booking");
+
+};
+
         function renderApproval() {
             const pending = getFilteredBookings().filter(b => b.status === 'Pending');
             const container = document.getElementById('approval-list');
@@ -2446,24 +2528,55 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
         if (editId) {
 
-            await updateDoc(
-                doc(db, 'artifacts', appId, 'public', 'data', 'bookings', editId),
-                bookingData
-            );
+    delete bookingData.createdAt;
+    delete bookingData.status;
+    delete bookingData.startedAt;
+    delete bookingData.finishedAt;
+    delete bookingData.startPhoto;
+    delete bookingData.finishPhoto;
 
-        } else {
+    await updateDoc(
+        doc(
+            db,
+            'artifacts',
+            appId,
+            'public',
+            'data',
+            'bookings',
+            editId
+        ),
+        bookingData
+    );
 
-            await addDoc(
-                collection(db, 'artifacts', appId, 'public', 'data', 'bookings'),
-                bookingData
-            );
+} else {
 
-        }
+    await addDoc(
+        collection(
+            db,
+            'artifacts',
+            appId,
+            'public',
+            'data',
+            'bookings'
+        ),
+        bookingData
+    );
 
+}
         alert("✅ Pesanan berhasil disimpan");
 
         window.closeModal('modal-booking');
-        window.showView('riwayat','Pesanan Saya');
+
+document.getElementById(
+    "edit-booking-id"
+).value = "";
+
+document.getElementById(
+    "booking-modal-title"
+).textContent =
+"Form Pemesanan";
+
+window.showView('riwayat','Pesanan Saya');
 
     } catch (err) {
 
