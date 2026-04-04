@@ -544,18 +544,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    getDoc, // 🔥 TAMBAHKAN DI SINI
-    doc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
     getStorage,
@@ -1044,34 +1033,9 @@ function calculateFilterRange() {
 
     calculateFilterRange();
 
-// 🔥 ambil halaman terakhir dari URL
-const hash =
-    window.location.hash.replace('#','');
-
-if(hash){
-
-    window.showView(hash);
-
-} else {
-
     window.showView('dashboard', 'Dashboard');
-
 }
-// 🔥 AUTO BUKA SIDEBAR DI HP (seperti klik ☰)
-setTimeout(() => {
 
-    if (window.innerWidth < 768) {
-
-        if(window.toggleSidebar){
-
-            window.toggleSidebar();
-
-        }
-
-    }
-
-}, 300);
-		}			
         function renderAvailableAssets(type) {
             const list = type === 'room' ? localState.rooms : localState.tools;
             const container = document.getElementById(type === 'room' ? 'available-rooms-list' : 'available-tools-list');
@@ -1803,74 +1767,6 @@ ${b.status}
             }
         };
 
-		// ================================
-// EDIT BOOKING (WAJIB ADA)
-// ================================
-
-window.editBooking = async (bookingId) => {
-
-    try {
-
-        // ambil data booking dari Firestore
-        const bookingRef =
-            doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId);
-
-        const snap = await getDoc(bookingRef);
-
-        if (!snap.exists()) {
-            alert("❌ Booking tidak ditemukan");
-            return;
-        }
-
-        const b = snap.data();
-
-        // isi form booking
-        document.getElementById('book-date').value = b.date || '';
-        document.getElementById('book-start').value = b.start || '';
-        document.getElementById('book-end').value = b.end || '';
-        document.getElementById('book-goal').value = b.goal || '';
-        document.getElementById('book-notes').value = b.notes || '';
-
-        // isi room jika ada
-        if (b.roomId) {
-            document.getElementById('book-room').value = b.roomId;
-        }
-
-        // reset semua tools
-        document.querySelectorAll('input[name="tools"]').forEach(cb => {
-            cb.checked = false;
-        });
-
-        // centang tools lama
-        if (b.tools && b.tools.length > 0) {
-
-            b.tools.forEach(t => {
-
-                const cb =
-                    document.querySelector(`input[name="tools"][value="${t.id}"]`);
-
-                if (cb) cb.checked = true;
-
-            });
-
-        }
-
-        // simpan ID edit
-        document.getElementById('edit-booking-id').value =
-            bookingId;
-
-        // buka modal
-        window.openModal('modal-booking');
-
-    } catch (err) {
-
-        console.error("ERROR EDIT:", err);
-        alert("❌ Gagal membuka data edit");
-
-    }
-
-};
-		
         function renderApproval() {
             const pending = getFilteredBookings().filter(b => b.status === 'Pending');
             const container = document.getElementById('approval-list');
