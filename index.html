@@ -1254,12 +1254,24 @@ document
 
     // ✅ AMBIL GAMBAR LAMA SAAT EDIT
     if(id && !imageUrl){
-        const existing = localState[
-            type === 'room' ? 'rooms' : 'tools'
-        ].find(x => x.id === id);
+        import { getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        imageUrl = existing?.image || '';
-    }
+if(id && !imageUrl){
+    const snap = await getDoc(
+        doc(
+            db,
+            'artifacts',
+            appId,
+            'public',
+            'data',
+            type === 'room' ? 'rooms' : 'tools',
+            id
+        )
+    );
+
+    const existing = snap.data();
+    imageUrl = existing?.image || '';
+}
 
     // ✅ DATA FINAL
     let data = {
