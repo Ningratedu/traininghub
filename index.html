@@ -1113,10 +1113,14 @@ function calculateFilterRange() {
             </span>
         </div>` : ''}
 
-        <!-- BADGE DIPESAN -->
-        ${isOccupied && !isClosed ? `
-        <div class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">
-            DIPESAN
+        <!-- BADGE STATUS -->
+        ${!isClosed ? `
+        <div class="absolute top-0 right-0 
+            ${isOccupied 
+                ? 'bg-rose-500 text-white' 
+                : 'bg-indigo-500 text-white'}
+            text-[10px] font-bold px-3 py-1 rounded-bl-xl">
+            ${isOccupied ? 'DIPESAN' : 'TERSEDIA'}
         </div>` : ''}
 
         <!-- GAMBAR -->
@@ -1128,10 +1132,16 @@ function calculateFilterRange() {
         <!-- CONTENT -->
         <div class="p-4 flex flex-col justify-center text-left flex-1">
 
-            <h5 class="font-bold text-slate-900 text-sm">
-                ${item.name}
-            </h5>
+            <!-- TITLE + ICON (FIX DI KIRI) -->
+            <div class="flex items-center gap-2">
+                <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-slate-400 text-sm"></i>
 
+                <h5 class="font-bold text-slate-900 text-sm">
+                    ${item.name}
+                </h5>
+            </div>
+
+            <!-- INFO -->
             <p class="text-xs text-slate-500 mt-1">
                 ${
                     type === 'room'
