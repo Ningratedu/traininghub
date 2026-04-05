@@ -1190,31 +1190,57 @@ document
             ? 'rooms'
             : 'tools';
 
+    // ✅ UPLOAD GAMBAR
+    const file =
+        document.getElementById('master-image').files[0];
+
+    let imageUrl = '';
+
+    if(file){
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", "traininghub");
+
+        const res = await fetch(
+            "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload",
+            { method: "POST", body: fd }
+        );
+
+        const dataImg = await res.json();
+        imageUrl = dataImg.secure_url;
+    }
+
+    // ✅ AMBIL GAMBAR LAMA SAAT EDIT
+    if(id && !imageUrl){
+        const existing = localState[
+            type === 'room' ? 'rooms' : 'tools'
+        ].find(x => x.id === id);
+
+        imageUrl = existing?.image || '';
+    }
+
+    // ✅ DATA FINAL
     let data = {
-    name,
-    status,
-    image: '' // sementara kosong dulu
-};
+        name,
+        status,
+        image: imageUrl
+    };
 
-    // FIELD TAMBAHAN (FIXED)
-const extra =
-    document.getElementById('master-extra');
+    // FIELD TAMBAHAN
+    const extra =
+        document.getElementById('master-extra');
 
-if(type === 'room'){
+    if(type === 'room'){
+        if(extra)
+            data.capacity =
+                Number(extra.value) || 0;
+    }
 
-    if(extra)
-        data.capacity =
-            Number(extra.value) || 0;
-
-}
-
-if(type === 'tool'){
-
-    if(extra)
-        data.pos =
-            extra.value || '';
-
-}
+    if(type === 'tool'){
+        if(extra)
+            data.pos =
+                extra.value || '';
+    }
 
     if(id){
 
