@@ -1105,9 +1105,8 @@ function calculateFilterRange() {
 						class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center relative overflow-hidden cursor-pointer ${isClosed ? 'opacity-60 grayscale' : ''}">
                         ${isClosed ? '<div class="absolute inset-0 bg-slate-900/5 flex items-center justify-center"><span class="bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-full">DITUTUP (PERBAIKAN)</span></div>' : ''}
                         ${isOccupied && !isClosed ? '<div class="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black px-2 py-1 rounded-bl-lg">DIPESAN</div>' : ''}
-                        <div class="w-12 h-12 ${isOccupied || isClosed ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-600'} rounded-2xl flex items-center justify-center mb-4 transition-colors">
-                            <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-xl"></i>
-                        </div>
+                        <img src="${item.image || 'https://via.placeholder.com/300'}"
+     class="w-full h-32 object-cover rounded-2xl mb-4 ${isClosed ? 'opacity-70' : ''}" />
                         <h5 class="font-bold text-slate-900">${item.name}</h5>
                         <p class="text-[10px] text-slate-500 mt-1">${type === 'room' ? `Kapasitas: ${item.capacity} Orang` : `Lokasi: ${item.pos}`}</p>
                     </div>
