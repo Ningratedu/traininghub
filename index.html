@@ -458,35 +458,72 @@
     </div>
 
     <!-- MODAL MASTER DATA -->
-    <div id="modal-master" class="fixed inset-0 z-[170] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 id="master-modal-title" class="text-xl font-black">Tambah Data</h3>
-                <button onclick="closeModal('modal-master')"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="form-master" class="space-y-4">
-                <input type="hidden" id="master-type">
-                <input type="hidden" id="master-id">
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Nama Aset</label>
-                    <input type="text" id="master-name" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
-                </div>
-                <div id="master-extra-field"></div>
-                <!-- FIELD STATUS ASET -->
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Status Ketersediaan</label>
-                    <select id="master-status" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
-                        <option value="Open">Dibuka (Tersedia)</option>
-                        <option value="Closed">Ditutup (Perbaikan/Maintenance)</option>
-                    </select>
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <button type="button" onclick="closeModal('modal-master')" class="flex-1 py-3 border rounded-xl">Batal</button>
-                    <button type="button" id="btn-save-master" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">Simpan</button>
-                </div>
-            </form>
+<div id="modal-master" class="fixed inset-0 z-[170] hide modal-overlay flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h3 id="master-modal-title" class="text-xl font-black">Tambah Data</h3>
+            <button onclick="closeModal('modal-master')">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+
+        <form id="form-master" class="space-y-4">
+            
+            <input type="hidden" id="master-type">
+            <input type="hidden" id="master-id">
+
+            <!-- NAMA ASET -->
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Nama Aset
+                </label>
+                <input type="text" id="master-name" required
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+            </div>
+
+            <!-- FIELD TAMBAHAN (KAPASITAS / POSISI) -->
+            <div id="master-extra-field"></div>
+
+            <!-- ✅ FIELD GAMBAR (BARU) -->
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Gambar
+                </label>
+                <input type="file" id="master-image" accept="image/*"
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+            </div>
+
+            <!-- STATUS -->
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Status Ketersediaan
+                </label>
+                <select id="master-status"
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
+                    <option value="Open">Dibuka (Tersedia)</option>
+                    <option value="Closed">Ditutup (Perbaikan/Maintenance)</option>
+                </select>
+            </div>
+
+            <!-- BUTTON -->
+            <div class="flex gap-3 pt-4">
+                <button type="button"
+                    onclick="closeModal('modal-master')"
+                    class="flex-1 py-3 border rounded-xl">
+                    Batal
+                </button>
+
+                <button type="button"
+                    id="btn-save-master"
+                    class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">
+                    Simpan
+                </button>
+            </div>
+
+        </form>
     </div>
+</div>
 
     <!-- MODAL DETAIL PEMESANAN -->
     <div id="modal-detail" class="fixed inset-0 z-[150] hide modal-overlay flex items-center justify-center p-4">
