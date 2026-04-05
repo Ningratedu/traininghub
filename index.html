@@ -1252,25 +1252,15 @@ document
         imageUrl = dataImg.secure_url;
     }
 
-    // ✅ AMBIL GAMBAR LAMA SAAT EDIT
-    if(id && !imageUrl){
-        import { getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // ✅ AMBIL GAMBAR LAMA SAAT EDIT (FIX)
+if(id){
+    const existing = localState[
+        type === 'room' ? 'rooms' : 'tools'
+    ].find(x => x.id === id);
 
-if(id && !imageUrl){
-    const snap = await getDoc(
-        doc(
-            db,
-            'artifacts',
-            appId,
-            'public',
-            'data',
-            type === 'room' ? 'rooms' : 'tools',
-            id
-        )
-    );
-
-    const existing = snap.data();
-    imageUrl = existing?.image || '';
+    if(!imageUrl){
+        imageUrl = existing?.image || '';
+    }
 }
 
     // ✅ DATA FINAL
