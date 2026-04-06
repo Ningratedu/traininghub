@@ -211,6 +211,11 @@
                             <option value="this-month">Bulan Ini</option>
                             <option value="last-month">Bulan Lalu</option>
                             <option value="next-month">Bulan Depan</option>
+							<option value="today">Hari Ini</option>
+                            <option value="yesterday">Kemarin</option>
+                            <option value="tomorrow">Besok</option>
+                            <option value="last-7-days">7 Hari Terakhir</option>
+                            <option value="next-7-days">7 Hari Kedepan</option>
                             <option value="custom">Kustom...</option>
                         </select>
                         <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
@@ -748,11 +753,43 @@ window.applyCustomFilter = () => {
 };
 
 
+function formatLocalDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+
 function calculateFilterRange() {
     const today = new Date();
     let start, end;
 
-    if (filterMode === 'this-month') {
+    if (filterMode === 'today') {
+        start = new Date(today);
+        end = new Date(today);
+
+    } else if (filterMode === 'yesterday') {
+        start = new Date(today);
+        start.setDate(start.getDate() - 1);
+        end = new Date(start);
+
+    } else if (filterMode === 'tomorrow') {
+        start = new Date(today);
+        start.setDate(start.getDate() + 1);
+        end = new Date(start);
+
+    } else if (filterMode === 'last-7-days') {
+        end = new Date(today);
+        start = new Date(today);
+        start.setDate(start.getDate() - 6); // total 7 hari termasuk hari ini
+
+    } else if (filterMode === 'next-7-days') {
+        start = new Date(today);
+        end = new Date(today);
+        end.setDate(end.getDate() + 6); // total 7 hari termasuk hari ini
+
+    } else if (filterMode === 'this-month') {
         start = new Date(today.getFullYear(), today.getMonth(), 1);
         end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
@@ -769,11 +806,10 @@ function calculateFilterRange() {
     }
 
     filterRange = {
-        start: start.toISOString().split('T')[0],
-        end: end.toISOString().split('T')[0]
+        start: formatLocalDate(start),
+        end: formatLocalDate(end)
     };
 }
-
         function getFilteredBookings() {
             if(!filterRange.start || !filterRange.end) return localState.bookings;
             return localState.bookings.filter(b => b.date >= filterRange.start && b.date <= filterRange.end);
