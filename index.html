@@ -2552,7 +2552,13 @@ ${qrSection}
     `;
 }
 
-       else if(b.status === 'Ongoing' && b.userUid === currentUser.uid) {
+       else if(
+b.status === 'Ongoing' && 
+(
+b.userUid === currentUser.uid 
+|| currentUser.role === 'admin'
+)
+) {
 
 footer.innerHTML = `
 
