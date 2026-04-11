@@ -2648,14 +2648,42 @@ function formatTime(ts){
 // ================= DETAIL TIME + FOTO =================
 function injectBookingTimes(b){
     return `
-    <div class="col-span-2 text-xs space-y-1 border-t pt-2">
+    <div class="col-span-2 text-xs space-y-2 border-t pt-3 mt-2">
+
+        <!-- TIME INFO -->
         <div>Dibuat: ${formatTime(b.createdAt)}</div>
-		<div>Diapprove: ${formatTime(b.approvedAt)}</div>
+        <div>Diapprove: ${formatTime(b.approvedAt)}</div>
         <div>Mulai: ${formatTime(b.startedAt)}</div>
         <div>Selesai: ${formatTime(b.finishedAt)}</div>
 
-        ${b.startPhoto ? `<img src="${b.startPhoto}" class="mt-2 rounded max-h-40"/>` : ""}
-        ${b.finishPhoto ? `<img src="${b.finishPhoto}" class="mt-2 rounded max-h-40"/>` : ""}
+        <!-- FOTO MULAI -->
+        ${b.startPhoto ? `
+        <div class="mt-3">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+                Foto Mulai Penggunaan
+            </p>
+
+            <img 
+                src="${b.startPhoto}" 
+                class="rounded-xl max-h-40 border shadow-sm"
+            />
+        </div>
+        ` : ""}
+
+        <!-- FOTO SELESAI -->
+        ${b.finishPhoto ? `
+        <div class="mt-3">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+                Foto Selesai Penggunaan
+            </p>
+
+            <img 
+                src="${b.finishPhoto}" 
+                class="rounded-xl max-h-40 border shadow-sm"
+            />
+        </div>
+        ` : ""}
+
     </div>`;
 }
 // ================= FIX SUBMIT FORM BOOKING =================
