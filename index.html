@@ -2843,25 +2843,26 @@ ${qrSection}
 
     footer.innerHTML = '';
 
-    if(currentUser.role !== 'admin') {
+if(currentUser.role !== 'admin') {
 
-        if(status === 'pending') {
+    if(status === 'pending') {
 
-            footer.innerHTML = `
+        footer.innerHTML = `
 
 <button onclick="window.deleteBooking('${b.id}')"
 class="w-full bg-rose-500 text-white py-3 rounded-2xl font-bold text-xs">
 Batal
 </button>
 
-<button onclick="window.editBooking('${b.id}')"
+<button onclick="closeModal('modal-booking-detail'); window.editBooking('${b.id}')"
 class="w-full bg-indigo-500 text-white py-3 rounded-2xl font-bold text-xs mt-2">
 Edit
 </button>
 
 `;
+    }
 
-        }
+}
 
         else if(
             status === 'approved'
