@@ -2404,170 +2404,216 @@ window.updateBookingStatus = async (id, status) => {
 
 // ================= OPEN DETAIL =================
 window.openDetail = (id) => {
+
     const b = localState.bookings.find(x => x.id === id);
     if(!b) return;
 
-    const room = b.roomId ? localState.rooms.find(r => r.id == b.roomId) : null;
-    const container = document.getElementById('detail-content');
-    const footer = document.getElementById('detail-footer');
+    const status = (b.status || "").toLowerCase();
+
+    const room =
+        b.roomId
+        ? localState.rooms.find(r => r.id == b.roomId)
+        : null;
+
+    const container =
+        document.getElementById('detail-content');
+
+    const footer =
+        document.getElementById('detail-footer');
+
+    // ================= QR SECTION (ADMIN) =================
 
     let qrSection = '';
-    if(currentUser.role === 'admin' && b.status === 'Ongoing') {
+
+    if(
+        currentUser.role === 'admin'
+        && status === 'ongoing'
+    ) {
+
         qrSection = `
         <div class="col-span-2 pt-6 flex flex-col items-center border-t mt-4">
-            <p class="text-[10px] font-black uppercase text-indigo-500 mb-3">QR Selesai</p>
+
+            <p class="text-[10px] font-black uppercase text-indigo-500 mb-3">
+                QR Selesai
+            </p>
+
             <div id="qrcode"></div>
+
         </div>`;
     }
 
+    // ================= CONTENT =================
+
     container.innerHTML = `
-        <div class="grid grid-cols-2 gap-4">
 
-    <!-- STATUS -->
-    <div class="col-span-2">
-        <span class="px-3 py-1 rounded-full text-xs font-bold ${getStatusClass(b.status)}">
-            Status : <span class="font-bold italic">${b.status}</span>
-        </span>
-    </div>
+<div class="grid grid-cols-2 gap-4">
 
-    <!-- RUANGAN -->
-    ${room ? `
-    <div class="col-span-2 bg-slate-100 p-2 rounded">
-        <span class="text-xs text-slate-500">Ruangan :</span>
-        <div class="font-bold italic inline">${room.name}</div>
-    </div>
-    ` : ''}
+<div class="col-span-2">
+<span class="px-3 py-1 rounded-full text-xs font-bold ${getStatusClass(b.status)}">
+Status : <span class="font-bold italic">${b.status}</span>
+</span>
+</div>
 
-    <!-- NAMA & DEPARTEMEN 2 BARIS -->
-    <div class="col-span-2 text-xs">
-        <span class="text-slate-500">Nama :</span>
-        <span class="font-bold italic">${b.userName}</span>
-        <br>
-        <span class="text-slate-500">Departemen :</span>
-        <span class="font-bold italic">${b.dept || '-'}</span>
-    </div>
+${room ? `
+<div class="col-span-2 bg-slate-100 p-2 rounded">
+<span class="text-xs text-slate-500">Ruangan :</span>
+<div class="font-bold italic inline">${room.name}</div>
+</div>
+` : ''}
 
-    <!-- TANGGAL -->
-    <div class="col-span-2 text-xs">
-        <span class="text-slate-500">Tanggal :</span>
-        <span class="font-bold italic">${b.date}</span>
-    </div>
+<div class="col-span-2 text-xs">
+<span class="text-slate-500">Nama :</span>
+<span class="font-bold italic">${b.userName}</span>
+<br>
+<span class="text-slate-500">Departemen :</span>
+<span class="font-bold italic">${b.dept || '-'}</span>
+</div>
 
-    <!-- WAKTU -->
-    <div class="col-span-2 text-xs">
-        <span class="text-slate-500">Waktu :</span>
-        <span class="font-bold italic">${b.start} - ${b.end}</span>
-    </div>
+<div class="col-span-2 text-xs">
+<span class="text-slate-500">Tanggal :</span>
+<span class="font-bold italic">${b.date}</span>
+</div>
 
-    <!-- AGENDA -->
-    <div class="col-span-2 bg-slate-50 p-2 rounded">
-        <span class="text-xs text-slate-500">Agenda :</span>
-        <div class="font-bold italic text-slate-700">
-            ${b.goal}
-        </div>
-    </div>
+<div class="col-span-2 text-xs">
+<span class="text-slate-500">Waktu :</span>
+<span class="font-bold italic">${b.start} - ${b.end}</span>
+</div>
 
-    <!-- CATATAN PEMESAN -->
-    <div class="col-span-2 bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
-        <span class="font-bold text-yellow-700">Catatan Pemesan:</span><br>
-        <span class="font-bold italic">${b.notes || 'Tidak ada catatan'}</span>
-    </div>
+<div class="col-span-2 bg-slate-50 p-2 rounded">
+<span class="text-xs text-slate-500">Agenda :</span>
+<div class="font-bold italic text-slate-700">
+${b.goal}
+</div>
+</div>
 
-    <!-- CATATAN ADMIN -->
-    ${b.adminNote ? `
-    <div class="col-span-2 bg-rose-50 border border-rose-200 p-3 rounded text-xs">
-        <span class="font-bold text-rose-700">Catatan Admin:</span><br>
-        <span class="font-bold italic">${b.adminNote}</span>
-    </div>
-    ` : ''}
+<div class="col-span-2 bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
+<span class="font-bold text-yellow-700">Catatan Pemesan:</span><br>
+<span class="font-bold italic">
+${b.notes || 'Tidak ada catatan'}
+</span>
+</div>
 
-    <!-- TOOLS APPROVED SAJA -->
-    <div class="col-span-2">
-        <label class="text-[10px] font-bold uppercase text-slate-400">Alat Digunakan</label>
-        <div class="flex flex-wrap gap-2 mt-1">
-            ${
-                (b.tools || []).length
-                ? b.tools.map(t => `
-                    <span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-bold">
-                        ✔ ${t.name}
-                    </span>
-                `).join('')
-                : `<span class="text-slate-400 text-xs italic">Tidak ada alat</span>`
-            }
-        </div>
-    </div>
+${b.adminNote ? `
+<div class="col-span-2 bg-rose-50 border border-rose-200 p-3 rounded text-xs">
+<span class="font-bold text-rose-700">Catatan Admin:</span><br>
+<span class="font-bold italic">
+${b.adminNote}
+</span>
+</div>
+` : ''}
+
+<div class="col-span-2">
+<label class="text-[10px] font-bold uppercase text-slate-400">
+Alat Digunakan
+</label>
+
+<div class="flex flex-wrap gap-2 mt-1">
+
+${
+(b.tools || []).length
+? b.tools.map(t => `
+<span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-bold">
+✔ ${t.name}
+</span>
+`).join('')
+: `<span class="text-slate-400 text-xs italic">Tidak ada alat</span>`
+}
+
+</div>
+
+</div>
 
 </div>
 
 ${injectBookingTimes(b)}
 
 ${qrSection}
-        </div>
-    `;
 
-    if(currentUser.role === 'admin' && b.status === 'Ongoing') {
+`;
+
+    // ================= GENERATE QR =================
+
+    if(
+        currentUser.role === 'admin'
+        && status === 'ongoing'
+    ) {
+
         setTimeout(() => {
-            new QRCode(document.getElementById("qrcode"), {
-                text: `finish-booking-${b.id}`,
-                width: 140,
-                height: 140
-            });
+
+            new QRCode(
+                document.getElementById("qrcode"),
+                {
+                    text: `finish-booking-${b.id}`,
+                    width: 140,
+                    height: 140
+                }
+            );
+
         }, 100);
+
     }
+
+    // ================= FOOTER =================
 
     footer.innerHTML = '';
 
+    // ===== USER ONLY =====
+
     if(currentUser.role !== 'admin') {
 
-        if(b.status === 'Pending') {
+        if(status === 'pending') {
+
             footer.innerHTML = `
-                <button onclick="window.deleteBooking('${b.id}')">Batal</button>
-                <button onclick="window.editBooking('${b.id}')">Edit</button>
-            `;
+
+<button onclick="window.deleteBooking('${b.id}')"
+class="w-full bg-rose-500 text-white py-3 rounded-2xl font-bold text-xs">
+Batal
+</button>
+
+<button onclick="window.editBooking('${b.id}')"
+class="w-full bg-indigo-500 text-white py-3 rounded-2xl font-bold text-xs mt-2">
+Edit
+</button>
+
+`;
+
         }
 
-       else if(
-    (b.status || "").toLowerCase() === 'approved' &&
-    b.userUid == currentUser.uid
-){
-    footer.innerHTML = `
+        else if(
+            status === 'approved'
+            && b.userUid === currentUser.uid
+        ){
 
-        <div class="w-full">
-            <label class="text-[10px] font-bold text-slate-400">Upload Foto Awal</label>
-            
-            <input 
-                type="file" 
-                id="start-photo-${b.id}" 
-                accept="image/*"
-                class="w-full text-xs mt-1 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-indigo-50 file:text-indigo-600"
-            />
-        </div>
+            footer.innerHTML = `
 
-        <button 
-            onclick="window.startBooking('${b.id}')"
-            class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-sm mt-2">
-            Mulai Penggunaan
-        </button>
-
-    `;
-}
-
-       else if(
-b.status === 'Ongoing' && 
-(
-b.userUid === currentUser.uid 
-|| currentUser.role === 'admin'
-)
-) {
-
-footer.innerHTML = `
-
-<input type="file" 
-id="finish-photo-${b.id}" 
+<input type="file"
+id="start-photo-${b.id}"
 accept="image/*"
-class="text-xs mb-2 w-full" />
+class="w-full text-xs mb-2" />
 
-<button onclick="window.finishBooking('${b.id}')" 
+<button
+onclick="window.startBooking('${b.id}')"
+class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
+Mulai Penggunaan
+</button>
+
+`;
+
+        }
+
+        else if(
+            status === 'ongoing'
+            && b.userUid === currentUser.uid
+        ){
+
+            footer.innerHTML = `
+
+<input type="file"
+id="finish-photo-${b.id}"
+accept="image/*"
+class="w-full text-xs mb-2" />
+
+<button onclick="window.finishBooking('${b.id}')"
 class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
 Upload Foto Akhir
 </button>
@@ -2576,14 +2622,14 @@ ${b.finishPhoto ? `
 
 <div class="flex flex-col gap-2 mt-2">
 
-<button 
-onclick="window.startScanner('${b.id}')" 
+<button
+onclick="window.startScanner('${b.id}')"
 class="w-full bg-emerald-600 text-white py-3 rounded-2xl font-black text-xs">
 📷 Scan QR via Camera
 </button>
 
-<button 
-onclick="window.openGalleryScanner('${b.id}')" 
+<button
+onclick="window.openGalleryScanner('${b.id}')"
 class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-xs">
 🖼 Scan QR via Gallery
 </button>
@@ -2594,13 +2640,20 @@ class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-xs">
 
 `;
 
-}
+        }
 
-footer.classList.toggle('hide', footer.innerHTML === '');
-document.getElementById('modal-detail').classList.remove('hide');
+    }
+
+    footer.classList.toggle(
+        'hide',
+        footer.innerHTML === ''
+    );
+
+    document
+        .getElementById('modal-detail')
+        .classList.remove('hide');
 
 };
-
 
 // ================= SCANNER CAMERA =================
 
