@@ -2402,6 +2402,79 @@ window.updateBookingStatus = async (id, status) => {
     window.closeModal('modal-detail');
 };
 
+// ================= IMAGE COMPRESS =================
+async function compressImage(file, maxWidth = 1280, quality = 0.7){
+    return new Promise((resolve) => {
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = e => img.src = e.target.result;
+
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            let width = img.width;
+            let height = img.height;
+
+            if(width > maxWidth){
+                height *= maxWidth / width;
+                width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, "image/jpeg", quality);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+// ================= UPLOAD WITH PROGRESS =================
+function uploadToCloudinary(file, progressId, textId, btnId){
+    return new Promise((resolve, reject) => {
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload");
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "traininghub");
+
+        xhr.upload.onprogress = (e) => {
+            if(e.lengthComputable){
+                const percent = Math.round((e.loaded / e.total) * 100);
+
+                const bar = document.getElementById(progressId);
+                const text = document.getElementById(textId);
+                const btn = document.getElementById(btnId);
+
+                if(bar) bar.style.width = percent + "%";
+                if(text) text.innerText = percent + "%";
+
+                if(btn){
+                    btn.disabled = true;
+                    btn.innerText = "Uploading...";
+                }
+            }
+        };
+
+        xhr.onload = () => {
+            const res = JSON.parse(xhr.responseText);
+            resolve(res.secure_url);
+        };
+
+        xhr.onerror = reject;
+        xhr.send(formData);
+    });
+}
+
 // ================= OPEN DETAIL =================
 window.openDetail = (id) => {
 
@@ -2421,8 +2494,6 @@ window.openDetail = (id) => {
     const footer =
         document.getElementById('detail-footer');
 
-    // ================= QR SECTION (ADMIN) =================
-
     let qrSection = '';
 
     if(
@@ -2441,8 +2512,6 @@ window.openDetail = (id) => {
 
         </div>`;
     }
-
-    // ================= CONTENT =================
 
     container.innerHTML = `
 
@@ -2531,8 +2600,6 @@ ${qrSection}
 
 `;
 
-    // ================= GENERATE QR =================
-
     if(
         currentUser.role === 'admin'
         && status === 'ongoing'
@@ -2553,11 +2620,7 @@ ${qrSection}
 
     }
 
-    // ================= FOOTER =================
-
     footer.innerHTML = '';
-
-    // ===== USER ONLY =====
 
     if(currentUser.role !== 'admin') {
 
@@ -2591,7 +2654,12 @@ id="start-photo-${b.id}"
 accept="image/*"
 class="w-full text-xs mb-2" />
 
-<button
+<div class="w-full bg-slate-200 rounded h-2 mb-1 overflow-hidden">
+<div id="progress-start-${b.id}" class="bg-indigo-500 h-2 w-0"></div>
+</div>
+<div id="progress-text-start-${b.id}" class="text-xs text-center mb-2">0%</div>
+
+<button id="btn-start-${b.id}"
 onclick="window.startBooking('${b.id}')"
 class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
 Mulai Penggunaan
@@ -2615,7 +2683,13 @@ id="finish-photo-${b.id}"
 accept="image/*"
 class="w-full text-xs mb-2" />
 
-<button onclick="window.finishBooking('${b.id}')"
+<div class="w-full bg-slate-200 rounded h-2 mb-1 overflow-hidden">
+<div id="progress-finish-${b.id}" class="bg-indigo-500 h-2 w-0"></div>
+</div>
+<div id="progress-text-finish-${b.id}" class="text-xs text-center mb-2">0%</div>
+
+<button id="btn-finish-${b.id}"
+onclick="window.finishBooking('${b.id}')"
 class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
 Upload Foto Akhir
 </button>
@@ -2661,22 +2735,15 @@ class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-xs">
 };
 
 // ================= SCANNER CAMERA =================
-
 window.startScanner = (bookingId) => {
 
-// ✅ simpan booking aktif (WAJIB untuk gallery)
 window.currentScanBookingId = bookingId;
 
 document.getElementById('modal-scanner')
 .classList.remove('hide');
 
-// reset instance lama jika ada
 if(typeof html5QrCode !== "undefined" && html5QrCode){
-
-try{
-html5QrCode.stop();
-}catch{}
-
+try{ html5QrCode.stop(); }catch{}
 }
 
 html5QrCode = new Html5Qrcode("reader");
@@ -2714,112 +2781,72 @@ window.showView('riwayat','Pesanan Saya');
 }
 
 ).catch(err => {
-
 console.error("Scanner error:", err);
-
 });
 
 };
 
-
-
 // ================= STOP SCANNER =================
-
 window.stopScanner = () => {
 
 if(typeof html5QrCode !== "undefined" && html5QrCode){
 
 html5QrCode.stop()
 .then(() => {
-
 document.getElementById('modal-scanner')
 .classList.add('hide');
-
 })
 .catch(() => {
-
 document.getElementById('modal-scanner')
 .classList.add('hide');
-
 });
 
 }
 else{
-
 document.getElementById('modal-scanner')
 .classList.add('hide');
-
 }
 
 };
 
-
 // ================= OPEN GALLERY =================
-
 window.openGalleryScanner = (bookingId) => {
 
-// simpan booking aktif
 window.currentScanBookingId = bookingId;
 
-const input =
-document.getElementById("qr-file-input");
-
-// reset input supaya bisa pilih file lagi
+const input = document.getElementById("qr-file-input");
 input.value = "";
-
-// buka galeri
 input.click();
 
 };
 
 // ================= SCAN QR DARI GALERI =================
-
 window.scanQrFromFile = async () => {
 
-const fileInput =
-document.getElementById("qr-file-input");
-
-const file =
-fileInput.files[0];
+const fileInput = document.getElementById("qr-file-input");
+const file = fileInput.files[0];
 
 if(!file){
-
 alert("Pilih foto QR dulu!");
-
 return;
-
 }
 
 try {
 
-// ambil booking aktif
-const bookingId =
-window.currentScanBookingId;
+const bookingId = window.currentScanBookingId;
 
 if(!bookingId){
-
 alert("Booking tidak ditemukan!");
-
 return;
-
 }
 
-// stop kamera jika masih aktif
 if(html5QrCode){
-
-try{
-
-await html5QrCode.stop();
-
-}catch{}
-
+try{ await html5QrCode.stop(); }catch{}
 }
 
-html5QrCode =
-new Html5Qrcode("reader");
+html5QrCode = new Html5Qrcode("reader");
 
-const decodedText =
-await html5QrCode.scanFile(file, true);
+const decodedText = await html5QrCode.scanFile(file, true);
 
 if(decodedText === `finish-booking-${bookingId}`){
 
@@ -2832,91 +2859,97 @@ finishedAt: serverTimestamp()
 );
 
 alert("✅ Pesanan selesai!");
-
 window.closeModal('modal-detail');
 window.showView('riwayat','Pesanan Saya');
 
 }
 else{
-
 alert("❌ QR tidak sesuai booking!");
-
 }
 
 }
 catch(err){
-
 console.error(err);
-
 alert("❌ Gagal membaca QR dari gambar!");
-
 }
 
 };
-// ================= START BOOKING (FIXED) =================
+
+// ================= START BOOKING =================
 window.startBooking = async (id) => {
 
     const file = document.getElementById(`start-photo-${id}`).files[0];
     if(!file) return alert("Upload foto dulu!");
 
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("upload_preset", "traininghub");
+    try{
 
-    const res = await fetch("https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload", {
-        method:"POST",
-        body: fd
-    });
+        const compressed = await compressImage(file);
 
-    const data = await res.json();
+        const url = await uploadToCloudinary(
+            compressed,
+            `progress-start-${id}`,
+            `progress-text-start-${id}`,
+            `btn-start-${id}`
+        );
 
-    await updateDoc(
-        doc(db,'artifacts',appId,'public','data','bookings',id),
-        {
-            startPhoto: data.secure_url,
-            status: "Ongoing",
-            startedAt: serverTimestamp()
-        }
-    );
+        await updateDoc(
+            doc(db,'artifacts',appId,'public','data','bookings',id),
+            {
+                startPhoto: url,
+                status: "Ongoing",
+                startedAt: serverTimestamp()
+            }
+        );
 
-    alert("Mulai berhasil");
-    window.closeModal('modal-detail');
-window.showView('riwayat','Pesanan Saya');
+        alert("Mulai berhasil");
+        window.closeModal('modal-detail');
+        window.showView('riwayat','Pesanan Saya');
+
+    }catch(err){
+        console.error(err);
+        alert("❌ Upload gagal");
+    }
 };
 
-// ================= FINISH BOOKING (FIXED) =================
+// ================= FINISH BOOKING =================
 window.finishBooking = async (id) => {
 
     const file = document.getElementById(`finish-photo-${id}`).files[0];
     if(!file) return alert("Upload foto akhir!");
 
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("upload_preset", "traininghub");
+    try{
 
-    const res = await fetch("https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload", {
-        method:"POST",
-        body: fd
-    });
+        const compressed = await compressImage(file);
 
-    const data = await res.json();
+        const url = await uploadToCloudinary(
+            compressed,
+            `progress-finish-${id}`,
+            `progress-text-finish-${id}`,
+            `btn-finish-${id}`
+        );
 
-    await updateDoc(
-        doc(db,'artifacts',appId,'public','data','bookings',id),
-        {
-            finishPhoto: data.secure_url,
-            finishedAt: serverTimestamp()
-        }
-    );
+        await updateDoc(
+            doc(db,'artifacts',appId,'public','data','bookings',id),
+            {
+                finishPhoto: url,
+                finishedAt: serverTimestamp()
+            }
+        );
 
-    alert("Selesai upload");
+        alert("Selesai upload");
 
-window.closeModal('modal-detail');
+        window.closeModal('modal-detail');
 
-setTimeout(()=>{
-    window.openDetail(id);
-},300);
-window.showView('riwayat','Pesanan Saya');
+        setTimeout(()=>{
+            window.openDetail(id);
+        },300);
+
+        window.showView('riwayat','Pesanan Saya');
+
+    }catch(err){
+        console.error(err);
+        alert("❌ Upload gagal");
+    }
 };
 
 // ================= TIME FORMAT =================
@@ -2931,46 +2964,34 @@ function injectBookingTimes(b){
     return `
     <div class="col-span-2 text-xs space-y-2 border-t pt-3 mt-2">
 
-        <!-- TIME INFO -->
         <div>Dibuat: ${formatTime(b.createdAt)}</div>
         <div>Diapprove: ${formatTime(b.approvedAt)}</div>
         <div>Mulai: ${formatTime(b.startedAt)}</div>
         <div>Selesai: ${formatTime(b.finishedAt)}</div>
 
-        <!-- FOTO MULAI -->
         ${b.startPhoto ? `
         <div class="mt-3">
             <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
                 Foto Mulai Penggunaan
             </p>
+            <img src="${b.startPhoto}" class="rounded-xl max-h-40 border shadow-sm"/>
+        </div>` : ""}
 
-            <img 
-                src="${b.startPhoto}" 
-                class="rounded-xl max-h-40 border shadow-sm"
-            />
-        </div>
-        ` : ""}
-
-        <!-- FOTO SELESAI -->
         ${b.finishPhoto ? `
         <div class="mt-3">
             <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
                 Foto Selesai Penggunaan
             </p>
-
-            <img 
-                src="${b.finishPhoto}" 
-                class="rounded-xl max-h-40 border shadow-sm"
-            />
-        </div>
-        ` : ""}
+            <img src="${b.finishPhoto}" class="rounded-xl max-h-40 border shadow-sm"/>
+        </div>` : ""}
 
     </div>`;
 }
+
 // ================= FIX SUBMIT FORM BOOKING =================
 document.getElementById('form-booking').addEventListener('submit', async (e) => {
 
-    e.preventDefault(); // 🔥 BIAR GAK RELOAD / BALIK LOGIN
+    e.preventDefault();
 
     try {
 
@@ -2994,7 +3015,7 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
             name: currentUser.username,
             department: currentUser.dept || 'Umum',
             goal: document.getElementById('book-goal').value,
-			notes: document.getElementById('book-notes').value,
+            notes: document.getElementById('book-notes').value,
             date,
             start,
             end,
@@ -3009,96 +3030,72 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
         if (editId) {
 
-    delete bookingData.createdAt;
-    delete bookingData.status;
-    delete bookingData.startedAt;
-    delete bookingData.finishedAt;
-    delete bookingData.startPhoto;
-    delete bookingData.finishPhoto;
+            delete bookingData.createdAt;
+            delete bookingData.status;
+            delete bookingData.startedAt;
+            delete bookingData.finishedAt;
+            delete bookingData.startPhoto;
+            delete bookingData.finishPhoto;
 
-    await updateDoc(
-        doc(
-            db,
-            'artifacts',
-            appId,
-            'public',
-            'data',
-            'bookings',
-            editId
-        ),
-        bookingData
-    );
+            await updateDoc(
+                doc(db,'artifacts',appId,'public','data','bookings',editId),
+                bookingData
+            );
 
-} else {
+        } else {
 
-    await addDoc(
-        collection(
-            db,
-            'artifacts',
-            appId,
-            'public',
-            'data',
-            'bookings'
-        ),
-        bookingData
-    );
+            await addDoc(
+                collection(db,'artifacts',appId,'public','data','bookings'),
+                bookingData
+            );
 
-}
+        }
+
         alert("✅ Pesanan berhasil disimpan");
 
         window.closeModal('modal-booking');
+        document.getElementById("edit-booking-id").value = "";
+        document.getElementById("booking-modal-title").textContent = "Form Pemesanan";
 
-document.getElementById(
-    "edit-booking-id"
-).value = "";
-
-document.getElementById(
-    "booking-modal-title"
-).textContent =
-"Form Pemesanan";
-
-window.showView('riwayat','Pesanan Saya');
+        window.showView('riwayat','Pesanan Saya');
 
     } catch (err) {
-
         console.error("ERROR SIMPAN:", err);
         alert("❌ Gagal simpan pesanan");
-
     }
 
 });
-		
-   </script>
+
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-<!-- 🔥 SEARCH REALTIME (FIX) -->
 <script>
 document.addEventListener('input', (e) => {
     if(e.target.id === 'search-all-bookings'){
         renderAllBookings();
     }
 });
-	window.logout = () => {
+
+window.logout = () => {
 
     localStorage.removeItem("traininghub_user");
 
-    localStorage.setItem(
-        "just_logged_out",
-        "true"
-    );
+    localStorage.setItem("just_logged_out","true");
 
     currentUser = null;
 
     location.reload();
 
 };
-	window.onpopstate = (event) => {
+
+window.onpopstate = (event) => {
     if (event.state) {
         showView(event.state.id, event.state.titleText);
     }
 };
-	window.addEventListener('load', () => {
+
+window.addEventListener('load', () => {
     const hash = location.hash.replace("#", "");
     if (hash) {
         showView(hash);
