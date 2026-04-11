@@ -2853,71 +2853,291 @@ alert("❌ Gagal membaca QR dari gambar!");
 }
 
 };
-// ================= START BOOKING (FIXED) =================
+// ================= IMAGE COMPRESS =================
+async function compressImage(file) {
+
+    return new Promise((resolve) => {
+
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            img.src = e.target.result;
+        };
+
+        img.onload = () => {
+
+            const canvas =
+                document.createElement("canvas");
+
+            const MAX_WIDTH = 1280;
+            const MAX_HEIGHT = 1280;
+
+            let width = img.width;
+            let height = img.height;
+
+            if(width > height){
+
+                if(width > MAX_WIDTH){
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+
+            } 
+            else {
+
+                if(height > MAX_HEIGHT){
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx =
+                canvas.getContext("2d");
+
+            ctx.drawImage(
+                img,
+                0,
+                0,
+                width,
+                height
+            );
+
+            canvas.toBlob(
+
+                (blob) => {
+
+                    resolve(
+                        new File(
+                            [blob],
+                            file.name,
+                            {
+                                type: "image/jpeg",
+                                lastModified: Date.now()
+                            }
+                        )
+                    );
+
+                },
+
+                "image/jpeg",
+                0.7
+
+            );
+
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+}
+
+
+
+// ================= UPLOAD WITH PROGRESS =================
+async function uploadWithProgress(file, buttonId, labelText) {
+
+    return new Promise((resolve, reject) => {
+
+        const xhr = new XMLHttpRequest();
+
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", "traininghub");
+
+        xhr.open(
+            "POST",
+            "https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload"
+        );
+
+        const button =
+            document.getElementById(buttonId);
+
+        const originalText =
+            button.innerHTML;
+
+        // Disable tombol
+        button.disabled = true;
+
+        // Progress Upload
+        xhr.upload.onprogress = (e) => {
+
+            if (e.lengthComputable) {
+
+                const percent =
+                    Math.round(
+                        (e.loaded / e.total) * 100
+                    );
+
+                button.innerHTML =
+                    `${labelText} ${percent}%`;
+
+            }
+
+        };
+
+        xhr.onload = () => {
+
+            button.disabled = false;
+            button.innerHTML = originalText;
+
+            if (xhr.status === 200) {
+
+                const data =
+                    JSON.parse(xhr.responseText);
+
+                resolve(data.secure_url);
+
+            }
+            else {
+
+                reject("Upload gagal");
+
+            }
+
+        };
+
+        xhr.onerror = () => {
+
+            button.disabled = false;
+            button.innerHTML = originalText;
+
+            reject("Upload error");
+
+        };
+
+        xhr.send(fd);
+
+    });
+
+}
+
+
+
+// ================= START BOOKING (PROGRESS VERSION) =================
 window.startBooking = async (id) => {
 
-    const file = document.getElementById(`start-photo-${id}`).files[0];
-    if(!file) return alert("Upload foto dulu!");
+    let file =
+        document.getElementById(`start-photo-${id}`).files[0];
 
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("upload_preset", "traininghub");
+    if(!file)
+        return alert("Upload foto dulu!");
 
-    const res = await fetch("https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload", {
-        method:"POST",
-        body: fd
-    });
+    try {
 
-    const data = await res.json();
+        // 🔥 COMPRESS DULU
+        file = await compressImage(file);
 
-    await updateDoc(
-        doc(db,'artifacts',appId,'public','data','bookings',id),
-        {
-            startPhoto: data.secure_url,
-            status: "Ongoing",
-            startedAt: serverTimestamp()
-        }
-    );
+        const imageUrl =
+            await uploadWithProgress(
+                file,
+                `btn-start-${id}`,
+                "Uploading"
+            );
 
-    alert("Mulai berhasil");
-    window.closeModal('modal-detail');
-window.showView('riwayat','Pesanan Saya');
+        await updateDoc(
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                'bookings',
+                id
+            ),
+            {
+                startPhoto: imageUrl,
+                status: "Ongoing",
+                startedAt: serverTimestamp()
+            }
+        );
+
+        alert("Mulai berhasil");
+
+        window.closeModal('modal-detail');
+
+        window.showView(
+            'riwayat',
+            'Pesanan Saya'
+        );
+
+    }
+    catch (err) {
+
+        console.error(err);
+        alert("❌ Upload gagal");
+
+    }
+
 };
 
-// ================= FINISH BOOKING (FIXED) =================
+
+
+// ================= FINISH BOOKING (PROGRESS VERSION) =================
 window.finishBooking = async (id) => {
 
-    const file = document.getElementById(`finish-photo-${id}`).files[0];
-    if(!file) return alert("Upload foto akhir!");
+    let file =
+        document.getElementById(`finish-photo-${id}`).files[0];
 
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("upload_preset", "traininghub");
+    if(!file)
+        return alert("Upload foto akhir!");
 
-    const res = await fetch("https://api.cloudinary.com/v1_1/dyns2hmhf/image/upload", {
-        method:"POST",
-        body: fd
-    });
+    try {
 
-    const data = await res.json();
+        // 🔥 COMPRESS DULU
+        file = await compressImage(file);
 
-    await updateDoc(
-        doc(db,'artifacts',appId,'public','data','bookings',id),
-        {
-            finishPhoto: data.secure_url,
-            finishedAt: serverTimestamp()
-        }
-    );
+        const imageUrl =
+            await uploadWithProgress(
+                file,
+                `btn-finish-${id}`,
+                "Uploading"
+            );
 
-    alert("Selesai upload");
+        await updateDoc(
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                'bookings',
+                id
+            ),
+            {
+                finishPhoto: imageUrl,
+                finishedAt: serverTimestamp()
+            }
+        );
 
-window.closeModal('modal-detail');
+        alert("Selesai upload");
 
-setTimeout(()=>{
-    window.openDetail(id);
-},300);
-window.showView('riwayat','Pesanan Saya');
+        window.closeModal('modal-detail');
+
+        setTimeout(()=>{
+            window.openDetail(id);
+        },300);
+
+        window.showView(
+            'riwayat',
+            'Pesanan Saya'
+        );
+
+    }
+    catch (err) {
+
+        console.error(err);
+        alert("❌ Upload gagal");
+
+    }
+
 };
+
 
 // ================= TIME FORMAT =================
 function formatTime(ts){
@@ -2925,6 +3145,32 @@ function formatTime(ts){
     try{ return ts.toDate().toLocaleString("id-ID"); }
     catch{ return "-"; }
 }
+
+
+
+// ================= PREVIEW FOTO BESAR =================
+window.openImagePreview = (src) => {
+
+    const modal =
+        document.getElementById("modal-image-preview");
+
+    const img =
+        document.getElementById("preview-image");
+
+    img.src = src;
+
+    modal.classList.remove("hidden");
+};
+
+window.closeImagePreview = () => {
+
+    document
+        .getElementById("modal-image-preview")
+        .classList.add("hidden");
+
+};
+
+
 
 // ================= DETAIL TIME + FOTO =================
 function injectBookingTimes(b){
@@ -2938,140 +3184,231 @@ function injectBookingTimes(b){
         <div>Selesai: ${formatTime(b.finishedAt)}</div>
 
         <!-- FOTO MULAI -->
-        ${b.startPhoto ? `
-        <div class="mt-3">
-            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
-                Foto Mulai Penggunaan
-            </p>
+${b.startPhoto ? `
+<div class="mt-3">
 
-            <img 
-                src="${b.startPhoto}" 
-                class="rounded-xl max-h-40 border shadow-sm"
-            />
-        </div>
-        ` : ""}
+    <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+        Foto Mulai Penggunaan
+    </p>
 
-        <!-- FOTO SELESAI -->
-        ${b.finishPhoto ? `
-        <div class="mt-3">
-            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
-                Foto Selesai Penggunaan
-            </p>
+    <img 
+        src="${b.startPhoto}" 
+        loading="lazy"
+        onclick="openImagePreview('${b.startPhoto}')"
+        class="
+            rounded-xl 
+            max-h-40 
+            border 
+            shadow-sm 
+            cursor-pointer 
+            hover:opacity-80 
+            hover:scale-[1.02]
+            transition 
+            duration-200
+        "
+    />
 
-            <img 
-                src="${b.finishPhoto}" 
-                class="rounded-xl max-h-40 border shadow-sm"
-            />
-        </div>
-        ` : ""}
+</div>
+` : ""}
 
-    </div>`;
+
+
+<!-- FOTO SELESAI -->
+${b.finishPhoto ? `
+<div class="mt-3">
+
+    <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+        Foto Selesai Penggunaan
+    </p>
+
+    <img 
+        src="${b.finishPhoto}" 
+        loading="lazy"
+        onclick="openImagePreview('${b.finishPhoto}')"
+        class="
+            rounded-xl 
+            max-h-40 
+            border 
+            shadow-sm 
+            cursor-pointer 
+            hover:opacity-80 
+            hover:scale-[1.02]
+            transition 
+            duration-200
+        "
+    />
+
+</div>
+` : ""}
+
+</div>`;
 }
+
+
+
 // ================= FIX SUBMIT FORM BOOKING =================
 document.getElementById('form-booking').addEventListener('submit', async (e) => {
 
-    e.preventDefault(); // 🔥 BIAR GAK RELOAD / BALIK LOGIN
+    e.preventDefault();
 
     try {
 
-        const date = document.getElementById('book-date').value;
-        const start = document.getElementById('book-start').value;
-        const end = document.getElementById('book-end').value;
-        const roomId = document.getElementById('book-room').value;
-        const editId = document.getElementById('edit-booking-id').value;
+        const date =
+            document.getElementById('book-date').value;
 
-        const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(c => {
-            const t = localState.tools.find(x => x.id === c.value);
-            return { id: t.id, name: t.name };
-        });
+        const start =
+            document.getElementById('book-start').value;
+
+        const end =
+            document.getElementById('book-end').value;
+
+        const roomId =
+            document.getElementById('book-room').value;
+
+        const editId =
+            document.getElementById('edit-booking-id').value;
+
+        const selectedTools =
+            Array.from(
+                document.querySelectorAll('input[name="tools"]:checked')
+            ).map(c => {
+
+                const t =
+                    localState.tools.find(
+                        x => x.id === c.value
+                    );
+
+                return {
+                    id: t.id,
+                    name: t.name
+                };
+
+            });
 
         const bookingData = {
+
             type: bookingType,
-            roomId: bookingType === 'room' ? roomId : null,
+
+            roomId:
+                bookingType === 'room'
+                ? roomId
+                : null,
+
             userName: currentUser.username,
             userUid: currentUser.uid,
-            dept: currentUser.dept || 'Umum',
+
+            dept:
+                currentUser.dept || 'Umum',
+
             name: currentUser.username,
-            department: currentUser.dept || 'Umum',
-            goal: document.getElementById('book-goal').value,
-			notes: document.getElementById('book-notes').value,
+
+            department:
+                currentUser.dept || 'Umum',
+
+            goal:
+                document.getElementById('book-goal').value,
+
+            notes:
+                document.getElementById('book-notes').value,
+
             date,
             start,
             end,
+
             tools: selectedTools,
+
             status: 'Pending',
+
             startedAt: null,
             finishedAt: null,
+
             startPhoto: null,
             finishPhoto: null,
+
             createdAt: serverTimestamp(),
+
         };
+
+
 
         if (editId) {
 
-    delete bookingData.createdAt;
-    delete bookingData.status;
-    delete bookingData.startedAt;
-    delete bookingData.finishedAt;
-    delete bookingData.startPhoto;
-    delete bookingData.finishPhoto;
+            delete bookingData.createdAt;
+            delete bookingData.status;
+            delete bookingData.startedAt;
+            delete bookingData.finishedAt;
+            delete bookingData.startPhoto;
+            delete bookingData.finishPhoto;
 
-    await updateDoc(
-        doc(
-            db,
-            'artifacts',
-            appId,
-            'public',
-            'data',
-            'bookings',
-            editId
-        ),
-        bookingData
-    );
+            await updateDoc(
 
-} else {
+                doc(
+                    db,
+                    'artifacts',
+                    appId,
+                    'public',
+                    'data',
+                    'bookings',
+                    editId
+                ),
 
-    await addDoc(
-        collection(
-            db,
-            'artifacts',
-            appId,
-            'public',
-            'data',
-            'bookings'
-        ),
-        bookingData
-    );
+                bookingData
 
-}
+            );
+
+        } 
+        else {
+
+            await addDoc(
+
+                collection(
+                    db,
+                    'artifacts',
+                    appId,
+                    'public',
+                    'data',
+                    'bookings'
+                ),
+
+                bookingData
+
+            );
+
+        }
+
         alert("✅ Pesanan berhasil disimpan");
 
         window.closeModal('modal-booking');
 
-document.getElementById(
-    "edit-booking-id"
-).value = "";
+        document.getElementById(
+            "edit-booking-id"
+        ).value = "";
 
-document.getElementById(
-    "booking-modal-title"
-).textContent =
-"Form Pemesanan";
+        document.getElementById(
+            "booking-modal-title"
+        ).textContent =
+        "Form Pemesanan";
 
-window.showView('riwayat','Pesanan Saya');
+        window.showView(
+            'riwayat',
+            'Pesanan Saya'
+        );
 
-    } catch (err) {
+    }
+    catch (err) {
 
-        console.error("ERROR SIMPAN:", err);
-        alert("❌ Gagal simpan pesanan");
+        console.error(
+            "ERROR SIMPAN:",
+            err
+        );
+
+        alert(
+            "❌ Gagal simpan pesanan"
+        );
 
     }
 
 });
-		
-   </script>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
 <!-- 🔥 SEARCH REALTIME (FIX) -->
 <script>
 document.addEventListener('input', (e) => {
@@ -3219,6 +3556,53 @@ window.submitChangePassword = () => {
             <button onclick="submitChangePassword()" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">Simpan</button>
         </div>
     </div>
+
+</div>
+
+<!-- IMAGE PREVIEW MODAL -->
+
+<div 
+id="modal-image-preview"
+class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center"
+onclick="closeImagePreview()"
+>
+
+<img 
+id="preview-image"
+class="max-h-[90%] max-w-[90%] rounded-xl shadow-lg"
+/>
+
+</div>
+
+<!-- UPLOAD PROGRESS -->
+
+<div 
+id="upload-progress-container"
+class="hidden fixed bottom-6 right-6 bg-white shadow-xl rounded-xl p-4 w-64 z-50"
+>
+
+<p class="text-xs font-bold mb-2">
+Uploading foto...
+</p>
+
+<div class="w-full bg-slate-200 rounded-full h-3">
+
+<div 
+id="upload-progress-bar"
+class="bg-indigo-500 h-3 rounded-full transition-all"
+style="width:0%"
+></div>
+
+</div>
+
+<p 
+id="upload-progress-text"
+class="text-[10px] text-slate-500 mt-1"
+>
+
+0%
+
+</p>
 
 </div>
 	
