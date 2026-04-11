@@ -2608,6 +2608,8 @@ Mulai Penggunaan
 
             footer.innerHTML = `
 
+${!b.finishPhoto ? `
+
 <input type="file"
 id="finish-photo-${b.id}"
 accept="image/*"
@@ -2618,7 +2620,11 @@ class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
 Upload Foto Akhir
 </button>
 
-${b.finishPhoto ? `
+` : `
+
+<div class="text-green-600 text-xs font-bold text-center mb-2">
+✅ Foto akhir sudah diupload
+</div>
 
 <div class="flex flex-col gap-2 mt-2">
 
@@ -2636,10 +2642,9 @@ class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-xs">
 
 </div>
 
-` : ""}
+`}
 
 `;
-
         }
 
     }
