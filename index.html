@@ -948,95 +948,110 @@ function calculateFilterRange() {
         }
 
         // STATS RENDERING
-        function renderAdminDashboard() {
-            const filtered = getFilteredBookings();
-            const total = filtered.length || 0;
+function renderAdminDashboard() {
+    const filtered = getFilteredBookings();
+    const total = filtered.length || 0;
 
-            const roomsBooking = filtered.filter(b => b.type === 'room');
-            const toolsOnlyBooking = filtered.filter(b => b.type === 'tool');
-            const approved = filtered.filter(b => b.status === 'Approved' || b.status === 'Completed' || b.status === 'Ongoing');
-            const pending = filtered.filter(b => b.status === 'Pending');
-            const rejected = filtered.filter(b => b.status === 'Rejected');
+    // 🔥 normalize status biar konsisten
+    const getStatus = (b) => (b.status || "").toLowerCase();
 
-            document.getElementById('stat-total-rooms').innerText = localState.rooms.length;
-            document.getElementById('stat-total-tools').innerText = localState.tools.length;
-            
-            const setStat = (idPrefix, count) => {
-                const pct = total === 0 ? 0 : Math.round((count / total) * 100);
-                document.getElementById(`stat-${idPrefix}-pct`).innerText = `${pct}%`;
-                document.getElementById(`stat-${idPrefix}-ratio`).innerText = `${count} / ${total} Pesanan`;
-            };
+    const roomsBooking = filtered.filter(b => b.type === 'room');
+    const toolsOnlyBooking = filtered.filter(b => b.type === 'tool');
 
-            setStat('room-booking', roomsBooking.length);
-            setStat('tool-booking', toolsOnlyBooking.length);
-            setStat('approved', approved.length);
-            setStat('pending', pending.length);
-            setStat('rejected', rejected.length);
+    const approved = filtered.filter(b => {
+        const s = getStatus(b);
+        return ['approved','ongoing','completed'].includes(s);
+    });
 
-            updateChart(filtered);
-        }
+    const pending = filtered.filter(b => getStatus(b) === 'pending');
+    const rejected = filtered.filter(b => getStatus(b) === 'rejected');
 
-        window.showStatTable = (category) => {
-            const filtered = getFilteredBookings();
-            let list = [];
-            let title = "Detail Data";
+    // ✅ TAMBAHAN BARU
+    const ongoing = filtered.filter(b => getStatus(b) === 'ongoing');
+    const completed = filtered.filter(b => getStatus(b) === 'completed');
 
-            if (category === 'room') {
-                list = filtered.filter(b => b.type === 'room');
-                title = "Pesanan Ruangan";
-            } else if (category === 'tool-only') {
-                list = filtered.filter(b => b.type === 'tool');
-                title = "Pesanan Alat";
-            } else if (['Approved', 'Pending', 'Rejected', 'Ongoing', 'Completed'].includes(category)) {
+    document.getElementById('stat-total-rooms').innerText = localState.rooms.length;
+    document.getElementById('stat-total-tools').innerText = localState.tools.length;
+    
+    const setStat = (idPrefix, count) => {
+        const pct = total === 0 ? 0 : Math.round((count / total) * 100);
+        document.getElementById(`stat-${idPrefix}-pct`).innerText = `${pct}%`;
+        document.getElementById(`stat-${idPrefix}-ratio`).innerText = `${count} / ${total} Pesanan`;
+    };
 
-                list = filtered.filter(b => {
-                    const status = (b.status || "").toLowerCase();
+    setStat('room-booking', roomsBooking.length);
+    setStat('tool-booking', toolsOnlyBooking.length);
+    setStat('approved', approved.length);
+    setStat('pending', pending.length);
+    setStat('rejected', rejected.length);
 
-                    if (category === 'Approved') {
-                        return ['approved','ongoing','completed'].includes(status);
-                    }
+    // ✅ TAMBAHAN BARU (BIAR CARD NYA HIDUP)
+    setStat('ongoing', ongoing.length);
+    setStat('completed', completed.length);
 
-                    return status === category.toLowerCase();
-                });
+    updateChart(filtered);
+}
 
-                title = `Data Status: ${category}`;
+window.showStatTable = (category) => {
+    const filtered = getFilteredBookings();
+    let list = [];
+    let title = "Detail Data";
+
+    if (category === 'room') {
+        list = filtered.filter(b => b.type === 'room');
+        title = "Pesanan Ruangan";
+    } else if (category === 'tool-only') {
+        list = filtered.filter(b => b.type === 'tool');
+        title = "Pesanan Alat";
+    } else if (['Approved', 'Pending', 'Rejected', 'Ongoing', 'Completed'].includes(category)) {
+
+        list = filtered.filter(b => {
+            const status = (b.status || "").toLowerCase();
+
+            if (category === 'Approved') {
+                return ['approved','ongoing','completed'].includes(status);
             }
 
-            document.getElementById('stat-table-title').innerText = `${title} (${list.length})`;
-            const body = document.getElementById('stat-table-body');
-            
-            if (list.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>`;
-            } else {
-                body.innerHTML = list.map(b => {
-                    const roomName = b.roomId ? (localState.rooms.find(r => r.id === b.roomId)?.name || 'N/A') : 'Hanya Alat';
-                    return `
-                        <tr class="hover:bg-slate-50 transition-colors border-b last:border-0">
-                            <td class="px-4 py-3">
-                                <p class="font-bold text-slate-700">${b.userName}</p>
-                                <p class="text-[9px] text-slate-400 uppercase">${b.dept}</p>
-                            </td>
-                            <td class="px-4 py-3">
-                                <p class="text-xs text-slate-600 line-clamp-1">${b.goal}</p>
-                            </td>
-                            <td class="px-4 py-3">
-                                <p class="text-xs font-medium text-slate-700">${roomName}</p>
-                                <p class="text-[9px] text-indigo-500 font-bold">${(b.tools || []).length} Alat</p>
-                            </td>
-                            <td class="px-4 py-3">
-                                <p class="text-xs text-slate-700 font-medium">${b.date}</p>
-                                <p class="text-[9px] text-slate-400">${b.start} - ${b.end}</p>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="text-[9px] font-black uppercase px-2 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-            document.getElementById('modal-stat-table').classList.remove('hide');
-        };
+            return status === category.toLowerCase();
+        });
 
+        title = `Data Status: ${category}`;
+    }
+
+    document.getElementById('stat-table-title').innerText = `${title} (${list.length})`;
+    const body = document.getElementById('stat-table-body');
+    
+    if (list.length === 0) {
+        body.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>`;
+    } else {
+        body.innerHTML = list.map(b => {
+            const roomName = b.roomId ? (localState.rooms.find(r => r.id === b.roomId)?.name || 'N/A') : 'Hanya Alat';
+            return `
+                <tr class="hover:bg-slate-50 transition-colors border-b last:border-0">
+                    <td class="px-4 py-3">
+                        <p class="font-bold text-slate-700">${b.userName}</p>
+                        <p class="text-[9px] text-slate-400 uppercase">${b.dept}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs text-slate-600 line-clamp-1">${b.goal}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs font-medium text-slate-700">${roomName}</p>
+                        <p class="text-[9px] text-indigo-500 font-bold">${(b.tools || []).length} Alat</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs text-slate-700 font-medium">${b.date}</p>
+                        <p class="text-[9px] text-slate-400">${b.start} - ${b.end}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    document.getElementById('modal-stat-table').classList.remove('hide');
+};
         window.showRoomStatsDetail = () => {
             const container = document.getElementById('room-stats-container');
             container.innerHTML = localState.rooms.map(room => {
