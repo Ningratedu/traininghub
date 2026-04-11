@@ -394,27 +394,83 @@
     </div>
 
     <!-- SCANNER MODAL -->
-    <div id="modal-scanner" class="fixed inset-0 z-[220] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
-            <div class="flex justify-between w-full items-center mb-6">
-                <h3 class="text-xl font-black">Scan QR Code Selesai</h3>
-                <button onclick="window.stopScanner()"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="reader" class="mb-4"></div>
-            <p class="text-xs text-slate-500 text-center italic">Arahkan kamera ke QR Code di layar Admin untuk menyelesaikan pesanan.</p>
+<div id="modal-scanner" class="fixed inset-0 z-[220] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
+
+        <div class="flex justify-between w-full items-center mb-6">
+
+            <h3 class="text-xl font-black">
+                Scan QR Code Selesai
+            </h3>
+
+            <button onclick="window.stopScanner()">
+                <i class="fas fa-times"></i>
+            </button>
+
         </div>
+
+        <!-- CAMERA READER -->
+        <div id="reader" class="mb-4"></div>
+
+        <!-- ================= TAMBAHAN GALLERY ================= -->
+
+        <div class="w-full mt-3 border-t pt-3">
+
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-2 text-center">
+                Atau Scan dari Galeri
+            </p>
+
+            <button 
+            onclick="document.getElementById('qr-file-input').click()" 
+            class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-bold">
+                🖼 Pilih QR dari Galeri
+            </button>
+
+            <input 
+            type="file"
+            id="qr-file-input"
+            accept="image/*"
+            class="hidden"
+            onchange="window.scanQrFromFileFromModal()"
+            />
+
+        </div>
+
+        <!-- ================= END TAMBAHAN ================= -->
+
+        <p class="text-xs text-slate-500 text-center italic mt-3">
+            Arahkan kamera ke QR Code di layar Admin atau upload dari galeri untuk menyelesaikan pesanan.
+        </p>
+
     </div>
 
-    <!-- MODAL LIST RUANGAN -->
-    <div id="modal-room-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black">Status Unit Ruangan</h3>
-                <button onclick="closeModal('modal-room-stats')"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="room-stats-container" class="overflow-y-auto space-y-3"></div>
+</div>
+
+
+
+<!-- MODAL LIST RUANGAN -->
+<div id="modal-room-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
+
+        <div class="flex justify-between items-center mb-6">
+
+            <h3 class="text-xl font-black">
+                Status Unit Ruangan
+            </h3>
+
+            <button onclick="closeModal('modal-room-stats')">
+                <i class="fas fa-times"></i>
+            </button>
+
         </div>
+
+        <div id="room-stats-container" class="overflow-y-auto space-y-3"></div>
+
     </div>
+
+</div>
 
     <!-- MODAL LIST ALAT -->
     <div id="modal-tool-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
@@ -2506,71 +2562,213 @@ accept="image/*"
 class="text-xs mb-2 w-full" />
 
 <button onclick="window.finishBooking('${b.id}')" 
-class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
+class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
 Upload Foto Akhir
 </button>
 
 ${b.finishPhoto ? `
 
-<button onclick="window.startScanner('${b.id}')" 
-class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black mt-2">
-Scan QR Selesai
+<div class="flex flex-col gap-2 mt-2">
+
+<button 
+onclick="window.startScanner('${b.id}')" 
+class="w-full bg-emerald-600 text-white py-3 rounded-2xl font-black text-xs">
+📷 Scan QR via Camera
 </button>
+
+<button 
+onclick="window.openGalleryScanner('${b.id}')" 
+class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-xs">
+🖼 Scan QR via Gallery
+</button>
+
+</div>
 
 ` : ""}
 
 `;
 
 }
-    }
 
-    footer.classList.toggle('hide', footer.innerHTML === '');
-    document.getElementById('modal-detail').classList.remove('hide');
-};
-		window.startScanner = (bookingId) => {
+footer.classList.toggle('hide', footer.innerHTML === '');
+document.getElementById('modal-detail').classList.remove('hide');
 
-    document.getElementById('modal-scanner').classList.remove('hide');
-
-    html5QrCode = new Html5Qrcode("reader");
-
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-    html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        async (decodedText) => {
-
-            if (decodedText === `finish-booking-${bookingId}`) {
-
-                window.stopScanner();
-
-                await updateDoc(
-                    doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId),
-                    {
-                        status: 'Completed',
-                        finishedAt: serverTimestamp()
-                    }
-                );
-
-                alert("✅ Pesanan selesai!");
-
-                window.closeModal('modal-detail');
-                window.showView('riwayat','Pesanan Saya');
-            }
-        }
-    ).catch(err => {
-        console.error("Scanner error:", err);
-    });
 };
 
-		window.stopScanner = () => {
-    if (html5QrCode) {
-        html5QrCode.stop().then(() => {
-            document.getElementById('modal-scanner').classList.add('hide');
-        }).catch(() => {
-            document.getElementById('modal-scanner').classList.add('hide');
-        });
-    }
+
+// ================= SCANNER CAMERA =================
+
+window.startScanner = (bookingId) => {
+
+document.getElementById('modal-scanner')
+.classList.remove('hide');
+
+html5QrCode = new Html5Qrcode("reader");
+
+const config = {
+fps: 10,
+qrbox: { width: 250, height: 250 }
+};
+
+html5QrCode.start(
+{ facingMode: "environment" },
+config,
+
+async (decodedText) => {
+
+if(decodedText === `finish-booking-${bookingId}`){
+
+window.stopScanner();
+
+await updateDoc(
+doc(db,'artifacts',appId,'public','data','bookings',bookingId),
+{
+status: 'Completed',
+finishedAt: serverTimestamp()
+}
+);
+
+alert("✅ Pesanan selesai!");
+
+window.closeModal('modal-detail');
+window.showView('riwayat','Pesanan Saya');
+
+}
+
+}
+
+).catch(err => {
+
+console.error("Scanner error:", err);
+
+});
+
+};
+
+
+// ================= STOP SCANNER =================
+
+window.stopScanner = () => {
+
+if(html5QrCode){
+
+html5QrCode.stop()
+.then(() => {
+
+document.getElementById('modal-scanner')
+.classList.add('hide');
+
+})
+.catch(() => {
+
+document.getElementById('modal-scanner')
+.classList.add('hide');
+
+});
+
+}
+
+};
+
+
+// ================= OPEN GALLERY =================
+
+window.openGalleryScanner = (bookingId) => {
+
+// simpan booking aktif
+window.currentScanBookingId = bookingId;
+
+const input =
+document.getElementById("qr-file-input");
+
+// reset input supaya bisa pilih file lagi
+input.value = "";
+
+// buka galeri
+input.click();
+
+};
+
+// ================= SCAN QR DARI GALERI =================
+
+window.scanQrFromFile = async () => {
+
+const fileInput =
+document.getElementById("qr-file-input");
+
+const file =
+fileInput.files[0];
+
+if(!file){
+
+alert("Pilih foto QR dulu!");
+
+return;
+
+}
+
+try {
+
+// ambil booking aktif
+const bookingId =
+window.currentScanBookingId;
+
+if(!bookingId){
+
+alert("Booking tidak ditemukan!");
+
+return;
+
+}
+
+// stop kamera jika masih aktif
+if(html5QrCode){
+
+try{
+
+await html5QrCode.stop();
+
+}catch{}
+
+}
+
+html5QrCode =
+new Html5Qrcode("reader");
+
+const decodedText =
+await html5QrCode.scanFile(file, true);
+
+if(decodedText === `finish-booking-${bookingId}`){
+
+await updateDoc(
+doc(db,'artifacts',appId,'public','data','bookings',bookingId),
+{
+status: 'Completed',
+finishedAt: serverTimestamp()
+}
+);
+
+alert("✅ Pesanan selesai!");
+
+window.closeModal('modal-detail');
+window.showView('riwayat','Pesanan Saya');
+
+}
+else{
+
+alert("❌ QR tidak sesuai booking!");
+
+}
+
+}
+catch(err){
+
+console.error(err);
+
+alert("❌ Gagal membaca QR dari gambar!");
+
+}
+
 };
 // ================= START BOOKING (FIXED) =================
 window.startBooking = async (id) => {
