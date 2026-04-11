@@ -1019,6 +1019,13 @@ window.showStatTable = (category) => {
         title = `Data Status: ${category}`;
     }
 
+    // 🔥 INI HARUS DI LUAR IF (GLOBAL)
+    list = list.sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.start}`);
+        const dateB = new Date(`${b.date}T${b.start}`);
+        return dateB - dateA;
+    });
+
     document.getElementById('stat-table-title').innerText = `${title} (${list.length})`;
     const body = document.getElementById('stat-table-body');
     
