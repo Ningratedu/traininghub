@@ -1177,7 +1177,7 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
                             <span class="text-[9px] text-slate-400 font-bold">${b.date}</span>
                         </div>
                         <p class="text-xs font-bold text-slate-700">${b.goal}</p>
-                        <p class="text-[10px] text-slate-400">${b.userName} • ${b.start} - ${b.end}</p>
+                        <p class="text-[10px] text-slate-400">${b.userName} (${b.dept}) • ${b.start} - ${b.end}</p>
                     </div>
                 `).join('');
             }
@@ -1215,7 +1215,7 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
                 </p>
 
                 <p class="text-[10px] text-slate-400">
-                    ${b.userName} • ${b.start} - ${b.end}
+                    ${b.userName} (${b.dept}) • ${b.start} - ${b.end}
                 </p>
 
             </div>
