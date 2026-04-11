@@ -2600,8 +2600,20 @@ document.getElementById('modal-detail').classList.remove('hide');
 
 window.startScanner = (bookingId) => {
 
+// ✅ simpan booking aktif (WAJIB untuk gallery)
+window.currentScanBookingId = bookingId;
+
 document.getElementById('modal-scanner')
 .classList.remove('hide');
+
+// reset instance lama jika ada
+if(typeof html5QrCode !== "undefined" && html5QrCode){
+
+try{
+html5QrCode.stop();
+}catch{}
+
+}
 
 html5QrCode = new Html5Qrcode("reader");
 
@@ -2646,11 +2658,12 @@ console.error("Scanner error:", err);
 };
 
 
+
 // ================= STOP SCANNER =================
 
 window.stopScanner = () => {
 
-if(html5QrCode){
+if(typeof html5QrCode !== "undefined" && html5QrCode){
 
 html5QrCode.stop()
 .then(() => {
@@ -2665,6 +2678,12 @@ document.getElementById('modal-scanner')
 .classList.add('hide');
 
 });
+
+}
+else{
+
+document.getElementById('modal-scanner')
+.classList.add('hide');
 
 }
 
