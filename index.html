@@ -3177,71 +3177,68 @@ function injectBookingTimes(b){
     return `
     <div class="col-span-2 text-xs space-y-2 border-t pt-3 mt-2">
 
-        <!-- TIME INFO -->
         <div>Dibuat: ${formatTime(b.createdAt)}</div>
         <div>Diapprove: ${formatTime(b.approvedAt)}</div>
         <div>Mulai: ${formatTime(b.startedAt)}</div>
         <div>Selesai: ${formatTime(b.finishedAt)}</div>
 
-        <!-- FOTO MULAI -->
-${b.startPhoto ? `
-<div class="mt-3">
+        ${b.startPhoto ? `
+        <div class="mt-3">
 
-    <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
-        Foto Mulai Penggunaan
-    </p>
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+                Foto Mulai Penggunaan
+            </p>
 
-    <img 
-        src="${b.startPhoto}" 
-        loading="lazy"
-        onclick="openImagePreview('${b.startPhoto}')"
-        class="
-            rounded-xl 
-            max-h-40 
-            border 
-            shadow-sm 
-            cursor-pointer 
-            hover:opacity-80 
-            hover:scale-[1.02]
-            transition 
-            duration-200
-        "
-    />
+            <img 
+                src="${b.startPhoto}" 
+                loading="lazy"
+                onclick="openImagePreview('${b.startPhoto}')"
+                class="
+                    rounded-xl 
+                    max-h-40 
+                    border 
+                    shadow-sm 
+                    cursor-pointer 
+                    hover:opacity-80 
+                    hover:scale-[1.02]
+                    transition 
+                    duration-200
+                "
+            />
 
-</div>
-` : ""}
-
+        </div>
+        ` : ""}
 
 
-<!-- FOTO SELESAI -->
-${b.finishPhoto ? `
-<div class="mt-3">
 
-    <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
-        Foto Selesai Penggunaan
-    </p>
+        ${b.finishPhoto ? `
+        <div class="mt-3">
 
-    <img 
-        src="${b.finishPhoto}" 
-        loading="lazy"
-        onclick="openImagePreview('${b.finishPhoto}')"
-        class="
-            rounded-xl 
-            max-h-40 
-            border 
-            shadow-sm 
-            cursor-pointer 
-            hover:opacity-80 
-            hover:scale-[1.02]
-            transition 
-            duration-200
-        "
-    />
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+                Foto Selesai Penggunaan
+            </p>
 
-</div>
-` : ""}
+            <img 
+                src="${b.finishPhoto}" 
+                loading="lazy"
+                onclick="openImagePreview('${b.finishPhoto}')"
+                class="
+                    rounded-xl 
+                    max-h-40 
+                    border 
+                    shadow-sm 
+                    cursor-pointer 
+                    hover:opacity-80 
+                    hover:scale-[1.02]
+                    transition 
+                    duration-200
+                "
+            />
 
-</div>`;
+        </div>
+        ` : ""}
+
+    </div>`;
 }
 
 
