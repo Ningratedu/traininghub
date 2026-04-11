@@ -247,45 +247,121 @@
             </header>
 
             <div class="flex-1 overflow-y-auto p-4 md:p-8" id="content-area">
-                <div id="view-dashboard" class="view">
-                    <div id="admin-dashboard-ui" class="hide">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-8">
-                            <div class="stat-card card-pop stat-slate p-4" onclick="window.showRoomStatsDetail()">
-                                <p class="text-slate-400 text-[9px] font-black uppercase">Total Ruangan</p>
-                                <h3 class="text-xl font-black mt-1" id="stat-total-rooms">0</h3>
-                                <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
-                            </div>
-                            <div class="stat-card card-pop stat-slate p-4" onclick="window.showToolStatsDetail()">
-                                <p class="text-slate-400 text-[9px] font-black uppercase">Total Alat</p>
-                                <h3 class="text-xl font-black mt-1" id="stat-total-tools">0</h3>
-                                <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
-                            </div>
-                            <div class="stat-card card-pop stat-blue p-4" onclick="window.showStatTable('room')">
-                                <p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
-                                <h3 class="text-xl font-black mt-1" id="stat-room-booking-pct">0%</h3>
-                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-room-booking-ratio">0/0</p>
-                            </div>
-                            <div class="stat-card card-pop stat-emerald p-4" onclick="window.showStatTable('tool-only')">
-                                <p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
-                                <h3 class="text-xl font-black mt-1" id="stat-tool-booking-pct">0%</h3>
-                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-tool-booking-ratio">0/0</p>
-                            </div>
-                            <div class="stat-card card-pop stat-indigo p-4" onclick="window.showStatTable('Approved')">
-                                <p class="text-indigo-500 text-[9px] font-black uppercase">Disetujui</p>
-                                <h3 class="text-xl font-black mt-1" id="stat-approved-pct">0%</h3>
-                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-approved-ratio">0/0</p>
-                            </div>
-                            <div class="stat-card card-pop stat-amber p-4" onclick="window.showStatTable('Pending')">
-                                <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
-                                <h3 class="text-xl font-black mt-1" id="stat-pending-pct">0%</h3>
-                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-pending-ratio">0/0</p>
-                            </div>
-                            <div class="stat-card card-pop stat-rose p-4" onclick="window.showStatTable('Rejected')">
-                                <p class="text-rose-500 text-[9px] font-black uppercase">Ditolak</p>
-                                <h3 class="text-xl font-black mt-1" id="stat-rejected-pct">0%</h3>
-                                <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-rejected-ratio">0/0</p>
-                            </div>
-                        </div>
+    <div id="view-dashboard" class="view">
+        <div id="admin-dashboard-ui" class="hide">
+
+            <!-- 🔥 GRID UPDATE (jadi 9 kolom biar muat semua) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 mb-8">
+
+                <!-- TOTAL RUANGAN -->
+                <div class="stat-card card-pop stat-slate p-4" onclick="window.showRoomStatsDetail()">
+                    <div class="flex justify-between items-start">
+                        <p class="text-slate-400 text-[9px] font-black uppercase">Total Ruangan</p>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 10h18M5 6h14M7 14h10M9 18h6"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-total-rooms">0</h3>
+                    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+                </div>
+
+                <!-- TOTAL ALAT -->
+                <div class="stat-card card-pop stat-slate p-4" onclick="window.showToolStatsDetail()">
+                    <div class="flex justify-between items-start">
+                        <p class="text-slate-400 text-[9px] font-black uppercase">Total Alat</p>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M14.7 6.3a1 1 0 010 1.4l-6 6a1 1 0 01-1.4 0l-2-2a1 1 0 011.4-1.4l1.3 1.3 5.3-5.3a1 1 0 011.4 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-total-tools">0</h3>
+                    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+                </div>
+
+                <!-- PESANAN RUANGAN -->
+                <div class="stat-card card-pop stat-blue p-4" onclick="window.showStatTable('room')">
+                    <div class="flex justify-between items-start">
+                        <p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
+                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M8 7V3m8 4V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-room-booking-pct">0%</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-room-booking-ratio">0/0</p>
+                </div>
+
+                <!-- PESANAN ALAT -->
+                <div class="stat-card card-pop stat-emerald p-4" onclick="window.showStatTable('tool-only')">
+                    <div class="flex justify-between items-start">
+                        <p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
+                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 3v18M3 12h18"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-tool-booking-pct">0%</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-tool-booking-ratio">0/0</p>
+                </div>
+
+                <!-- APPROVED -->
+                <div class="stat-card card-pop stat-indigo p-4" onclick="window.showStatTable('Approved')">
+                    <div class="flex justify-between items-start">
+                        <p class="text-indigo-500 text-[9px] font-black uppercase">Disetujui</p>
+                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-approved-pct">0%</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-approved-ratio">0/0</p>
+                </div>
+
+                <!-- PENDING -->
+                <div class="stat-card card-pop stat-amber p-4" onclick="window.showStatTable('Pending')">
+                    <div class="flex justify-between items-start">
+                        <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 8v4l3 3"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-pending-pct">0%</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-pending-ratio">0/0</p>
+                </div>
+
+                <!-- ONGOING -->
+                <div class="stat-card card-pop stat-cyan p-4" onclick="window.showStatTable('Ongoing')">
+                    <div class="flex justify-between items-start">
+                        <p class="text-cyan-500 text-[9px] font-black uppercase">Ongoing</p>
+                        <svg class="w-4 h-4 text-cyan-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M13 3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-ongoing-pct">0%</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-ongoing-ratio">0/0</p>
+                </div>
+
+                <!-- COMPLETED -->
+                <div class="stat-card card-pop stat-green p-4" onclick="window.showStatTable('Completed')">
+                    <div class="flex justify-between items-start">
+                        <p class="text-green-500 text-[9px] font-black uppercase">Completed</p>
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-completed-pct">0%</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-completed-ratio">0/0</p>
+                </div>
+
+                <!-- REJECTED -->
+                <div class="stat-card card-pop stat-rose p-4" onclick="window.showStatTable('Rejected')">
+                    <div class="flex justify-between items-start">
+                        <p class="text-rose-500 text-[9px] font-black uppercase">Ditolak</p>
+                        <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-rejected-pct">0%</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-rejected-ratio">0/0</p>
+                </div>
+
+            </div>
 
                         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10">
                             <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
