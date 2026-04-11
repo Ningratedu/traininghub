@@ -1037,9 +1037,13 @@ window.showStatTable = (category) => {
                         <p class="text-xs text-slate-600 line-clamp-1">${b.goal}</p>
                     </td>
                     <td class="px-4 py-3">
-                        <p class="text-xs font-medium text-slate-700">${roomName}</p>
-                        <p class="text-[9px] text-indigo-500 font-bold">${(b.tools || []).length} Alat</p>
-                    </td>
+    <p class="text-xs font-medium text-slate-700">${roomName}</p>
+    <p class="text-[9px] text-indigo-500 font-bold">
+        ${(b.tools && b.tools.length > 0)
+            ? 'Alat: ' + b.tools.map(t => t.name).join(', ')
+            : 'Tanpa alat'}
+    </p>
+</td>
                     <td class="px-4 py-3">
                         <p class="text-xs text-slate-700 font-medium">${b.date}</p>
                         <p class="text-[9px] text-slate-400">${b.start} - ${b.end}</p>
