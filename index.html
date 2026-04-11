@@ -255,115 +255,119 @@
 
 <!-- TOTAL RUANGAN -->
 <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showRoomStatsDetail()">
-<div class="flex justify-between items-start">
-<p class="text-slate-500 text-[9px] font-black uppercase">Total Ruangan</p>
-<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M3 21V3h18v18M9 21V9h6v12"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-total-rooms">0</h3>
-<p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+    <div class="flex justify-between items-start">
+        <p class="text-slate-500 text-[9px] font-black uppercase">Total Ruangan</p>
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18M5 21V5h14v16M9 9h2m2 0h2m-6 4h2m2 0h2"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-total-rooms">0</h3>
+    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
 </div>
 
 <!-- TOTAL ALAT -->
 <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showToolStatsDetail()">
-<div class="flex justify-between items-start">
-<p class="text-slate-500 text-[9px] font-black uppercase">Total Alat</p>
-<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M14.7 6.3l3 3-8.4 8.4-3-3zM16 4l4 4"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-total-tools">0</h3>
-<p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+    <div class="flex justify-between items-start">
+        <p class="text-slate-500 text-[9px] font-black uppercase">Total Alat</p>
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.7 6.3l3 3-8.4 8.4-3-3z"/>
+            <path d="M16 4l4 4"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-total-tools">0</h3>
+    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
 </div>
 
 <!-- PESANAN RUANGAN -->
 <div class="stat-card card-pop p-4 border-t-4 border-blue-500" onclick="window.showStatTable('room')">
-<div class="flex justify-between items-start">
-<p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
-<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M8 7V3m8 4V3M3 11h18"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-room-booking-pct">0%</h3>
-<p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-room-booking-ratio">0/0</p>
+    <div class="flex justify-between items-start">
+        <p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
+        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-room-booking-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-room-booking-ratio">0/0</p>
 </div>
 
 <!-- PESANAN ALAT -->
 <div class="stat-card card-pop p-4 border-t-4 border-emerald-500" onclick="window.showStatTable('tool-only')">
-<div class="flex justify-between items-start">
-<p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
-<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M4 7h16M4 12h16M4 17h16"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-tool-booking-pct">0%</h3>
-<p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-tool-booking-ratio">0/0</p>
+    <div class="flex justify-between items-start">
+        <p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
+        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 6h11M9 12h11M9 18h11"/>
+            <path d="M3 6l2 2 4-4M3 12l2 2 4-4M3 18l2 2 4-4"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-tool-booking-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-tool-booking-ratio">0/0</p>
 </div>
 
 <!-- APPROVED -->
 <div class="stat-card card-pop p-4 border-t-4 border-indigo-500" onclick="window.showStatTable('Approved')">
-<div class="flex justify-between items-start">
-<p class="text-indigo-500 text-[9px] font-black uppercase">Disetujui</p>
-<svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M5 13l4 4L19 7"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-approved-pct">0%</h3>
-<p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-approved-ratio">0/0</p>
+    <div class="flex justify-between items-start">
+        <p class="text-indigo-500 text-[9px] font-black uppercase">Disetujui</p>
+        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 13l4 4L19 7"/>
+            <path d="M9 13l4 4L23 7"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-approved-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-approved-ratio">0/0</p>
 </div>
 
 <!-- PENDING -->
 <div class="stat-card card-pop p-4 border-t-4 border-amber-500" onclick="window.showStatTable('Pending')">
-<div class="flex justify-between items-start">
-<p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
-<svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2">
-<circle cx="12" cy="12" r="10"/>
-<path d="M12 6v6l4 2"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-pending-pct">0%</h3>
-<p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-pending-ratio">0/0</p>
+    <div class="flex justify-between items-start">
+        <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
+        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2h12M6 22h12M8 2c0 5 8 5 8 10s-8 5-8 10"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-pending-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-pending-ratio">0/0</p>
 </div>
 
 <!-- ONGOING -->
 <div class="stat-card card-pop p-4 border-t-4 border-cyan-500" onclick="window.showStatTable('Ongoing')">
-<div class="flex justify-between items-start">
-<p class="text-cyan-500 text-[9px] font-black uppercase">Ongoing</p>
-<svg class="w-5 h-5 text-cyan-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M13 3L4 14h7v7l9-11h-7z"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-ongoing-pct">0%</h3>
-<p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-ongoing-ratio">0/0</p>
+    <div class="flex justify-between items-start">
+        <p class="text-cyan-500 text-[9px] font-black uppercase">Ongoing</p>
+        <svg class="w-5 h-5 text-cyan-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-ongoing-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-ongoing-ratio">0/0</p>
 </div>
 
 <!-- COMPLETED -->
 <div class="stat-card card-pop p-4 border-t-4 border-green-500" onclick="window.showStatTable('Completed')">
-<div class="flex justify-between items-start">
-<p class="text-green-500 text-[9px] font-black uppercase">Completed</p>
-<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M5 13l4 4L19 7"/>
-</svg>
-</div>
-<h3 class="text-xl font-black mt-1" id="stat-completed-pct">0%</h3>
-<p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-completed-ratio">0/0</p>
+    <div class="flex justify-between items-start">
+        <p class="text-green-500 text-[9px] font-black uppercase">Completed</p>
+        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9 12l2 2 4-4"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-completed-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-completed-ratio">0/0</p>
 </div>
 
 <!-- REJECTED -->
 <div class="stat-card card-pop p-4 border-t-4 border-rose-500" onclick="window.showStatTable('Rejected')">
-<div class="flex justify-between items-start">
-<p class="text-rose-500 text-[9px] font-black uppercase">Ditolak</p>
-<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" stroke-width="2">
-<path d="M6 18L18 6M6 6l12 12"/>
-</svg>
+    <div class="flex justify-between items-start">
+        <p class="text-rose-500 text-[9px] font-black uppercase">Ditolak</p>
+        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 8l8 8M8 16l8-8"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-rejected-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-rejected-ratio">0/0</p>
 </div>
-<h3 class="text-xl font-black mt-1" id="stat-rejected-pct">0%</h3>
-<p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-rejected-ratio">0/0</p>
-</div>
-
-</div>
-
+				
                         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10">
                             <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
