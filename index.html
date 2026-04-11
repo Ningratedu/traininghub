@@ -252,11 +252,14 @@
 
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 mb-8">
 
+<!-- TEMPLATE STYLE BARU -->
+<!-- gunakan: bg-white + border + rounded + shadow-sm -->
+
 <!-- TOTAL RUANGAN -->
-<div class="stat-card card-pop stat-slate p-4 border-t-4 border-slate-500" onclick="window.showRoomStatsDetail()">
+<div class="card-pop p-4 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showRoomStatsDetail()">
 <div class="flex justify-between items-start">
 <p class="text-slate-400 text-[9px] font-black uppercase">Total Ruangan</p>
-<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M3 21V3h18v18M9 21V9h6v12"/>
 </svg>
 </div>
@@ -265,10 +268,10 @@
 </div>
 
 <!-- TOTAL ALAT -->
-<div class="stat-card card-pop stat-slate p-4 border-t-4 border-slate-500" onclick="window.showToolStatsDetail()">
+<div class="card-pop p-4 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showToolStatsDetail()">
 <div class="flex justify-between items-start">
 <p class="text-slate-400 text-[9px] font-black uppercase">Total Alat</p>
-<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M14.7 6.3l3 3-8.4 8.4-3-3zM16 4l4 4"/>
 </svg>
 </div>
@@ -277,10 +280,10 @@
 </div>
 
 <!-- PESANAN RUANGAN -->
-<div class="stat-card card-pop stat-blue p-4 border-t-4 border-blue-500" onclick="window.showStatTable('room')">
+<div class="card-pop p-4 bg-blue-50 border border-blue-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showStatTable('room')">
 <div class="flex justify-between items-start">
-<p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
-<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<p class="text-blue-600 text-[9px] font-black uppercase">Pesanan Ruangan</p>
+<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M8 7V3m8 4V3M3 11h18"/>
 </svg>
 </div>
@@ -289,10 +292,10 @@
 </div>
 
 <!-- PESANAN ALAT -->
-<div class="stat-card card-pop stat-emerald p-4 border-t-4 border-emerald-500" onclick="window.showStatTable('tool-only')">
+<div class="card-pop p-4 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showStatTable('tool-only')">
 <div class="flex justify-between items-start">
-<p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
-<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<p class="text-emerald-600 text-[9px] font-black uppercase">Pesanan Alat</p>
+<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M4 7h16M4 12h16M4 17h16"/>
 </svg>
 </div>
@@ -301,9 +304,9 @@
 </div>
 
 <!-- APPROVED -->
-<div class="stat-card card-pop stat-indigo p-4 border-t-4 border-indigo-500" onclick="window.showStatTable('Approved')">
+<div class="card-pop p-4 bg-indigo-50 border border-indigo-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showStatTable('Approved')">
 <div class="flex justify-between items-start">
-<p class="text-indigo-500 text-[9px] font-black uppercase">Disetujui</p>
+<p class="text-indigo-600 text-[9px] font-black uppercase">Disetujui</p>
 <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M5 13l4 4L19 7"/>
 </svg>
@@ -313,9 +316,9 @@
 </div>
 
 <!-- PENDING -->
-<div class="stat-card card-pop stat-amber p-4 border-t-4 border-amber-500" onclick="window.showStatTable('Pending')">
+<div class="card-pop p-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showStatTable('Pending')">
 <div class="flex justify-between items-start">
-<p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
+<p class="text-amber-600 text-[9px] font-black uppercase">Pending</p>
 <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2">
 <circle cx="12" cy="12" r="10"/>
 <path d="M12 6v6l4 2"/>
@@ -326,9 +329,9 @@
 </div>
 
 <!-- ONGOING -->
-<div class="stat-card card-pop stat-cyan p-4 border-t-4 border-cyan-500" onclick="window.showStatTable('Ongoing')">
+<div class="card-pop p-4 bg-cyan-50 border border-cyan-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showStatTable('Ongoing')">
 <div class="flex justify-between items-start">
-<p class="text-cyan-500 text-[9px] font-black uppercase">Ongoing</p>
+<p class="text-cyan-600 text-[9px] font-black uppercase">Ongoing</p>
 <svg class="w-5 h-5 text-cyan-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M13 3L4 14h7v7l9-11h-7z"/>
 </svg>
@@ -338,9 +341,9 @@
 </div>
 
 <!-- COMPLETED -->
-<div class="stat-card card-pop stat-green p-4 border-t-4 border-green-500" onclick="window.showStatTable('Completed')">
+<div class="card-pop p-4 bg-green-50 border border-green-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showStatTable('Completed')">
 <div class="flex justify-between items-start">
-<p class="text-green-500 text-[9px] font-black uppercase">Completed</p>
+<p class="text-green-600 text-[9px] font-black uppercase">Completed</p>
 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M5 13l4 4L19 7"/>
 </svg>
@@ -350,9 +353,9 @@
 </div>
 
 <!-- REJECTED -->
-<div class="stat-card card-pop stat-rose p-4 border-t-4 border-rose-500" onclick="window.showStatTable('Rejected')">
+<div class="card-pop p-4 bg-rose-50 border border-rose-200 rounded-2xl shadow-sm hover:shadow-md transition" onclick="window.showStatTable('Rejected')">
 <div class="flex justify-between items-start">
-<p class="text-rose-500 text-[9px] font-black uppercase">Ditolak</p>
+<p class="text-rose-600 text-[9px] font-black uppercase">Ditolak</p>
 <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M6 18L18 6M6 6l12 12"/>
 </svg>
