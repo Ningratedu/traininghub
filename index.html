@@ -1108,18 +1108,19 @@ transition-all p-3 rounded-2xl cursor-pointer flex items-center gap-3 group">
         };
 
         window.showToolStatsDetail = () => {
-            const container = document.getElementById('tool-stats-container');
-            container.innerHTML = localState.tools.map(tool => {
-                const toolBookings = localState.bookings
-                    .filter(b => b.tools && b.tools.some(t => t.id === tool.id) && (b.status === 'Approved' || b.status === 'Completed' || b.status === 'Ongoing'))
-                    .sort((a,b) => b.date.localeCompare(a.date));
-                
-                const lastBooking = toolBookings[0];
-                const lastUser = lastBooking ? `${lastBooking.userName} (${lastBooking.dept})` : 'Belum digunakan';
-                
-                return `
-<div class="bg-slate-50 hover:bg-white hover:border-indigo-300 border border-transparent 
-transition-all p-3 rounded-2xl flex items-center gap-3 group">
+    const container = document.getElementById('tool-stats-container');
+    container.innerHTML = localState.tools.map(tool => {
+        const toolBookings = localState.bookings
+            .filter(b => b.tools && b.tools.some(t => t.id === tool.id) && (b.status === 'Approved' || b.status === 'Completed' || b.status === 'Ongoing'))
+            .sort((a,b) => b.date.localeCompare(a.date));
+        
+        const lastBooking = toolBookings[0];
+        const lastUser = lastBooking ? `${lastBooking.userName} (${lastBooking.dept})` : 'Belum digunakan';
+        
+        return `
+<div onclick="window.showToolHistory('${tool.id}', '${tool.name}')"
+class="bg-slate-50 hover:bg-white hover:border-indigo-300 border border-transparent 
+transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
 
     <!-- GAMBAR -->
     <img 
@@ -1156,9 +1157,10 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group">
 
 </div>
 `;
-            }).join('');
-            document.getElementById('modal-tool-stats').classList.remove('hide');
-        };
+    }).join('');
+
+    document.getElementById('modal-tool-stats').classList.remove('hide');
+};
 
         window.showRoomHistory = (roomId, roomName) => {
             const container = document.getElementById('room-history-container');
@@ -1181,6 +1183,47 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group">
             }
             document.getElementById('modal-room-history').classList.remove('hide');
         };
+
+		window.showToolHistory = (toolId, toolName) => {
+    const container = document.getElementById('room-history-container'); // reuse modal yg sama
+    document.getElementById('room-history-title').innerText = toolName;
+
+    const filtered = getFilteredBookings()
+        .filter(b => b.tools && b.tools.some(t => t.id === toolId));
+
+    if(filtered.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400 text-xs italic">
+                Tidak ada riwayat penggunaan alat ini
+            </div>
+        `;
+    } else {
+        container.innerHTML = filtered.slice().reverse().map(b => `
+            <div class="border-b border-slate-50 pb-3 last:border-0">
+
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] font-black uppercase ${getStatusClass(b.status)} px-2 py-0.5 rounded">
+                        ${b.status}
+                    </span>
+                    <span class="text-[9px] text-slate-400 font-bold">
+                        ${b.date}
+                    </span>
+                </div>
+
+                <p class="text-xs font-bold text-slate-700">
+                    ${b.goal}
+                </p>
+
+                <p class="text-[10px] text-slate-400">
+                    ${b.userName} • ${b.start} - ${b.end}
+                </p>
+
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('modal-room-history').classList.remove('hide');
+};
 
         function refreshUI() {
             if (!currentUser) return;
