@@ -283,9 +283,10 @@
     <div class="flex justify-between items-start">
         <p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2"/>
-            <path d="M16 2v4M8 2v4M3 10h18"/>
-        </svg>
+    <path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+    <path d="M14 2v6h6"/>
+    <path d="M8 13h8M8 17h8M8 9h4"/>
+</svg>
     </div>
     <h3 class="text-xl font-black mt-1" id="stat-room-booking-pct">0%</h3>
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-room-booking-ratio">0/0</p>
@@ -296,9 +297,13 @@
     <div class="flex justify-between items-start">
         <p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
         <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 6h11M9 12h11M9 18h11"/>
-            <path d="M3 6l2 2 4-4M3 12l2 2 4-4M3 18l2 2 4-4"/>
-        </svg>
+    <!-- Kunci Inggris -->
+    <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2 2-3-3 2-2z"/>
+    
+    <!-- Kunci Pas -->
+    <path d="M2 22l6-6"/>
+    <path d="M7 17l3 3"/>
+</svg>
     </div>
     <h3 class="text-xl font-black mt-1" id="stat-tool-booking-pct">0%</h3>
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-tool-booking-ratio">0/0</p>
@@ -322,8 +327,9 @@
     <div class="flex justify-between items-start">
         <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
         <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 2h12M6 22h12M8 2c0 5 8 5 8 10s-8 5-8 10"/>
-        </svg>
+    <path d="M6 2h12M6 22h12"/>
+    <path d="M8 2c0 4 8 4 8 10s-8 6-8 10"/>
+</svg>
     </div>
     <h3 class="text-xl font-black mt-1" id="stat-pending-pct">0%</h3>
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-pending-ratio">0/0</p>
@@ -2224,45 +2230,53 @@ window.editBooking = (bookingId) => {
         alert("Booking tidak ditemukan");
         return;
     }
-
-    // 🔥 HANYA BOLEH EDIT YANG PENDING
+	// 🔥 BLOK JIKA COMPLETED
     if (booking.status !== 'Pending') {
-        alert("Hanya booking Pending yang bisa diedit");
-        return;
-    }
+    alert("Hanya booking Pending yang bisa diedit");
+    return;
+}
 
-    // 🔥 TUTUP MODAL DETAIL DULU (INI FIX UTAMA)
-    closeModal('modal-booking-detail'); // pastikan ID ini sesuai di HTML lu
+    // Simpan ID edit
+    document.getElementById(
+        "edit-booking-id"
+    ).value = bookingId;
 
-    // 🔥 DELAY BIAR TRANSISI HALUS
+    // Ubah judul modal
+    document.getElementById(
+        "booking-modal-title"
+    ).textContent = "Edit Pemesanan";
+
+    // Set tipe booking
+    bookingType = booking.type || "room";
+
+    window.toggleBookingType(bookingType);
+
+    // Isi field form
+    document.getElementById("book-room").value =
+        booking.roomId || "";
+
+    document.getElementById("book-goal").value =
+        booking.goal || "";
+
+    document.getElementById("book-notes").value =
+        booking.notes || "";
+
+    document.getElementById("book-date").value =
+        booking.date || "";
+
+    document.getElementById("book-start").value =
+        booking.start || "";
+
+    document.getElementById("book-end").value =
+        booking.end || "";
+
+    // Centang tools
     setTimeout(() => {
 
-        // Simpan ID edit
-        document.getElementById("edit-booking-id").value = bookingId;
-
-        // Ubah judul modal
-        document.getElementById("booking-modal-title").textContent = "Edit Pemesanan";
-
-        // Set tipe booking
-        bookingType = booking.type || "room";
-        window.toggleBookingType(bookingType);
-
-        // Isi field form
-        document.getElementById("book-room").value = booking.roomId || "";
-        document.getElementById("book-goal").value = booking.goal || "";
-        document.getElementById("book-notes").value = booking.notes || "";
-        document.getElementById("book-date").value = booking.date || "";
-        document.getElementById("book-start").value = booking.start || "";
-        document.getElementById("book-end").value = booking.end || "";
-
-        // Reset semua checkbox tools dulu (biar gak numpuk)
-        document.querySelectorAll('input[name="tools"]').forEach(cb => {
-            cb.checked = false;
-        });
-
-        // Centang tools sesuai booking
         if (booking.tools) {
+
             booking.tools.forEach(t => {
+
                 const checkbox =
                     document.querySelector(
                         `input[name="tools"][value="${t.id}"]`
@@ -2271,13 +2285,15 @@ window.editBooking = (bookingId) => {
                 if (checkbox) {
                     checkbox.checked = true;
                 }
+
             });
+
         }
 
-        // 🔥 BUKA MODAL EDIT
-        openModal("modal-booking");
+    }, 300);
 
-    }, 150);
+    // Buka modal
+    openModal("modal-booking");
 
 };
 
