@@ -2765,7 +2765,9 @@ window.editBooking = (bookingId) => {
         function renderApproval() {
             const pending = getFilteredBookings().filter(b => b.status === 'Pending');
             const container = document.getElementById('approval-list');
-            if(pending.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada antrean persetujuan</div>`;
+            if(pending.length === 0) container.innerHTML = `<div class="py-10 text-center text-white font-bold text-lg">
+    Tidak ada antrean persetujuan
+</div>
             else container.innerHTML = pending.map(b => {
                 const room = b.roomId ? localState.rooms.find(r => r.id === b.roomId) : null;
                 return `
