@@ -51,15 +51,11 @@ body {
 }
 
 .sidebar-item-active {
-
-    background: #eff6ff;
-
+    background: rgba(37, 99, 235, 0.10);
+    backdrop-filter: blur(8px);
     color: #2563eb;
-
     border-right: 4px solid #2563eb;
-
     font-weight: 600;
-
 }
 
 .modal-overlay {
@@ -525,18 +521,35 @@ body {
                     </div>
 
                     <div id="user-dashboard-ui" class="hide">
-                        <div class="flex items-center gap-8 mb-8 border-b border-slate-200">
-                            <button onclick="switchDashTab('rooms')" id="tab-rooms" class="dash-tab pb-3 text-sm font-medium tab-active transition-all">Ruangan Tersedia</button>
-                            <button onclick="switchDashTab('tools')" id="tab-tools" class="dash-tab pb-3 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-all">Alat Tersedia</button>
-                        </div>
-                        <div id="dash-rooms-content">
-                            <div id="available-rooms-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-                        </div>
-                        <div id="dash-tools-content" class="hide">
-                            <div id="available-tools-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-                        </div>
-                    </div>
-                </div>
+    <div class="flex items-center gap-8 mb-8 border-b border-slate-200">
+
+        <button 
+            onclick="switchDashTab('rooms')" 
+            id="tab-rooms" 
+            class="dash-tab pb-3 px-4 bg-white/50 text-black rounded-md text-sm font-medium tab-active transition-all hover:bg-white/70"
+        >
+            Ruangan Tersedia
+        </button>
+
+        <button 
+            onclick="switchDashTab('tools')" 
+            id="tab-tools" 
+            class="dash-tab pb-3 px-4 bg-white/50 text-black rounded-md text-sm font-medium transition-all hover:bg-white/70"
+        >
+            Alat Tersedia
+        </button>
+
+    </div>
+
+    <div id="dash-rooms-content">
+        <div id="available-rooms-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <div id="dash-tools-content" class="hide">
+        <div id="available-tools-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+</div>
+</div>
 
                 <div id="view-jadwal" class="view hide"><div id="calendar-list" class="space-y-4"></div></div>
                 <div id="view-riwayat" class="view hide"><div id="my-booking-list" class="space-y-4"></div></div>
