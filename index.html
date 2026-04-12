@@ -773,36 +773,75 @@ import {
 
 		function sendBookingEmail(booking, user) {
 
-    let detail = "";
+    let detailParts = [];
 
-    // 🔥 ROOM
-    if (booking.roomName) {
-        detail += "Ruangan: " + booking.roomName;
+    // ================= VALIDASI ROOM =================
+
+    const validRoomId =
+        booking.roomId &&
+        booking.roomId !== null &&
+        booking.roomId !== '' &&
+        booking.roomId !== 'null';
+
+    if (validRoomId && booking.roomName &&
+        booking.roomName !== '-' &&
+        booking.roomName !== 'null') {
+
+        detailParts.push(
+            "Ruangan: " + booking.roomName
+        );
+
     }
 
-    // 🔥 TOOLS
+    // ================= TOOLS =================
+
     if (booking.tools && booking.tools.length > 0) {
-        const tools = booking.tools.map(t => t.name).join(", ");
-        detail += (detail ? " | " : "") + "Peralatan: " + tools;
+
+        const tools =
+            booking.tools
+            .map(t => t.name)
+            .join(", ");
+
+        detailParts.push(
+            "Peralatan: " + tools
+        );
+
     }
 
-    // 🔥 FALLBACK
-    if (!detail) {
-        detail = "Tidak ada detail";
-    }
+    // ================= FORMAT DETAIL =================
 
-    emailjs.send("service_bro5q1v", "template_bjb5g6p", {
-        user_name: user.username,
-        date: booking.date,
-        time: booking.start + " - " + booking.end,
-        detail: detail
-    })
+    const detail =
+        detailParts.join(" | ") ||
+        "Tidak ada detail";
+
+    // ================= DEBUG =================
+
+    console.log("📧 Booking Email Detail:", detail);
+    console.log("📌 roomId:", booking.roomId);
+
+    // ================= KIRIM EMAIL =================
+
+    emailjs.send(
+        "service_bro5q1v",
+        "template_bjb5g6p",
+        {
+            user_name: user.username,
+            date: booking.date,
+            time: booking.start + " - " + booking.end,
+            detail: detail
+        }
+    )
     .then(() => {
+
         console.log("✅ Email terkirim ke admin");
+
     })
     .catch((err) => {
+
         console.error("❌ Email gagal:", err);
+
     });
+
 }
 
 		function sendStatusEmail(booking, userEmail) {
