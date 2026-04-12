@@ -2877,69 +2877,79 @@ window.updateBookingStatusWithNote = async (id, status) => {
 
         // ================= KIRIM EMAIL REJECT =================
 
-        const userEmail =
-            b.email ||
-            b.userEmail;
+const userEmail =
+    b.email ||
+    b.userEmail;
 
-        if(userEmail){
+if(userEmail){
 
-            console.log("📧 Kirim email reject ke:", userEmail);
+    console.log("📧 Kirim email reject ke:", userEmail);
 
-            sendStatusEmail(
-    {
-        ...b,
-        status: 'Approved',
-        adminNote: note,
+    sendStatusEmail(
+        {
+            ...b,
+            status: 'Rejected',
+            adminNote: note,
 
-        // ✅ kirim tools hasil approval
-        tools: approvedTools,
+            // reject semua → kosongkan alat
+            tools: [],
 
-        // ✅ handle room
-        roomId:
-            isRoomApproved
-            ? b.roomId
-            : null,
+            // kosongkan ruangan
+            roomId: null,
+            roomName: null
+        },
+        userEmail
+    );
 
-        // ✅ penting: bersihkan roomName jika tidak approve
-        roomName:
-            isRoomApproved
-            ? b.roomName
-            : null
-    },
-    userEmail
-);
-        else{
+}
+else{
 
-            console.warn("⚠️ Email user tidak ditemukan.");
+    console.warn("⚠️ Email user tidak ditemukan.");
 
-        }
+}
 
-        // ================= REFRESH UI =================
+// ================= REFRESH UI =================
 
-        renderBookings();
+renderBookings();
 
-    }
-    catch(err){
+}
+catch(err){
 
-        console.error(
-            "❌ Gagal reject booking:",
-            err
-        );
+    console.error(
+        "❌ Gagal reject booking:",
+        err
+    );
 
-    }
+}
 
 };
 
-        function renderJadwal() {
-    const approved = getFilteredBookings()
-        .filter(b => ['Approved','Ongoing','Pending'].includes(b.status))
-        .sort((a,b) => a.date.localeCompare(b.date));
 
-    const container = document.getElementById('calendar-list');
+// ================= RENDER JADWAL =================
+
+function renderJadwal() {
+
+    const approved = getFilteredBookings()
+        .filter(b =>
+            ['Approved','Ongoing','Pending']
+            .includes(b.status)
+        )
+        .sort((a,b) =>
+            a.date.localeCompare(b.date)
+        );
+
+    const container =
+        document.getElementById('calendar-list');
 
     if(approved.length === 0) {
-        container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada jadwal pemakaian di periode ini</div>`;
+
+        container.innerHTML =
+            `<div class="py-10 text-center text-slate-400 italic">
+            Belum ada jadwal pemakaian di periode ini
+            </div>`;
+
         return;
+
     } 
 
     container.innerHTML = approved
