@@ -3288,9 +3288,12 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         const editId = document.getElementById('edit-booking-id').value;
 
         const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(c => {
+
             const t = localState.tools.find(x => x.id === c.value);
-            return { id: t.id, name: t.name };
-        });
+
+            return t ? { id: t.id, name: t.name } : null;
+
+        }).filter(Boolean);
 
         const bookingData = {
             type: bookingType,
@@ -3331,30 +3334,40 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         } else {
 
             await addDoc(
-    collection(db,'artifacts',appId,'public','data','bookings'),
-    bookingData
-);
+                collection(db,'artifacts',appId,'public','data','bookings'),
+                bookingData
+            );
 
-// 🔥 TAMBAHAN INI
-sendBookingEmail(bookingData, currentUser);
+            // 🔥 TAMBAHAN INI
+            sendBookingEmail(bookingData, currentUser);
 
-alert("✅ Pesanan berhasil disimpan");
+            alert("✅ Pesanan berhasil disimpan");
+
+        }
 
         window.closeModal('modal-booking');
         document.getElementById("edit-booking-id").value = "";
         document.getElementById("booking-modal-title").textContent = "Form Pemesanan";
 
+        // SAFE showView
+        if (typeof window.showView === "undefined") {
+            window.showView = () => {};
+        }
+
         window.showView('riwayat','Pesanan Saya');
 
-}
+    } catch (err) {
+        console.error("Submit booking error:", err);
+    }
 
 });
-		
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <script>
+
 document.addEventListener('input', (e) => {
     if(e.target.id === 'search-all-bookings'){
         renderAllBookings();
@@ -3386,7 +3399,12 @@ window.addEventListener('load', () => {
     }
 });
 
-	// buka modal
+// ================= SAFE GUARD =================
+if (typeof window.showView === "undefined") {
+    window.showView = () => {};
+}
+
+// buka modal
 window.openChangePassword = () => {
     document.getElementById('change-password-modal').classList.remove('hidden');
 }
@@ -3425,16 +3443,15 @@ window.submitChangePassword = () => {
     alert("Password berhasil diubah!");
     closeChangePassword();
 }
-	
+
 </script>
-	
+
 <!-- 🔥 MODAL RIWAYAT ASSET -->
 <div id="asset-booking-modal"
      class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[9999] p-4">
 
     <div class="bg-white rounded-3xl w-full max-w-6xl p-6 shadow-xl relative z-[10000]">
 
-        <!-- HEADER -->
         <div class="flex items-center justify-between mb-4">
 
             <h4 id="asset-modal-title"
@@ -3449,7 +3466,6 @@ window.submitChangePassword = () => {
 
         </div>
 
-        <!-- TABLE -->
         <div class="overflow-auto max-h-[70vh]">
 
             <table class="min-w-full text-sm border">
@@ -3481,9 +3497,10 @@ window.submitChangePassword = () => {
 
 </div>
 
-	<div id="change-password-modal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[9999]">
+<div id="change-password-modal" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[9999]">
 
     <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+
         <h3 class="font-bold text-lg mb-4">Ganti Password</h3>
 
         <input id="old-pass" type="password" placeholder="Password Lama"
@@ -3499,9 +3516,10 @@ window.submitChangePassword = () => {
             <button onclick="closeChangePassword()" class="px-3 py-1 text-sm">Batal</button>
             <button onclick="submitChangePassword()" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">Simpan</button>
         </div>
+
     </div>
 
 </div>
-	
+
 </body>
 </html>
