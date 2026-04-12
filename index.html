@@ -2370,7 +2370,7 @@ function renderMaster(){
 
 <div class="relative p-4 border-b flex items-center gap-4 hover:bg-slate-50 transition group">
 
-    <!-- STATUS (POJOK KANAN ATAS) -->
+    <!-- STATUS -->
     <span class="absolute top-3 right-3 text-[8px] font-black px-2 py-0.5 rounded-full
     ${r.status === 'Open'
         ? 'bg-emerald-100 text-emerald-600'
@@ -2386,7 +2386,6 @@ function renderMaster(){
 
     <!-- CONTENT -->
     <div class="flex-1">
-
         <p class="text-sm font-bold text-slate-800">
             ${r.name}
         </p>
@@ -2394,25 +2393,20 @@ function renderMaster(){
         <p class="text-[10px] text-indigo-500 font-bold">
             👥 ${r.capacity || 0} Orang
         </p>
-
-        <p class="text-[10px] text-slate-400">
-            Dept: ${r.dept || '-'}
-        </p>
-
     </div>
 
     <!-- ACTION -->
-    <div class="flex flex-col gap-2">
+    <div class="flex items-center gap-3 text-[10px] italic">
 
         <button
             onclick="openMasterModal('room','${r.id}')"
-            class="text-[10px] px-3 py-1.5 bg-indigo-500 text-white rounded-xl font-bold shadow-sm hover:scale-105 active:scale-95 transition">
+            class="text-indigo-500 hover:underline">
             Edit
         </button>
 
         <button
             onclick="deleteMasterItem('room','${r.id}')"
-            class="text-[10px] px-3 py-1.5 bg-rose-500 text-white rounded-xl font-bold shadow-sm hover:scale-105 active:scale-95 transition">
+            class="text-rose-500 hover:underline">
             Hapus
         </button>
 
@@ -2443,7 +2437,7 @@ function renderMaster(){
 
 <div class="relative p-4 border-b flex items-center gap-4 hover:bg-slate-50 transition group">
 
-    <!-- STATUS (POJOK KANAN ATAS) -->
+    <!-- STATUS -->
     <span class="absolute top-3 right-3 text-[8px] font-black px-2 py-0.5 rounded-full
     ${t.status === 'Open'
         ? 'bg-emerald-100 text-emerald-600'
@@ -2459,7 +2453,6 @@ function renderMaster(){
 
     <!-- CONTENT -->
     <div class="flex-1">
-
         <p class="text-sm font-bold text-slate-800">
             ${t.name}
         </p>
@@ -2467,25 +2460,20 @@ function renderMaster(){
         <p class="text-[10px] text-indigo-500 font-bold">
             📍 ${t.pos || '-'}
         </p>
-
-        <p class="text-[10px] text-slate-400">
-            Dept: ${t.dept || '-'}
-        </p>
-
     </div>
 
     <!-- ACTION -->
-    <div class="flex flex-col gap-2">
+    <div class="flex items-center gap-3 text-[10px] italic">
 
         <button
             onclick="openMasterModal('tool','${t.id}')"
-            class="text-[10px] px-3 py-1.5 bg-indigo-500 text-white rounded-xl font-bold shadow-sm hover:scale-105 active:scale-95 transition">
+            class="text-indigo-500 hover:underline">
             Edit
         </button>
 
         <button
             onclick="deleteMasterItem('tool','${t.id}')"
-            class="text-[10px] px-3 py-1.5 bg-rose-500 text-white rounded-xl font-bold shadow-sm hover:scale-105 active:scale-95 transition">
+            class="text-rose-500 hover:underline">
             Hapus
         </button>
 
@@ -2498,7 +2486,6 @@ function renderMaster(){
     }
 
 }
-
         window.processPartialApproval = async (id) => {
             const b = localState.bookings.find(x => x.id === id);
             const roomCheck = document.querySelector(`.approval-room-check-${id}`);
