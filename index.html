@@ -826,19 +826,31 @@ import {
 
     // ================= AMBIL NAMA RUANGAN =================
 
-    let roomName = booking.roomName || '';
+    let roomName = '';
 
-    if (!roomName && booking.roomId) {
+    // Hanya ambil jika ADA roomId
+    if (booking.roomId) {
 
-        const room =
-            localState.rooms
-            ?.find(r =>
-                String(r.id) ===
-                String(booking.roomId)
-            );
+        if (booking.roomName) {
 
-        if (room) {
-            roomName = room.name;
+            roomName = booking.roomName;
+
+        }
+        else {
+
+            const room =
+                localState.rooms
+                ?.find(r =>
+                    String(r.id) ===
+                    String(booking.roomId)
+                );
+
+            if (room) {
+
+                roomName = room.name;
+
+            }
+
         }
 
     }
@@ -860,6 +872,7 @@ import {
 
     let detailParts = [];
 
+    // Tampilkan ruangan hanya jika benar-benar ada
     if (roomName) {
 
         detailParts.push(
@@ -868,6 +881,7 @@ import {
 
     }
 
+    // Tampilkan alat jika ada
     if (toolNames) {
 
         detailParts.push(
@@ -879,18 +893,17 @@ import {
     const detail =
         detailParts.join(' | ') || '-';
 
-    // ================= DEBUG LOG =================
+    // ================= DEBUG =================
 
     console.log("📧 Kirim email ke:", email);
     console.log("📌 Status:", booking.status);
     console.log("📌 Detail:", detail);
-    console.log("📌 Booking data:", booking);
 
     // ================= VALIDASI EMAIL =================
 
     if (!email) {
 
-        console.warn("⚠️ Email user tidak ditemukan. Email tidak dikirim.");
+        console.warn("⚠️ Email user tidak ditemukan.");
 
         return;
 
