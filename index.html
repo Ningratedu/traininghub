@@ -2643,75 +2643,178 @@ function renderMaster(){
 }
         window.processPartialApproval = async (id) => {
 
-    const b =
-        localState.bookings
-        .find(x => x.id === id);
+    try {
 
-    const roomCheck =
-        document.querySelector(`.approval-room-check-${id}`);
+        const b =
+            localState.bookings
+            .find(x => x.id === id);
 
-    const toolChecks =
-        document.querySelectorAll(`.approval-tool-check-${id}`);
+        const roomCheck =
+            document.querySelector(`.approval-room-check-${id}`);
 
-    const note =
-        document
-        .getElementById(`admin-note-${id}`)
-        ?.value.trim() || '';
+        const toolChecks =
+            document.querySelectorAll(`.approval-tool-check-${id}`);
 
-    const isRoomApproved =
-        roomCheck ? roomCheck.checked : false;
+        const note =
+            document
+            .getElementById(`admin-note-${id}`)
+            ?.value.trim() || '';
 
-    const approvedTools =
-        Array.from(toolChecks)
-        .filter(c => c.checked)
-        .map(c => ({
-            id: c.dataset.toolId,
-            name: c.dataset.toolName
-        }));
+        const isRoomApproved =
+            roomCheck ? roomCheck.checked : false;
 
-    const originalToolCount =
-        (b.tools || []).length;
+        const approvedTools =
+            Array.from(toolChecks)
+            .filter(c => c.checked)
+            .map(c => ({
+                id: c.dataset.toolId,
+                name: c.dataset.toolName
+            }));
 
-    const isPartialReject =
-        (roomCheck && !isRoomApproved) ||
-        (approvedTools.length < originalToolCount);
+        const originalToolCount =
+            (b.tools || []).length;
 
-    // ================= VALIDASI =================
+        const isPartialReject =
+            (roomCheck && !isRoomApproved) ||
+            (approvedTools.length < originalToolCount);
 
-    if(isPartialReject && !note){
+        // ================= VALIDASI =================
 
-        alert(
-            "Wajib mengisi Catatan Admin jika ada item yang tidak disetujui."
+        if(isPartialReject && !note){
+
+            alert(
+                "Wajib mengisi Catatan Admin jika ada item yang tidak disetujui."
+            );
+
+            return;
+
+        }
+
+        // ================= UPDATE FIRESTORE =================
+
+        console.log("📌 Approve booking:", id);
+
+        await updateDoc(
+            doc(db,'artifacts',appId,'public','data','bookings',id),
+            {
+                status: 'Approved',
+                adminNote: note,
+                roomId:
+                    isRoomApproved
+                    ? b.roomId
+                    : null,
+                tools: approvedTools,
+                type:
+                    isRoomApproved
+                    ? 'room'
+                    : 'tool',
+                approvedAt:
+                    serverTimestamp()
+            }
         );
 
-        return;
+        console.log("✅ Status Approved tersimpan");
+
+        // ================= KIRIM EMAIL APPROVE =================
+
+        if(b){
+
+            const userEmail =
+                b.email ||
+                b.userEmail;
+
+            if(userEmail){
+
+                console.log("📧 Kirim email approve ke:", userEmail);
+
+                sendStatusEmail(
+                    {
+                        ...b,
+                        status: 'Approved',
+                        adminNote: note
+                    },
+                    userEmail
+                );
+
+            }
+            else{
+
+                console.warn("⚠️ Email user tidak ditemukan.");
+
+            }
+
+        }
+
+        // ================= REFRESH UI =================
+
+        loadBookings();
+
+    }
+    catch(err){
+
+        console.error(
+            "❌ Gagal process approval:",
+            err
+        );
 
     }
 
-    // ================= UPDATE FIRESTORE =================
+};
 
-    await updateDoc(
-        doc(db,'artifacts',appId,'public','data','bookings',id),
-        {
-            status: 'Approved',
-            adminNote: note,
-            roomId:
-                isRoomApproved
-                ? b.roomId
-                : null,
-            tools: approvedTools,
-            type:
-                isRoomApproved
-                ? 'room'
-                : 'tool',
-            approvedAt:
-                serverTimestamp()
+
+
+// ================= REJECT BOOKING =================
+
+window.updateBookingStatusWithNote = async (id, status) => {
+
+    try {
+
+        const b =
+            localState.bookings
+            .find(x => x.id === id);
+
+        if(!b){
+
+            console.warn("⚠️ Booking tidak ditemukan:", id);
+            return;
+
         }
-    );
 
-    // ================= KIRIM EMAIL APPROVE =================
+        // ================= AMBIL CATATAN ADMIN =================
 
-    if(b){
+        const note =
+            document
+            .getElementById(`admin-note-${id}`)
+            ?.value.trim() || '';
+
+        // ================= VALIDASI =================
+
+        if(!note){
+
+            alert(
+                "Wajib mengisi Catatan Admin untuk penolakan."
+            );
+
+            return;
+
+        }
+
+        console.log("📌 Reject booking:", id);
+
+        // ================= UPDATE FIRESTORE =================
+
+        await updateDoc(
+            doc(db,'artifacts',appId,'public','data','bookings',id),
+            {
+                status: 'Rejected',
+                adminNote: note,
+                rejectedAt: serverTimestamp()
+            }
+        );
+
+        console.log("✅ Status Rejected tersimpan");
+
+        // ================= KIRIM EMAIL REJECT =================
 
         const userEmail =
             b.email ||
@@ -2719,16 +2822,35 @@ function renderMaster(){
 
         if(userEmail){
 
+            console.log("📧 Kirim email reject ke:", userEmail);
+
             sendStatusEmail(
                 {
                     ...b,
-                    status: 'Approved',
+                    status: 'Rejected',
                     adminNote: note
                 },
                 userEmail
             );
 
         }
+        else{
+
+            console.warn("⚠️ Email user tidak ditemukan.");
+
+        }
+
+        // ================= REFRESH UI =================
+
+        loadBookings();
+
+    }
+    catch(err){
+
+        console.error(
+            "❌ Gagal reject booking:",
+            err
+        );
 
     }
 
