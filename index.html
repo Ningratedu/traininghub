@@ -779,9 +779,12 @@ import {
         detail += "Ruangan: " + booking.roomName;
     }
 
-    if (booking.items && booking.items.length > 0) {
-        const items = booking.items.map(i => i.name).join(", ");
-        detail += (detail ? " | " : "") + "Peralatan: " + items;
+    if (booking.toolsText) {
+        detail += (detail ? " | " : "") + "Peralatan: " + booking.toolsText;
+    }
+
+    if (!detail) {
+        detail = "Tidak ada detail";
     }
 
     emailjs.send("service_bro5q1v", "template_bjb5g6p", {
@@ -3296,27 +3299,31 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         }).filter(Boolean);
 
         const bookingData = {
-            type: bookingType,
-            roomId: bookingType === 'room' ? roomId : null,
-            userName: currentUser.username,
-            userUid: currentUser.uid,
-            dept: currentUser.dept || 'Umum',
-            name: currentUser.username,
-            department: currentUser.dept || 'Umum',
-            goal: document.getElementById('book-goal').value,
-            notes: document.getElementById('book-notes').value,
-            date,
-            start,
-            end,
-            tools: selectedTools,
-            status: 'Pending',
-            startedAt: null,
-            finishedAt: null,
-            startPhoto: null,
-            finishPhoto: null,
-            createdAt: serverTimestamp(),
-        };
+    type: bookingType,
+    roomId: bookingType === 'room' ? roomId : null,
 
+    // 🔥 TAMBAHAN
+    roomName: roomName || null,
+    toolsText: selectedTools.map(t => t.name).join(", "),
+
+    userName: currentUser.username,
+    userUid: currentUser.uid,
+    dept: currentUser.dept || 'Umum',
+    name: currentUser.username,
+    department: currentUser.dept || 'Umum',
+    goal: document.getElementById('book-goal').value,
+    notes: document.getElementById('book-notes').value,
+    date,
+    start,
+    end,
+    tools: selectedTools,
+    status: 'Pending',
+    startedAt: null,
+    finishedAt: null,
+    startPhoto: null,
+    finishPhoto: null,
+    createdAt: serverTimestamp(),
+};
         if (editId) {
 
             delete bookingData.createdAt;
