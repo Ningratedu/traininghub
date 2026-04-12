@@ -775,12 +775,18 @@ import {
 
     let detail = "";
 
-    if (booking.roomName) {
-        detail += "Ruangan: " + booking.roomName;
+    // 🔥 AMBIL NAMA RUANGAN LANGSUNG DARI SELECT
+    const roomSelect = document.getElementById('book-room');
+    const roomName = roomSelect?.selectedOptions[0]?.text || "";
+
+    if (roomName) {
+        detail += "Ruangan: " + roomName;
     }
 
-    if (booking.toolsText) {
-        detail += (detail ? " | " : "") + "Peralatan: " + booking.toolsText;
+    // 🔥 AMBIL TOOLS LANGSUNG DARI DATA
+    if (booking.tools && booking.tools.length > 0) {
+        const tools = booking.tools.map(t => t.name).join(", ");
+        detail += (detail ? " | " : "") + "Peralatan: " + tools;
     }
 
     if (!detail) {
