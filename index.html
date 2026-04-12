@@ -1329,24 +1329,44 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
 
     if(found) {
 
-        currentUser = {
-            ...found,
-            uid: found.id
-        };
+    // ✅ CEK EMAIL
+    if(!found.email){
 
-        // 🔥 simpan session USER
-        localStorage.setItem(
-            "traininghub_user",
-            JSON.stringify(currentUser)
+        const email = prompt("Masukkan email untuk aktivasi notifikasi:");
+
+        if(!email){
+            alert("Email wajib diisi!");
+            return;
+        }
+
+        // 🔥 UPDATE KE FIRESTORE
+        await updateDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'users', found.id),
+            { email }
         );
 
-        document
-            .getElementById('login-screen')
-            .classList.add('hide');
+        // update local juga biar langsung kepake
+        found.email = email;
+    }
 
-        initSession();
+    currentUser = {
+        ...found,
+        uid: found.id
+    };
 
-    } else {
+    localStorage.setItem(
+        "traininghub_user",
+        JSON.stringify(currentUser)
+    );
+
+    document
+        .getElementById('login-screen')
+        .classList.add('hide');
+
+    initSession();
+}
+
+    else {
 
         document
             .getElementById('login-error')
