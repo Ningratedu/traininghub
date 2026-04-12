@@ -17,178 +17,180 @@
 
     <style>
 
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-        /* ================= BODY BACKGROUND DIGITAL ================= */
+/* ================= BODY BACKGROUND DIGITAL ================= */
 
-        body {
+body {
 
-            font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 
-            /* Background Digital */
-            background-image: url("https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%2012%20Apr%202026%2C%2016.27.57.png");
+    /* Background Digital */
+    background-image: url("https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%2012%20Apr%202026%2C%2016.27.57.png");
 
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 
-            overflow-x: hidden;
-        }
+    overflow-x: hidden;
+}
 
-        /* Overlay putih transparan supaya UI tetap kebaca */
+/* Overlay transparan (dibuat lebih ringan supaya kelihatan) */
 
-        body::before {
+body::before {
 
-            content: "";
+    content: "";
 
-            position: fixed;
+    position: fixed;
 
-            inset: 0;
+    inset: 0;
 
-            background: rgba(255,255,255,0.88);
+    background: rgba(255,255,255,0.65);
 
-            z-index: -1;
+    backdrop-filter: blur(2px);
 
-        }
+    z-index: -1;
 
-        /* ================= UI EXISTING ================= */
+}
 
-        .glass-header {
+/* ================= UI EXISTING ================= */
 
-            background: rgba(255, 255, 255, 0.65);
+.glass-header {
 
-            backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.55);
 
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(14px);
 
-        }
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
-        .sidebar-item-active {
+}
 
-            background: #eff6ff;
+.sidebar-item-active {
 
-            color: #2563eb;
+    background: #eff6ff;
 
-            border-right: 4px solid #2563eb;
+    color: #2563eb;
 
-            font-weight: 600;
+    border-right: 4px solid #2563eb;
 
-        }
+    font-weight: 600;
 
-        .modal-overlay {
+}
 
-            background: rgba(15, 23, 42, 0.6);
+.modal-overlay {
 
-            backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.6);
 
-        }
+    backdrop-filter: blur(4px);
 
-        .hide {
+}
 
-            display: none !important;
+.hide {
 
-        }
+    display: none !important;
 
-        .tab-active {
+}
 
-            border-bottom: 3px solid #4f46e5;
+.tab-active {
 
-            color: #4f46e5;
+    border-bottom: 3px solid #4f46e5;
 
-            font-weight: 700;
+    color: #4f46e5;
 
-        }
+    font-weight: 700;
 
-        .card-pop {
+}
 
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+.card-pop {
 
-            cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-        }
+    cursor: pointer;
 
-        .card-pop:hover {
+}
 
-            transform: translateY(-8px);
+.card-pop:hover {
 
-        }
+    transform: translateY(-8px);
 
-        .stat-card {
+}
 
-            background: white;
+.stat-card {
 
-            border-radius: 12px;
+    background: rgba(255,255,255,0.9);
 
-            border: 1px solid #f1f5f9;
+    border-radius: 12px;
 
-            position: relative;
+    border: 1px solid #f1f5f9;
 
-            overflow: hidden;
+    position: relative;
 
-            transition: all 0.3s ease;
+    overflow: hidden;
 
-        }
+    transition: all 0.3s ease;
 
-        .stat-card::before {
+}
 
-            content: "";
+.stat-card::before {
 
-            position: absolute;
+    content: "";
 
-            top: 0;
+    position: absolute;
 
-            left: 0;
+    top: 0;
 
-            width: 100%;
+    left: 0;
 
-            height: 5px;
+    width: 100%;
 
-        }
+    height: 5px;
 
-        .stat-blue::before { background: #3b82f6; }
+}
 
-        .stat-emerald::before { background: #10b981; }
+.stat-blue::before { background: #3b82f6; }
 
-        .stat-indigo::before { background: #6366f1; }
+.stat-emerald::before { background: #10b981; }
 
-        .stat-amber::before { background: #f59e0b; }
+.stat-indigo::before { background: #6366f1; }
 
-        .stat-rose::before { background: #f43f5e; }
+.stat-amber::before { background: #f59e0b; }
 
-        .stat-slate::before { background: #64748b; }
+.stat-rose::before { background: #f43f5e; }
 
-        #reader {
+.stat-slate::before { background: #64748b; }
 
-            width: 100%;
+#reader {
 
-            border-radius: 1rem;
+    width: 100%;
 
-            overflow: hidden;
+    border-radius: 1rem;
 
-        }
+    overflow: hidden;
 
-        #qrcode img {
+}
 
-            margin: 0 auto;
+#qrcode img {
 
-        }
+    margin: 0 auto;
 
-        /* Mobile Sidebar Transition */
+}
 
-        #mobile-sidebar {
+/* Mobile Sidebar Transition */
 
-            transition: transform 0.3s ease-in-out;
+#mobile-sidebar {
 
-        }
+    transition: transform 0.3s ease-in-out;
 
-        .sidebar-open {
+}
 
-            transform: translateX(0) !important;
+.sidebar-open {
 
-        }
+    transform: translateX(0) !important;
 
-    </style>
+}
+
+</style>
 
 </head>
 
