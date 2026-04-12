@@ -981,6 +981,11 @@ import {
 	const db = getFirestore(app);
 	const storage = getStorage(app);
 	const appId = "booking-ruang-training";
+	// 🔥 FIX IMPORTANT
+	window.auth = auth;
+	window.db = db;
+	window.storage = storage;
+	window.appId = appId;
 
 	signInAnonymously(auth).catch(err => console.error(err));
 	
