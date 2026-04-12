@@ -730,6 +730,16 @@
         </div>
     </div>
 
+	<!-- EMAILJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+(function(){
+    emailjs.init("eYFSWdV-xud2jQQSp");
+})();
+</script>
+
+<!-- SCRIPT UTAMA LO -->
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -760,6 +770,33 @@ import {
 	signInAnonymously(auth).catch(err => console.error(err));
 	
         let currentUser = null;
+
+		function sendBookingEmail(booking, user) {
+
+    let detail = "";
+
+    if (booking.roomName) {
+        detail += "Ruangan: " + booking.roomName;
+    }
+
+    if (booking.items && booking.items.length > 0) {
+        const items = booking.items.map(i => i.name).join(", ");
+        detail += (detail ? " | " : "") + "Peralatan: " + items;
+    }
+
+    emailjs.send("service_bro5q1v", "template_bjb5g6p", {
+        user_name: user.username,
+        date: booking.date,
+        time: booking.start + " - " + booking.end,
+        detail: detail
+    })
+    .then(() => {
+        console.log("✅ Email terkirim ke admin");
+    })
+    .catch((err) => {
+        console.error("❌ Email gagal:", err);
+    });
+}
 
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
@@ -3294,13 +3331,14 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         } else {
 
             await addDoc(
-                collection(db,'artifacts',appId,'public','data','bookings'),
-                bookingData
-            );
+    collection(db,'artifacts',appId,'public','data','bookings'),
+    bookingData
+);
 
-        }
+// 🔥 TAMBAHAN INI
+sendBookingEmail(bookingData, currentUser);
 
-        alert("✅ Pesanan berhasil disimpan");
+alert("✅ Pesanan berhasil disimpan");
 
         window.closeModal('modal-booking');
         document.getElementById("edit-booking-id").value = "";
