@@ -773,40 +773,23 @@ import {
 
 		function sendBookingEmail(booking, user) {
 
-    // 🔥 DEBUG DULU
-    console.log("BOOKING MASUK:", booking);
-
     let detail = "";
 
-    // ✅ 1. ROOM (AMAN)
-    const roomSelect = document.getElementById('book-room');
-    const roomName = roomSelect?.selectedOptions[0]?.text;
-
-    if (roomName) {
-        detail += "Ruangan: " + roomName;
-    } else if (booking.roomId) {
-        detail += "Ruangan ID: " + booking.roomId;
+    // 🔥 ROOM
+    if (booking.roomName) {
+        detail += "Ruangan: " + booking.roomName;
     }
 
-    // ✅ 2. TOOLS (PAKSA SEMUA KEMUNGKINAN)
+    // 🔥 TOOLS
     if (booking.tools && booking.tools.length > 0) {
-
-        const tools = booking.tools.map(t => {
-            if (typeof t === "string") return t;
-            if (t.name) return t.name;
-            if (t.label) return t.label;
-            return JSON.stringify(t);
-        }).join(", ");
-
+        const tools = booking.tools.map(t => t.name).join(", ");
         detail += (detail ? " | " : "") + "Peralatan: " + tools;
     }
 
-    // ✅ 3. LAST DEFENSE
+    // 🔥 FALLBACK
     if (!detail) {
-        detail = JSON.stringify(booking);
+        detail = "Tidak ada detail";
     }
-
-    console.log("DETAIL FINAL:", detail);
 
     emailjs.send("service_bro5q1v", "template_bjb5g6p", {
         user_name: user.username,
@@ -3319,13 +3302,19 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
         }).filter(Boolean);
 
-        const bookingData = {
+        // 🔥 AMBIL DATA TAMBAHAN (WAJIB)
+const roomName = document
+    .getElementById('book-room')
+    ?.selectedOptions[0]?.text || "";
+
+// 🔥 BUILD BOOKING DATA
+const bookingData = {
     type: bookingType,
     roomId: bookingType === 'room' ? roomId : null,
 
-    // 🔥 TAMBAHAN
-    roomName: roomName || null,
-    toolsText: selectedTools.map(t => t.name).join(", "),
+    // 🔥 TAMBAHAN (FIX EMAIL DETAIL)
+    roomName: roomName,
+    toolsText: (selectedTools || []).map(t => t.name).join(", "),
 
     userName: currentUser.username,
     userUid: currentUser.uid,
@@ -3345,53 +3334,53 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
     finishPhoto: null,
     createdAt: serverTimestamp(),
 };
-        if (editId) {
 
-            delete bookingData.createdAt;
-            delete bookingData.status;
-            delete bookingData.startedAt;
-            delete bookingData.finishedAt;
-            delete bookingData.startPhoto;
-            delete bookingData.finishPhoto;
+if (editId) {
 
-            await updateDoc(
-                doc(db,'artifacts',appId,'public','data','bookings',editId),
-                bookingData
-            );
+    delete bookingData.createdAt;
+    delete bookingData.status;
+    delete bookingData.startedAt;
+    delete bookingData.finishedAt;
+    delete bookingData.startPhoto;
+    delete bookingData.finishPhoto;
 
-        } else {
+    await updateDoc(
+        doc(db,'artifacts',appId,'public','data','bookings',editId),
+        bookingData
+    );
 
-            await addDoc(
-                collection(db,'artifacts',appId,'public','data','bookings'),
-                bookingData
-            );
+} else {
 
-            // 🔥 TAMBAHAN INI
-            sendBookingEmail(bookingData, currentUser);
+    await addDoc(
+        collection(db,'artifacts',appId,'public','data','bookings'),
+        bookingData
+    );
 
-            alert("✅ Pesanan berhasil disimpan");
+    // 🔥 TAMBAHAN INI
+    sendBookingEmail(bookingData, currentUser);
 
-        }
+    alert("✅ Pesanan berhasil disimpan");
 
-        window.closeModal('modal-booking');
-        document.getElementById("edit-booking-id").value = "";
-        document.getElementById("booking-modal-title").textContent = "Form Pemesanan";
+}
 
-        // SAFE showView
-        if (typeof window.showView === "undefined") {
-            window.showView = () => {};
-        }
+window.closeModal('modal-booking');
+document.getElementById("edit-booking-id").value = "";
+document.getElementById("booking-modal-title").textContent = "Form Pemesanan";
 
-        window.showView('riwayat','Pesanan Saya');
+// SAFE showView
+if (typeof window.showView === "undefined") {
+    window.showView = () => {};
+}
 
-    } catch (err) {
-        console.error("Submit booking error:", err);
-    }
+window.showView('riwayat','Pesanan Saya');
+
+} catch (err) {
+    console.error("Submit booking error:", err);
+}
 
 });
 
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <script>
