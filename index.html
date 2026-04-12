@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -309,17 +310,11 @@ overflow-x: hidden;
     </div>
 
     <!-- MOBILE OVERLAY FOR SIDEBAR -->
-<div id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-[90] hide md:hidden"></div>
+    <div id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-[90] hide md:hidden"></div>
 
-<div class="flex min-h-screen">
-    <!-- SIDEBAR (Responsive) -->
-   <aside id="mobile-sidebar" class="fixed md:sticky top-0 left-0 h-screen w-64 border-r border-slate-200 z-[100] -translate-x-full md:translate-x-0 flex flex-col relative">
-
-    <!-- 🔥 TOMBOL CLOSE PINDAH KE POJOK SIDEBAR -->
-    <button onclick="toggleMobileSidebar()" 
-      class="md:hidden text-slate-400 absolute top-3 right-3">
-        <i class="fas fa-times"></i>
-    </button>
+    <div class="flex min-h-screen">
+        <!-- SIDEBAR (Responsive) -->
+       <aside id="mobile-sidebar" class="fixed md:sticky top-0 left-0 h-screen w-64 border-r border-slate-200 z-[100] -translate-x-full md:translate-x-0 flex flex-col">
 
     <div class="p-6">
 
@@ -334,6 +329,11 @@ overflow-x: hidden;
                     />
                     <span class="font-extrabold text-xl text-slate-700">TrainingHub</span>
                 </div>
+
+                <button onclick="toggleMobileSidebar()" 
+                  class="md:hidden text-slate-400 absolute top-3 right-3">
+                    <i class="fas fa-times"></i>
+                </button>
 
             </div>
         </div>
@@ -403,9 +403,9 @@ overflow-x: hidden;
 
 </aside>
 
-    <main class="flex-1 flex flex-col min-w-0">
-        <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
+        <main class="flex-1 flex flex-col min-w-0">
+            <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
                     <!-- MOBILE MENU TOGGLE -->
                     <button onclick="toggleMobileSidebar()" class="md:hidden w-12 h-12 flex items-center justify-center bg-white/80 backdrop-blur border border-slate-200 rounded-lg text-slate-700 shadow"
                         <i class="text-lg">☰</i>
