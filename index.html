@@ -805,6 +805,24 @@ import {
     });
 }
 
+		function sendStatusEmail(booking, userEmail) {
+
+    emailjs.send("service_bro5q1v", "template_status_user", {
+        user_email: userEmail,
+        user_name: booking.userName,
+        status: booking.status,
+        date: booking.date,
+        time: booking.start + " - " + booking.end,
+        detail: booking.roomName || '-'
+    })
+    .then(() => {
+        console.log("✅ Email status ke user terkirim");
+    })
+    .catch((err) => {
+        console.error("❌ Email status gagal:", err);
+    });
+}
+
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
 
@@ -2591,17 +2609,30 @@ function renderMaster(){
         };
 
         window.updateBookingStatusWithNote = async (id, status) => {
-            const note = document.getElementById(`admin-note-${id}`).value;
-            if(status === 'Rejected' && !note) {
-                alert("Wajib memberikan alasan penolakan pada catatan.");
-                return;
-            }
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { 
-                status, 
-                adminNote: note,
-                approvedAt: status === 'Approved' ? serverTimestamp() : null
-            });
-        };
+    const note = document.getElementById(`admin-note-${id}`).value;
+
+    if(status === 'Rejected' && !note) {
+        alert("Wajib memberikan alasan penolakan pada catatan.");
+        return;
+    }
+
+    await updateDoc(
+        doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id),
+        { 
+            status, 
+            adminNote: note,
+            approvedAt: status === 'Approved' ? serverTimestamp() : null
+        }
+    );
+
+    // 🔥 TAMBAHAN: AMBIL DATA BOOKING
+    const booking = localState.bookings.find(b => b.id === id);
+
+    // 🔥 TAMBAHAN: KIRIM EMAIL KE USER
+    if (booking && booking.email) {
+        sendStatusEmail(booking, booking.email);
+    }
+};
 
         function renderJadwal() {
     const approved = getFilteredBookings()
@@ -3317,6 +3348,7 @@ const bookingData = {
     toolsText: (selectedTools || []).map(t => t.name).join(", "),
 
     userName: currentUser.username,
+	email: currentUser.email,
     userUid: currentUser.uid,
     dept: currentUser.dept || 'Umum',
     name: currentUser.username,
