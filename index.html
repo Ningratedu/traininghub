@@ -807,7 +807,7 @@ import {
 
 		function sendStatusEmail(booking, userEmail) {
 
-    // ================= AMBIL EMAIL USER =================
+    // ================= AMBIL EMAIL =================
 
     const email =
         userEmail ||
@@ -824,12 +824,17 @@ import {
         booking.username ||
         '-';
 
-    // ================= AMBIL NAMA RUANGAN =================
+    // ================= VALIDASI ROOM =================
 
     let roomName = '';
 
-    // Hanya ambil jika ADA roomId
-    if (booking.roomId) {
+    const validRoomId =
+        booking.roomId &&
+        booking.roomId !== null &&
+        booking.roomId !== '' &&
+        booking.roomId !== 'null';
+
+    if (validRoomId) {
 
         if (booking.roomName) {
 
@@ -855,7 +860,7 @@ import {
 
     }
 
-    // ================= AMBIL NAMA ALAT =================
+    // ================= AMBIL TOOLS =================
 
     let toolNames = '';
 
@@ -872,7 +877,6 @@ import {
 
     let detailParts = [];
 
-    // Tampilkan ruangan hanya jika benar-benar ada
     if (roomName) {
 
         detailParts.push(
@@ -881,7 +885,6 @@ import {
 
     }
 
-    // Tampilkan alat jika ada
     if (toolNames) {
 
         detailParts.push(
@@ -896,7 +899,8 @@ import {
     // ================= DEBUG =================
 
     console.log("📧 Kirim email ke:", email);
-    console.log("📌 Status:", booking.status);
+    console.log("📌 roomId:", booking.roomId);
+    console.log("📌 validRoomId:", validRoomId);
     console.log("📌 Detail:", detail);
 
     // ================= VALIDASI EMAIL =================
@@ -935,7 +939,6 @@ import {
     });
 
 }
-
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
 
