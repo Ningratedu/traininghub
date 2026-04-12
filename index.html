@@ -184,18 +184,32 @@ overflow-x: hidden;
 }
 
 /* Mobile Sidebar Transition */
-
 #mobile-sidebar {
-
     transition: transform 0.3s ease-in-out;
-
 }
 
 .sidebar-open {
-
     transform: translateX(0) !important;
-
 }
+
+/* 🔥 SLIDER SWIPE */
+.slider-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* biar swipe lebih smooth di HP */
+}
+
+.slide {
+    min-width: 100%;
+    scroll-snap-align: start;
+}
+
+/* hide scrollbar */
+.slider-container::-webkit-scrollbar {
+    display: none;
+}		
 
 </style>
 
@@ -584,34 +598,39 @@ overflow-x: hidden;
                     </div>
 
                     <div id="user-dashboard-ui" class="hide">
-    <div class="flex items-center gap-8 mb-8 border-b border-slate-200">
 
-        <button 
-            onclick="switchDashTab('rooms')" 
-            id="tab-rooms" 
-            class="dash-tab pb-3 px-4 bg-white/50 text-black rounded-md text-sm font-medium tab-active transition-all hover:bg-white/70"
-        >
-            Ruangan Tersedia
+    <!-- 🔥 TAB BUTTON -->
+    <div class="flex items-center justify-center gap-4 mb-6">
+        <button onclick="goToSlide(0)" 
+            class="px-4 py-2 rounded-full bg-white/60 backdrop-blur text-sm font-semibold">
+            Ruangan
         </button>
 
-        <button 
-            onclick="switchDashTab('tools')" 
-            id="tab-tools" 
-            class="dash-tab pb-3 px-4 bg-white/50 text-black rounded-md text-sm font-medium transition-all hover:bg-white/70"
-        >
-            Alat Tersedia
+        <button onclick="goToSlide(1)" 
+            class="px-4 py-2 rounded-full bg-white/60 backdrop-blur text-sm font-semibold">
+            Alat
         </button>
+    </div>
+
+    <!-- 🔥 SLIDER -->
+    <div class="slider-container" id="slider">
+
+        <!-- SLIDE 1: ROOMS -->
+        <div class="slide">
+            <div id="dash-rooms-content">
+                <div id="available-rooms-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: TOOLS -->
+        <div class="slide">
+            <div id="dash-tools-content">
+                <div id="available-tools-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
 
     </div>
 
-    <div id="dash-rooms-content">
-        <div id="available-rooms-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </div>
-
-    <div id="dash-tools-content" class="hide">
-        <div id="available-tools-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </div>
-</div>
 </div>
 
                 <div id="view-jadwal" class="view hide"><div id="calendar-list" class="space-y-4"></div></div>
@@ -4050,6 +4069,16 @@ window.submitChangePassword = () => {
     alert("Password berhasil diubah!");
     closeChangePassword();
 }
+
+function goToSlide(index) {
+    const slider = document.getElementById('slider');
+    if (!slider) return;
+
+    slider.scrollTo({
+        left: slider.clientWidth * index,
+        behavior: 'smooth'
+    });
+}		
 
 </script>
 
