@@ -4024,7 +4024,7 @@ window.closeChangePassword = () => {
 }
 
 // submit ganti password
-window.submitChangePassword = () => {
+window.submitChangePassword = async () => {
 
     const oldPass = document.getElementById('old-pass').value;
     const newPass = document.getElementById('new-pass').value;
@@ -4046,11 +4046,35 @@ window.submitChangePassword = () => {
         return alert("Konfirmasi password tidak sama");
     }
 
-    user.password = newPass;
-    localStorage.setItem("traininghub_user", JSON.stringify(user));
+    try {
 
-    alert("Password berhasil diubah!");
-    closeChangePassword();
+        // 🔥 UPDATE KE FIRESTORE (INI YANG SEBELUMNYA GAK ADA)
+        await updateDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid),
+            { password: newPass }
+        );
+
+        // 🔥 UPDATE LOCAL STORAGE
+        user.password = newPass;
+        localStorage.setItem("traininghub_user", JSON.stringify(user));
+
+        // 🔥 OPTIONAL: update localState biar langsung kepake tanpa reload
+        const idx = localState.users.findIndex(u => u.id === user.uid);
+        if(idx !== -1){
+            localState.users[idx].password = newPass;
+        }
+
+        alert("Password berhasil diubah!");
+		document.getElementById('old-pass').value = '';
+		document.getElementById('new-pass').value = '';
+		document.getElementById('confirm-pass').value = '';
+        closeChangePassword();
+
+    } catch (err) {
+        console.error("Change password error:", err);
+        alert("Gagal update password");
+    }
+
 }
 
 </script>
