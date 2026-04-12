@@ -2609,29 +2609,65 @@ function renderMaster(){
         };
 
         window.updateBookingStatusWithNote = async (id, status) => {
-    const note = document.getElementById(`admin-note-${id}`).value;
 
-    if(status === 'Rejected' && !note) {
+    const note =
+        document.getElementById(`admin-note-${id}`)?.value || '';
+
+    // ================= VALIDASI REJECT =================
+
+    if(status === 'Rejected' && !note){
+
         alert("Wajib memberikan alasan penolakan pada catatan.");
         return;
+
     }
 
+    // ================= UPDATE DATA =================
+
     await updateDoc(
-        doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id),
+        doc(db,'artifacts',appId,'public','data','bookings',id),
         { 
             status, 
             adminNote: note,
-            approvedAt: status === 'Approved' ? serverTimestamp() : null
+            approvedAt:
+                status === 'Approved'
+                ? serverTimestamp()
+                : null
         }
     );
 
-    // 🔥 TAMBAHAN: AMBIL DATA BOOKING
-    const booking = localState.bookings.find(b => b.id === id);
+    // ================= AMBIL BOOKING =================
 
-    // 🔥 TAMBAHAN: KIRIM EMAIL KE USER
-    if (booking && booking.email) {
-        sendStatusEmail(booking, booking.email);
+    const booking =
+        localState.bookings
+        .find(b => b.id === id);
+
+    // ================= FILTER STATUS =================
+
+    if(
+        booking &&
+        (status === 'Approved' || status === 'Rejected')
+    ){
+
+        const userEmail =
+            booking.email ||
+            booking.userEmail;
+
+        if(userEmail){
+
+            sendStatusEmail(
+                {
+                    ...booking,
+                    status: status,
+                    adminNote: note
+                },
+                userEmail
+            );
+
+        }
+
     }
+
 };
 
         function renderJadwal() {
