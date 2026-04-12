@@ -826,7 +826,7 @@ import {
 
     // ================= AMBIL NAMA RUANGAN =================
 
-    let roomName = booking.roomName || '-';
+    let roomName = booking.roomName || '';
 
     if (!roomName && booking.roomId) {
 
@@ -843,10 +843,47 @@ import {
 
     }
 
+    // ================= AMBIL NAMA ALAT =================
+
+    let toolNames = '';
+
+    if (booking.tools && booking.tools.length) {
+
+        toolNames =
+            booking.tools
+            .map(t => t.name)
+            .join(', ');
+
+    }
+
+    // ================= FORMAT DETAIL =================
+
+    let detailParts = [];
+
+    if (roomName) {
+
+        detailParts.push(
+            `Ruangan: ${roomName}`
+        );
+
+    }
+
+    if (toolNames) {
+
+        detailParts.push(
+            `Alat: ${toolNames}`
+        );
+
+    }
+
+    const detail =
+        detailParts.join(' | ') || '-';
+
     // ================= DEBUG LOG =================
 
     console.log("📧 Kirim email ke:", email);
     console.log("📌 Status:", booking.status);
+    console.log("📌 Detail:", detail);
     console.log("📌 Booking data:", booking);
 
     // ================= VALIDASI EMAIL =================
@@ -870,7 +907,7 @@ import {
             status: booking.status,
             date: booking.date,
             time: booking.start + " - " + booking.end,
-            detail: roomName
+            detail: detail
         }
     )
     .then(() => {
@@ -2717,33 +2754,41 @@ function renderMaster(){
 
         // ================= KIRIM EMAIL APPROVE =================
 
-        if(b){
+if(b){
 
-            const userEmail =
-                b.email ||
-                b.userEmail;
+    const userEmail =
+        b.email ||
+        b.userEmail;
 
-            if(userEmail){
+    if(userEmail){
 
-                console.log("📧 Kirim email approve ke:", userEmail);
+        console.log("📧 Kirim email approve ke:", userEmail);
 
-                sendStatusEmail(
-                    {
-                        ...b,
-                        status: 'Approved',
-                        adminNote: note
-                    },
-                    userEmail
-                );
+        sendStatusEmail(
+            {
+                ...b,
+                status: 'Approved',
+                adminNote: note,
 
-            }
-            else{
+                // ✅ KIRIM DATA YANG SUDAH DIAPPROVE
+                tools: approvedTools,
 
-                console.warn("⚠️ Email user tidak ditemukan.");
+                roomId:
+                    isRoomApproved
+                    ? b.roomId
+                    : null
+            },
+            userEmail
+        );
 
-            }
+    }
+    else{
 
-        }
+        console.warn("⚠️ Email user tidak ditemukan.");
+
+    }
+
+}
 
         // ================= REFRESH UI =================
 
