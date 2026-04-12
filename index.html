@@ -807,20 +807,83 @@ import {
 
 		function sendStatusEmail(booking, userEmail) {
 
-    emailjs.send("service_bro5q1v", "template_gzty0r1", {
-        user_email: userEmail,
-        user_name: booking.userName,
-        status: booking.status,
-        date: booking.date,
-        time: booking.start + " - " + booking.end,
-        detail: booking.roomName || '-'
-    })
+    // ================= AMBIL EMAIL USER =================
+
+    const email =
+        userEmail ||
+        booking.email ||
+        booking.userEmail ||
+        booking.mail ||
+        '';
+
+    // ================= AMBIL NAMA USER =================
+
+    const userName =
+        booking.userName ||
+        booking.name ||
+        booking.username ||
+        '-';
+
+    // ================= AMBIL NAMA RUANGAN =================
+
+    let roomName = booking.roomName || '-';
+
+    if (!roomName && booking.roomId) {
+
+        const room =
+            localState.rooms
+            ?.find(r =>
+                String(r.id) ===
+                String(booking.roomId)
+            );
+
+        if (room) {
+            roomName = room.name;
+        }
+
+    }
+
+    // ================= DEBUG LOG =================
+
+    console.log("📧 Kirim email ke:", email);
+    console.log("📌 Status:", booking.status);
+    console.log("📌 Booking data:", booking);
+
+    // ================= VALIDASI EMAIL =================
+
+    if (!email) {
+
+        console.warn("⚠️ Email user tidak ditemukan. Email tidak dikirim.");
+
+        return;
+
+    }
+
+    // ================= KIRIM EMAIL =================
+
+    emailjs.send(
+        "service_bro5q1v",
+        "template_gzty0r1",
+        {
+            user_email: email,
+            user_name: userName,
+            status: booking.status,
+            date: booking.date,
+            time: booking.start + " - " + booking.end,
+            detail: roomName
+        }
+    )
     .then(() => {
+
         console.log("✅ Email status ke user terkirim");
+
     })
     .catch((err) => {
+
         console.error("❌ Email status gagal:", err);
+
     });
+
 }
 
 // 🔥 RESTORE SESSION SAAT REFRESH
@@ -2579,86 +2642,87 @@ function renderMaster(){
 
 }
         window.processPartialApproval = async (id) => {
-            const b = localState.bookings.find(x => x.id === id);
-            const roomCheck = document.querySelector(`.approval-room-check-${id}`);
-            const toolChecks = document.querySelectorAll(`.approval-tool-check-${id}`);
-            const note = document.getElementById(`admin-note-${id}`).value.trim();
 
-            const isRoomApproved = roomCheck ? roomCheck.checked : false;
-            const approvedTools = Array.from(toolChecks).filter(c => c.checked).map(c => ({
-                id: c.dataset.toolId,
-                name: c.dataset.toolName
-            }));
+    const b =
+        localState.bookings
+        .find(x => x.id === id);
 
-            const originalToolCount = (b.tools || []).length;
-            const isPartialReject = (roomCheck && !isRoomApproved) || (approvedTools.length < originalToolCount);
+    const roomCheck =
+        document.querySelector(`.approval-room-check-${id}`);
 
-            if(isPartialReject && !note) {
-                alert("Wajib mengisi Catatan Admin jika ada item yang tidak disetujui.");
-                return;
-            }
-
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), {
-                status: 'Approved',
-                adminNote: note,
-                roomId: isRoomApproved ? b.roomId : null,
-                tools: approvedTools,
-                type: isRoomApproved ? 'room' : 'tool', 
-                approvedAt: serverTimestamp()
-            });
-        };
-
-        window.updateBookingStatusWithNote = async (id, status) => {
+    const toolChecks =
+        document.querySelectorAll(`.approval-tool-check-${id}`);
 
     const note =
-        document.getElementById(`admin-note-${id}`)?.value || '';
+        document
+        .getElementById(`admin-note-${id}`)
+        ?.value.trim() || '';
 
-    // ================= VALIDASI REJECT =================
+    const isRoomApproved =
+        roomCheck ? roomCheck.checked : false;
 
-    if(status === 'Rejected' && !note){
+    const approvedTools =
+        Array.from(toolChecks)
+        .filter(c => c.checked)
+        .map(c => ({
+            id: c.dataset.toolId,
+            name: c.dataset.toolName
+        }));
 
-        alert("Wajib memberikan alasan penolakan pada catatan.");
+    const originalToolCount =
+        (b.tools || []).length;
+
+    const isPartialReject =
+        (roomCheck && !isRoomApproved) ||
+        (approvedTools.length < originalToolCount);
+
+    // ================= VALIDASI =================
+
+    if(isPartialReject && !note){
+
+        alert(
+            "Wajib mengisi Catatan Admin jika ada item yang tidak disetujui."
+        );
+
         return;
 
     }
 
-    // ================= UPDATE DATA =================
+    // ================= UPDATE FIRESTORE =================
 
     await updateDoc(
         doc(db,'artifacts',appId,'public','data','bookings',id),
-        { 
-            status, 
+        {
+            status: 'Approved',
             adminNote: note,
+            roomId:
+                isRoomApproved
+                ? b.roomId
+                : null,
+            tools: approvedTools,
+            type:
+                isRoomApproved
+                ? 'room'
+                : 'tool',
             approvedAt:
-                status === 'Approved'
-                ? serverTimestamp()
-                : null
+                serverTimestamp()
         }
     );
 
-    // ================= AMBIL BOOKING =================
+    // ================= KIRIM EMAIL APPROVE =================
 
-    const booking =
-        localState.bookings
-        .find(b => b.id === id);
-
-    // ================= FILTER STATUS =================
-
-    if(
-        booking &&
-        (status === 'Approved' || status === 'Rejected')
-    ){
+    if(b){
 
         const userEmail =
-            booking.email ||
-            booking.userEmail;
+            b.email ||
+            b.userEmail;
 
         if(userEmail){
 
             sendStatusEmail(
                 {
-                    ...booking,
-                    status: status,
+                    ...b,
+                    status: 'Approved',
                     adminNote: note
                 },
                 userEmail
