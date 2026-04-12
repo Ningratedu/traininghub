@@ -953,43 +953,85 @@ overflow-x: hidden;
 })();
 </script>
 
-<!-- SCRIPT UTAMA LO -->
+<script type="module">
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    doc, 
+    updateDoc, 
+    deleteDoc, 
+    serverTimestamp, 
+    onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { 
+    getAuth, 
+    signInAnonymously, 
+    onAuthStateChanged,
+    updatePassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 import { 
     getStorage,
     ref,
     uploadBytes,
     getDownloadURL
-} from 
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-        const firebaseConfig = {
-  		apiKey: "AIzaSyAdNlDuqIbpoZvb1f1_u6SC2zcFcXbB8DM",
-  		authDomain: "booking-ruang-training.firebaseapp.com",
-  		projectId: "booking-ruang-training",
-  		storageBucket: "booking-ruang-training.firebasestorage.app",
-  		messagingSenderId: "627204181280",
-  		appId: "1:627204181280:web:df6653f289326d65135b45"
-	};
 
-	const app = initializeApp(firebaseConfig);
-	const auth = getAuth(app);
-	const db = getFirestore(app);
-	const storage = getStorage(app);
-	const appId = "booking-ruang-training";
-	// 🔥 FIX IMPORTANT
-	window.auth = auth;
-	window.db = db;
-	window.storage = storage;
-	window.appId = appId;
+// ================= FIREBASE CONFIG =================
+const firebaseConfig = {
+    apiKey: "AIzaSyAdNlDuqIbpoZvb1f1_u6SC2zcFcXbB8DM",
+    authDomain: "booking-ruang-training.firebaseapp.com",
+    projectId: "booking-ruang-training",
+    storageBucket: "booking-ruang-training.firebasestorage.app",
+    messagingSenderId: "627204181280",
+    appId: "1:627204181280:web:df6653f289326d65135b45"
+};
 
-	signInAnonymously(auth).catch(err => console.error(err));
-	
-        let currentUser = null;
+
+// ================= INIT FIREBASE =================
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const appId = "booking-ruang-training";
+
+
+// ================= GLOBAL ACCESS (IMPORTANT) =================
+window.auth = auth;
+window.db = db;
+window.storage = storage;
+window.appId = appId;
+
+
+// ================= AUTH INIT =================
+signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+
+let currentUser = null;
+
+
+// ================= LISTENER =================
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+    }
+});
+
+
+// ================= EXAMPLE FUNCTION PLACEHOLDER =================
+function sendBookingEmail(booking, user) {
+    let detailParts = [];
+    // lanjut kode kamu di sini...
+}
+
+</script>
 
 		function sendBookingEmail(booking, user) {
 
