@@ -4025,57 +4025,84 @@ window.closeChangePassword = () => {
 
 // submit ganti password
 window.submitChangePassword = async () => {
-
     const oldPass = document.getElementById('old-pass').value;
     const newPass = document.getElementById('new-pass').value;
     const confirmPass = document.getElementById('confirm-pass').value;
 
     let user = JSON.parse(localStorage.getItem("traininghub_user"));
 
-    if(!user) return alert("User tidak ditemukan");
-
-    if(oldPass !== user.password){
-        return alert("Password lama salah!");
+    if (!user) {
+        alert("User tidak ditemukan");
+        return;
     }
 
-    if(newPass.length < 6){
-        return alert("Password minimal 6 karakter");
+    if (!oldPass || !newPass || !confirmPass) {
+        alert("Semua field wajib diisi");
+        return;
     }
 
-    if(newPass !== confirmPass){
-        return alert("Konfirmasi password tidak sama");
+    if (oldPass !== user.password) {
+        alert("Password lama salah!");
+        return;
+    }
+
+    if (newPass.length < 6) {
+        alert("Password minimal 6 karakter");
+        return;
+    }
+
+    if (newPass !== confirmPass) {
+        alert("Konfirmasi password tidak sama");
+        return;
     }
 
     try {
+        const authUser = auth.currentUser;
 
-        // 🔥 UPDATE KE FIRESTORE (INI YANG SEBELUMNYA GAK ADA)
+        if (!authUser) {
+            alert("User tidak login di Firebase Auth");
+            return;
+        }
+
+        // 🔥 1. UPDATE FIREBASE AUTH (INI YANG REAL PASSWORD SYSTEM)
+        await updatePassword(authUser, newPass);
+
+        // 🔥 2. UPDATE FIRESTORE (optional untuk data display)
         await updateDoc(
             doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid),
             { password: newPass }
         );
 
-        // 🔥 UPDATE LOCAL STORAGE
+        // 🔥 3. UPDATE LOCAL STORAGE
         user.password = newPass;
         localStorage.setItem("traininghub_user", JSON.stringify(user));
 
-        // 🔥 OPTIONAL: update localState biar langsung kepake tanpa reload
-        const idx = localState.users.findIndex(u => u.id === user.uid);
-        if(idx !== -1){
-            localState.users[idx].password = newPass;
+        // 🔥 4. UPDATE LOCAL STATE
+        if (window.localState?.users) {
+            const idx = localState.users.findIndex(u => u.id === user.uid);
+            if (idx !== -1) {
+                localState.users[idx].password = newPass;
+            }
         }
 
         alert("Password berhasil diubah!");
-		document.getElementById('old-pass').value = '';
-		document.getElementById('new-pass').value = '';
-		document.getElementById('confirm-pass').value = '';
+
+        document.getElementById('old-pass').value = '';
+        document.getElementById('new-pass').value = '';
+        document.getElementById('confirm-pass').value = '';
+
         closeChangePassword();
 
     } catch (err) {
         console.error("Change password error:", err);
-        alert("Gagal update password");
-    }
 
-}
+        if (err.code === "auth/requires-recent-login") {
+            alert("Silakan login ulang sebelum mengganti password");
+        } else {
+            alert("Gagal update password: " + err.message);
+        }
+    }
+};
 
 </script>
 
