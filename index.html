@@ -2883,15 +2883,28 @@ window.updateBookingStatusWithNote = async (id, status) => {
             console.log("📧 Kirim email reject ke:", userEmail);
 
             sendStatusEmail(
-                {
-                    ...b,
-                    status: 'Rejected',
-                    adminNote: note
-                },
-                userEmail
-            );
+    {
+        ...b,
+        status: 'Approved',
+        adminNote: note,
 
-        }
+        // ✅ kirim tools hasil approval
+        tools: approvedTools,
+
+        // ✅ handle room
+        roomId:
+            isRoomApproved
+            ? b.roomId
+            : null,
+
+        // ✅ penting: bersihkan roomName jika tidak approve
+        roomName:
+            isRoomApproved
+            ? b.roomName
+            : null
+    },
+    userEmail
+);
         else{
 
             console.warn("⚠️ Email user tidak ditemukan.");
