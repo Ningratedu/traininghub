@@ -773,25 +773,40 @@ import {
 
 		function sendBookingEmail(booking, user) {
 
+    // 🔥 DEBUG DULU
+    console.log("BOOKING MASUK:", booking);
+
     let detail = "";
 
-    // 🔥 AMBIL NAMA RUANGAN LANGSUNG DARI SELECT
+    // ✅ 1. ROOM (AMAN)
     const roomSelect = document.getElementById('book-room');
-    const roomName = roomSelect?.selectedOptions[0]?.text || "";
+    const roomName = roomSelect?.selectedOptions[0]?.text;
 
     if (roomName) {
         detail += "Ruangan: " + roomName;
+    } else if (booking.roomId) {
+        detail += "Ruangan ID: " + booking.roomId;
     }
 
-    // 🔥 AMBIL TOOLS LANGSUNG DARI DATA
+    // ✅ 2. TOOLS (PAKSA SEMUA KEMUNGKINAN)
     if (booking.tools && booking.tools.length > 0) {
-        const tools = booking.tools.map(t => t.name).join(", ");
+
+        const tools = booking.tools.map(t => {
+            if (typeof t === "string") return t;
+            if (t.name) return t.name;
+            if (t.label) return t.label;
+            return JSON.stringify(t);
+        }).join(", ");
+
         detail += (detail ? " | " : "") + "Peralatan: " + tools;
     }
 
+    // ✅ 3. LAST DEFENSE
     if (!detail) {
-        detail = "Tidak ada detail";
+        detail = JSON.stringify(booking);
     }
+
+    console.log("DETAIL FINAL:", detail);
 
     emailjs.send("service_bro5q1v", "template_bjb5g6p", {
         user_name: user.username,
