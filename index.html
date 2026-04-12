@@ -2763,36 +2763,20 @@ window.editBooking = (bookingId) => {
 };
 
         function renderApproval() {
-    const pending = getFilteredBookings().filter(b => b.status === 'Pending');
-    const container = document.getElementById('approval-list');
-
-    if (pending.length === 0) {
-        container.innerHTML = `
-            <div class="py-10 text-center text-white font-bold text-lg">
-                Tidak ada antrean persetujuan
-            </div>
-        `;
-    } else {
-        container.innerHTML = pending.map(b => {
-            const room = b.roomId ? localState.rooms.find(r => r.id === b.roomId) : null;
-            return `
-                <div class="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 mb-2 inline-block">
-                                ${b.type === 'room' ? 'Ruangan & Alat' : 'Hanya Alat'}
-                            </span>
-                            <h4 class="font-bold text-slate-900 text-lg">${b.goal}</h4>
-                            <p class="text-[10px] text-slate-500 font-medium mt-0.5">
-                                ${b.userName} (${b.dept}) • ${b.date} [${b.start}-${b.end}]
-                            </p>
+            const pending = getFilteredBookings().filter(b => b.status === 'Pending');
+            const container = document.getElementById('approval-list');
+            if(pending.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada antrean persetujuan</div>`;
+            else container.innerHTML = pending.map(b => {
+                const room = b.roomId ? localState.rooms.find(r => r.id === b.roomId) : null;
+                return `
+                    <div class="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 mb-2 inline-block">${b.type === 'room' ? 'Ruangan & Alat' : 'Hanya Alat'}</span>
+                                <h4 class="font-bold text-slate-900 text-lg">${b.goal}</h4>
+                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">${b.userName} (${b.dept}) • ${b.date} [${b.start}-${b.end}]</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-}
 
                         <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                             <p class="text-[10px] font-black uppercase text-slate-400 mb-3">Unit Persetujuan:</p>
