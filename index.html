@@ -197,6 +197,10 @@ overflow-x: hidden;
 
 }
 
+.sidebar-header {
+    position: relative;
+}		
+
 </style>
 
 </head>
@@ -325,7 +329,8 @@ overflow-x: hidden;
                     <span class="font-extrabold text-xl text-slate-700">TrainingHub</span>
                 </div>
 
-                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 ml-2">
+                <button onclick="toggleMobileSidebar()" 
+                  class="md:hidden text-slate-400 absolute top-3 right-3">
                     <i class="fas fa-times"></i>
                 </button>
 
