@@ -773,60 +773,9 @@ import {
 
 		function sendBookingEmail(booking, user) {
 
-    let detail = "";
-
-    // 🔥 ROOM
-    if (booking.roomName) {
-        detail += "Ruangan: " + booking.roomName;
-    }
-
-    // 🔥 TOOLS
-    if (booking.tools && booking.tools.length > 0) {
-        const tools = booking.tools.map(t => t.name).join(", ");
-        detail += (detail ? " | " : "") + "Peralatan: " + tools;
-    }
-
-    // 🔥 FALLBACK
-    if (!detail) {
-        detail = "Tidak ada detail";
-    }
-
-    emailjs.send("service_bro5q1v", "template_bjb5g6p", {
-        user_name: user.username,
-        date: booking.date,
-        time: booking.start + " - " + booking.end,
-        detail: detail
-    })
-    .then(() => {
-        console.log("✅ Email terkirim ke admin");
-    })
-    .catch((err) => {
-        console.error("❌ Email gagal:", err);
-    });
-}
-
-		function sendStatusEmail(booking, userEmail) {
-
-    // ================= AMBIL EMAIL =================
-
-    const email =
-        userEmail ||
-        booking.email ||
-        booking.userEmail ||
-        booking.mail ||
-        '';
-
-    // ================= AMBIL NAMA USER =================
-
-    const userName =
-        booking.userName ||
-        booking.name ||
-        booking.username ||
-        '-';
+    let detailParts = [];
 
     // ================= VALIDASI ROOM =================
-
-    let roomName = '';
 
     const validRoomId =
         booking.roomId &&
@@ -834,94 +783,47 @@ import {
         booking.roomId !== '' &&
         booking.roomId !== 'null';
 
-    if (validRoomId) {
+    if (validRoomId && booking.roomName) {
 
-        if (booking.roomName) {
-
-            roomName = booking.roomName;
-
-        }
-        else {
-
-            const room =
-                localState.rooms
-                ?.find(r =>
-                    String(r.id) ===
-                    String(booking.roomId)
-                );
-
-            if (room) {
-
-                roomName = room.name;
-
-            }
-
-        }
+        detailParts.push(
+            "Ruangan: " + booking.roomName
+        );
 
     }
 
-    // ================= AMBIL TOOLS =================
+    // ================= TOOLS =================
 
-    let toolNames = '';
+    if (booking.tools && booking.tools.length > 0) {
 
-    if (booking.tools && booking.tools.length) {
-
-        toolNames =
+        const tools =
             booking.tools
             .map(t => t.name)
-            .join(', ');
+            .join(", ");
+
+        detailParts.push(
+            "Peralatan: " + tools
+        );
 
     }
 
     // ================= FORMAT DETAIL =================
 
-    let detailParts = [];
-
-    if (roomName) {
-
-        detailParts.push(
-            `Ruangan: ${roomName}`
-        );
-
-    }
-
-    if (toolNames) {
-
-        detailParts.push(
-            `Alat: ${toolNames}`
-        );
-
-    }
-
     const detail =
-        detailParts.join(' | ') || '-';
+        detailParts.join(" | ") ||
+        "Tidak ada detail";
 
     // ================= DEBUG =================
 
-    console.log("📧 Kirim email ke:", email);
+    console.log("📧 Booking Email Detail:", detail);
     console.log("📌 roomId:", booking.roomId);
-    console.log("📌 validRoomId:", validRoomId);
-    console.log("📌 Detail:", detail);
-
-    // ================= VALIDASI EMAIL =================
-
-    if (!email) {
-
-        console.warn("⚠️ Email user tidak ditemukan.");
-
-        return;
-
-    }
 
     // ================= KIRIM EMAIL =================
 
     emailjs.send(
         "service_bro5q1v",
-        "template_gzty0r1",
+        "template_bjb5g6p",
         {
-            user_email: email,
-            user_name: userName,
-            status: booking.status,
+            user_name: user.username,
             date: booking.date,
             time: booking.start + " - " + booking.end,
             detail: detail
@@ -929,12 +831,12 @@ import {
     )
     .then(() => {
 
-        console.log("✅ Email status ke user terkirim");
+        console.log("✅ Email booking terkirim ke admin");
 
     })
     .catch((err) => {
 
-        console.error("❌ Email status gagal:", err);
+        console.error("❌ Email booking gagal:", err);
 
     });
 
