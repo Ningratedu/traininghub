@@ -310,103 +310,102 @@ overflow-x: hidden;
     </div>
 
     <!-- MOBILE OVERLAY FOR SIDEBAR -->
-<div id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-[90] hide md:hidden"></div>
+    <div id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-[90] hide md:hidden"></div>
 
-<div class="flex min-h-screen">
-    <!-- SIDEBAR (Responsive) -->
-    <aside id="mobile-sidebar" class="fixed md:sticky top-0 left-0 h-screen w-64 border-r border-slate-200 z-[100] -translate-x-full md:translate-x-0 flex flex-col relative">
+    <div class="flex min-h-screen">
+        <!-- SIDEBAR (Responsive) -->
+       <aside id="mobile-sidebar" class="fixed md:sticky top-0 left-0 h-screen w-64 border-r border-slate-200 z-[100] -translate-x-full md:translate-x-0 flex flex-col">
 
-        <!-- 🔥 TOMBOL CLOSE (PINDAH KE POJOK SIDEBAR) -->
-        <button onclick="toggleMobileSidebar()" 
-          class="md:hidden text-slate-400 absolute top-3 right-3 z-[110]">
-            <i class="fas fa-times"></i>
-        </button>
+    <div class="p-6">
 
-        <div class="p-6">
+        <!-- 🔥 HEADER PUTIH -->
+        <div class="sidebar-header">
+            <div class="flex items-center justify-between">
 
-            <!-- 🔥 HEADER PUTIH -->
-            <div class="sidebar-header">
-                <div class="flex items-center justify-between">
-
-                    <div class="flex flex-col items-center gap-1 w-full">
-                        <img 
-                            src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png" 
-                            class="h-10 object-contain"
-                        />
-                        <span class="font-extrabold text-xl text-slate-700">TrainingHub</span>
-                    </div>
-
+                <div class="flex flex-col items-center gap-1 w-full">
+                    <img 
+                        src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png" 
+                        class="h-10 object-contain"
+                    />
+                    <span class="font-extrabold text-xl text-slate-700">TrainingHub</span>
                 </div>
+
+                <button onclick="toggleMobileSidebar()" 
+                  class="md:hidden text-slate-400 absolute top-3 right-3">
+                    <i class="fas fa-times"></i>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- 🔥 MENU -->
+        <nav class="mt-4" id="main-nav">
+
+            <!-- GROUP 1 -->
+            <div class="menu-group">
+                <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg sidebar-item-active" data-view="dashboard">
+                    <i class="fas fa-th-large w-5"></i> Dashboard
+                </button>
+
+                <button onclick="showView('jadwal', 'Kalender')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="jadwal">
+                    <i class="fas fa-calendar-alt w-5"></i> Kalender
+                </button>
             </div>
 
-            <!-- 🔥 MENU -->
-            <nav class="mt-4" id="main-nav">
+            <!-- USER MENU -->
+            <div id="user-menu-section" class="menu-group mt-3 hide">
+                <button onclick="showView('riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="riwayat">
+                    <i class="fas fa-history w-5"></i> Pesanan Saya
+                </button>
+            </div>
 
-                <!-- GROUP 1 -->
+            <!-- ADMIN MENU -->
+            <div id="admin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
+
                 <div class="menu-group">
-                    <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg sidebar-item-active" data-view="dashboard">
-                        <i class="fas fa-th-large w-5"></i> Dashboard
+                    <button onclick="showView('approval', 'Approval')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="approval">
+                        <i class="fas fa-check-double w-5"></i> Approval 
+                        <span id="badge-pending" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
                     </button>
 
-                    <button onclick="showView('jadwal', 'Kalender')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="jadwal">
-                        <i class="fas fa-calendar-alt w-5"></i> Kalender
+                    <button onclick="showView('master-data', 'Database Aset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="master-data">
+                        <i class="fas fa-database w-5"></i> Database Aset
+                    </button>
+
+                    <button onclick="showView('all-bookings', 'Semua Pesanan')" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" 
+                        data-view="all-bookings">
+                        <i class="fas fa-table w-5"></i> Semua Pesanan
                     </button>
                 </div>
 
-                <!-- USER MENU -->
-                <div id="user-menu-section" class="menu-group mt-3 hide">
-                    <button onclick="showView('riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="riwayat">
-                        <i class="fas fa-history w-5"></i> Pesanan Saya
-                    </button>
-                </div>
-
-                <!-- ADMIN MENU -->
-                <div id="admin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
-
-                    <div class="menu-group">
-                        <button onclick="showView('approval', 'Approval')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="approval">
-                            <i class="fas fa-check-double w-5"></i> Approval 
-                            <span id="badge-pending" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
-                        </button>
-
-                        <button onclick="showView('master-data', 'Database Aset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="master-data">
-                            <i class="fas fa-database w-5"></i> Database Aset
-                        </button>
-
-                        <button onclick="showView('all-bookings', 'Semua Pesanan')" 
-                            class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" 
-                            data-view="all-bookings">
-                            <i class="fas fa-table w-5"></i> Semua Pesanan
-                        </button>
-                    </div>
-
-                </div>
-
-            </nav>
-        </div>
-
-        <!-- 🔥 USER CARD -->
-        <div class="mt-auto p-6 border-t border-slate-100">
-            <div class="bg-slate-900 rounded-2xl p-4 text-white">
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1" id="role-label">User</p>
-                <p class="text-sm font-bold truncate" id="user-display">Guest</p>
-
-                <button onclick="logout()" class="mt-3 text-[11px] text-slate-400 hover:text-white flex items-center gap-1">
-                    <i class="fas fa-sign-out-alt"></i> Keluar
-                </button>
-
-                <button onclick="openChangePassword()" 
-                    class="mt-2 text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1">
-                    <i class="fas fa-key"></i> Ganti Password
-                </button>
             </div>
+
+        </nav>
+    </div>
+
+    <!-- 🔥 USER CARD -->
+    <div class="mt-auto p-6 border-t border-slate-100">
+        <div class="bg-slate-900 rounded-2xl p-4 text-white">
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1" id="role-label">User</p>
+            <p class="text-sm font-bold truncate" id="user-display">Guest</p>
+
+            <button onclick="logout()" class="mt-3 text-[11px] text-slate-400 hover:text-white flex items-center gap-1">
+                <i class="fas fa-sign-out-alt"></i> Keluar
+            </button>
+
+            <button onclick="openChangePassword()" 
+                class="mt-2 text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i class="fas fa-key"></i> Ganti Password
+            </button>
         </div>
+    </div>
 
-    </aside>
+</aside>
 
-    <main class="flex-1 flex flex-col min-w-0">
-        <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
+        <main class="flex-1 flex flex-col min-w-0">
+            <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
                     <!-- MOBILE MENU TOGGLE -->
                     <button onclick="toggleMobileSidebar()" class="md:hidden w-12 h-12 flex items-center justify-center bg-white/80 backdrop-blur border border-slate-200 rounded-lg text-slate-700 shadow"
                         <i class="text-lg">☰</i>
