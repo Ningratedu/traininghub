@@ -2486,6 +2486,8 @@ if(window.innerWidth < 768){
         };
 
         window.openBooking = () => {
+			// 🔥 reset cache saat buka form baru
+selectedToolCache = [];
 
     // Reset form dulu
     document.getElementById('form-booking').reset();
@@ -2656,10 +2658,16 @@ return;
 document.getElementById('search-tools')
 ?.value?.toLowerCase() || '';
 
-// 🔥 SIMPAN TOOL YANG SUDAH DICEKLIS SEBELUM RENDER ULANG
-const selectedTools = Array.from(
-    container.querySelectorAll('input[name="tools"]:checked')
-).map(cb => cb.value);
+// 🔥 SIMPAN TOOL YANG DICEKLIS KE CACHE
+container
+.querySelectorAll('input[name="tools"]:checked')
+.forEach(cb => {
+
+    if (!selectedToolCache.includes(cb.value)) {
+        selectedToolCache.push(cb.value);
+    }
+
+});
 
 container.innerHTML =
 localState.tools
@@ -2677,8 +2685,8 @@ localState.tools
 
     // 🔥 CEK TOOL SUDAH DIPILIH SEBELUMNYA
     const isChecked =
-        selectedTools.includes(t.id) ||
-        currentSelectedToolIds.includes(t.id);
+    selectedToolCache.includes(t.id) ||
+    currentSelectedToolIds.includes(t.id);
 
     return `
         <label class="${
