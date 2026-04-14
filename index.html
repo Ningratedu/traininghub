@@ -4171,12 +4171,13 @@ document.addEventListener('input', (e) => {
 
     if(e.target.id === 'search-tools'){
 
-        // 🔥 SAFE GUARD localState
+        // SAFE GUARD localState
         if(!window.localState ||
            !localState.tools) return;
 
         const keyword =
-            e.target.value.toLowerCase();
+            (e.target.value || "")
+            .toLowerCase();
 
         const container =
             document.getElementById('tool-selection');
@@ -4185,10 +4186,22 @@ document.addEventListener('input', (e) => {
 
         const filtered =
             localState.tools
-            .filter(t =>
-                t.status === 'Open' &&
-                t.name.toLowerCase().includes(keyword)
-            );
+            .filter(t => {
+
+                // hanya tool open
+                if(t.status !== 'Open')
+                    return false;
+
+                // kalau keyword kosong → tampil semua
+                if(!keyword)
+                    return true;
+
+                // aman kalau name kosong
+                return (t.name || "")
+                    .toLowerCase()
+                    .includes(keyword);
+
+            });
 
         container.innerHTML =
             filtered.map(t => `
@@ -4201,11 +4214,11 @@ value="${t.id}"
 class="mb-1">
 
 <span class="text-[10px] font-bold truncate">
-${t.name}
+${t.name || '-'}
 </span>
 
 <span class="text-[8px] text-indigo-500">
-${t.pos}
+${t.pos || '-'}
 </span>
 
 </label>
@@ -4215,6 +4228,8 @@ ${t.pos}
     }
 
 });
+
+</script>
 
 window.logout = () => {
 
