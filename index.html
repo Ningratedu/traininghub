@@ -2486,6 +2486,8 @@ if(window.innerWidth < 768){
         };
 
         window.openBooking = () => {
+			// 🔥 reset cache saat buka form baru
+selectedToolCache = [];
 
     // Reset form dulu
     document.getElementById('form-booking').reset();
