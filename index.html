@@ -2318,19 +2318,31 @@ if(window.innerWidth < 768){
             if(!date || !start || !end) {
 
     // tetap render alat walaupun waktu belum dipilih
-    const container = document.getElementById('tool-selection');
+const container = document.getElementById('tool-selection');
 
-    const keyword =
-document.getElementById('search-tools')
-?.value?.toLowerCase() || '';
+// 🔥 SAFEGUARD container & data
+if (!container || !localState || !localState.tools) return;
 
-container.innerHTML =
-localState.tools
-.filter(t =>
+// 🔎 ambil keyword search (aman walaupun input belum ada)
+const searchInput =
+document.getElementById('search-tools');
+
+const keyword =
+searchInput
+? searchInput.value.toLowerCase()
+: '';
+
+// 🔥 filter tools dengan keyword
+const filteredTools =
+localState.tools.filter(t =>
     t.status === 'Open' &&
+    t.name &&
     t.name.toLowerCase().includes(keyword)
-)
-.map(t => `
+);
+
+// 🔥 render ulang list tools
+container.innerHTML =
+filteredTools.map(t => `
 
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
 
@@ -2344,18 +2356,18 @@ localState.tools
     </span>
 
     <span class="text-[8px] text-indigo-500">
-        ${t.pos}
+        ${t.pos || ''}
     </span>
 
 </label>
 
-`)
-.join('');
+`).join('');
 
-    submitBtn.disabled = false;
-    submitBtn.classList.remove('opacity-50');
+// 🔥 aktifkan tombol submit
+submitBtn.disabled = false;
+submitBtn.classList.remove('opacity-50');
 
-    return;
+return;
 }
 
             const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
@@ -4177,54 +4189,6 @@ window.showView('riwayat','Pesanan Saya');
 
 <script>
 
-document.addEventListener('input', (e) => {
-
-    if(e.target.id === 'search-tools'){
-
-        // 🔥 SAFE GUARD localState
-        if(!window.localState ||
-           !localState.tools) return;
-
-        const keyword =
-            e.target.value.toLowerCase();
-
-        const container =
-            document.getElementById('tool-selection');
-
-        if(!container) return;
-
-        const filtered =
-            localState.tools
-            .filter(t =>
-                t.status === 'Open' &&
-                t.name.toLowerCase().includes(keyword)
-            );
-
-        container.innerHTML =
-            filtered.map(t => `
-
-<label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
-
-<input type="checkbox"
-name="tools"
-value="${t.id}"
-class="mb-1">
-
-<span class="text-[10px] font-bold truncate">
-${t.name}
-</span>
-
-<span class="text-[8px] text-indigo-500">
-${t.pos}
-</span>
-
-</label>
-
-`).join('');
-
-    }
-
-});
 
 window.logout = () => {
 
