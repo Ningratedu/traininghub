@@ -2158,19 +2158,24 @@ if(id){
             .innerText = titleText;
     }
 
-    // 🔥 CLOSE SIDEBAR ONLY (jangan buka lagi)
-    if(window.innerWidth < 768){
+    // 🔥 CLOSE SIDEBAR ONLY IF USER CLICK MENU
+if(window.innerWidth < 768){
 
-        const sidebar =
-            document.getElementById('mobile-sidebar');
+    const sidebar =
+        document.getElementById('mobile-sidebar');
 
-        const overlay =
-            document.getElementById('mobile-sidebar-overlay');
+    const overlay =
+        document.getElementById('mobile-sidebar-overlay');
+
+    // hanya close kalau sidebar memang sudah terbuka
+    if(sidebar.classList.contains('sidebar-open')){
 
         sidebar.classList.remove('sidebar-open');
         overlay.classList.add('hide');
 
     }
+
+}
 
     refreshUI();
 
@@ -4133,26 +4138,30 @@ window.addEventListener('load', () => {
     if (hash) {
         showView(hash);
     } else {
-        showView('dashboard'); // default view
+        showView('dashboard');
     }
 
-    // 🔥 AUTO OPEN SIDEBAR SAAT LOGIN (MOBILE)
-    if(window.innerWidth < 768){
+    // 🔥 AUTO OPEN SIDEBAR (SAFE DELAY)
+    setTimeout(()=>{
 
-        const sidebar =
-            document.getElementById('mobile-sidebar');
+        if(window.innerWidth < 768){
 
-        const overlay =
-            document.getElementById('mobile-sidebar-overlay');
+            const sidebar =
+                document.getElementById('mobile-sidebar');
 
-        if(sidebar && overlay){
+            const overlay =
+                document.getElementById('mobile-sidebar-overlay');
 
-            sidebar.classList.add('sidebar-open');
-            overlay.classList.remove('hide');
+            if(sidebar && overlay){
+
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.remove('hide');
+
+            }
 
         }
 
-    }
+    },300);
 
 });
 
