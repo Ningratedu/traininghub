@@ -2677,18 +2677,47 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('search-tools')
 ?.value?.toLowerCase() || '';
 
-// 🔥 SIMPAN TOOL YANG SUDAH DICEKLIS SEBELUM RENDER ULANG
+// 🔥 AMBIL TOOL YANG SUDAH DICEKLIS
 const selectedTools = Array.from(
     container.querySelectorAll('input[name="tools"]:checked')
 ).map(cb => cb.value);
 
-container.innerHTML =
-localState.tools
-.filter(t =>
-    t.status === 'Open' &&
+// 🔎 keyword search
+const keyword =
+document.getElementById('search-tools')
+?.value?.toLowerCase() || '';
+
+// 🔥 FILTER TOOL OPEN SAJA
+const allTools = localState.tools.filter(t =>
+    t.status === 'Open' && t.name
+);
+
+// 🔥 PISAHKAN
+const selectedList = allTools.filter(t =>
+    selectedTools.includes(t.id)
+);
+
+const unselectedList = allTools.filter(t =>
+    !selectedTools.includes(t.id) &&
     t.name.toLowerCase().includes(keyword)
-)
-.map(t => {
+);
+
+// 🔥 SORT BERDASARKAN POS
+const sortByPos = (a, b) =>
+    (a.pos || '').localeCompare(b.pos || '');
+
+selectedList.sort(sortByPos);
+unselectedList.sort(sortByPos);
+
+// 🔥 GABUNG (KERANJANG)
+const finalTools = [
+    ...selectedList,
+    ...unselectedList
+];
+
+// 🔥 RENDER FINAL
+container.innerHTML =
+finalTools.map(t => {
 
     const isToolBentrok = activeBookingsForTools.some(b => 
         b.tools && 
@@ -2696,39 +2725,33 @@ localState.tools
         isOverlapping(start, end, b.start, b.end)
     );
 
-    // 🔥 CEK TOOL SUDAH DIPILIH SEBELUMNYA
     const isChecked =
         selectedTools.includes(t.id) ||
         currentSelectedToolIds.includes(t.id);
 
     return `
-        <label class="${
-            isToolBentrok
-            ? 'opacity-40 bg-slate-200 cursor-not-allowed'
-            : 'bg-slate-50 hover:border-indigo-300 cursor-pointer'
-        } px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
+<label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
 
-            <input 
-                type="checkbox" 
-                name="tools" 
-                value="${t.id}" 
-                ${isToolBentrok ? 'disabled' : ''} 
-                ${isChecked ? 'checked' : ''} 
-                class="mb-1"
-            >
+    <input 
+        type="checkbox" 
+        name="tools" 
+        value="${t.id}" 
+        ${isChecked ? 'checked' : ''}
+        ${isToolBentrok ? 'disabled' : ''}
+        class="mb-1"
+    >
 
-            <span class="text-[10px] font-bold truncate">
-                ${t.name}
-            </span>
+    <span class="text-[10px] font-bold truncate">
+        ${t.name}
+    </span>
 
-            <span class="text-[8px] text-indigo-500">
-                ${isToolBentrok ? 'DIPESAN' : t.pos}
-            </span>
+    <span class="text-[8px] text-indigo-500">
+        ${t.pos || ''}
+    </span>
 
-        </label>
-    `;
-})
-.join('');
+</label>
+`;
+}).join('');
 
 };
 
