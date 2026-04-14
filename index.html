@@ -2561,47 +2561,39 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if(!date || !start || !end) {
 
-    const container = document.getElementById('tool-selection');
-    if (!container || !localState || !localState.tools) return;
+    // tetap render alat walaupun waktu belum dipilih
+const container = document.getElementById('tool-selection');
 
-    const keyword =
-        document.getElementById('search-tools')
-        ?.value?.toLowerCase() || '';
+// 🔥 SAFEGUARD container & data
+if (!container || !localState || !localState.tools) return;
 
-    // 🔥 SIMPAN YANG SUDAH DICENTANG KE CACHE
-    container
-    .querySelectorAll('input[name="tools"]:checked')
-    .forEach(cb => {
-        if (!selectedToolCache.includes(cb.value)) {
-            selectedToolCache.push(cb.value);
-        }
-    });
+// 🔎 ambil keyword search (aman walaupun input belum ada)
+const searchInput =
+document.getElementById('search-tools');
 
-    // 🔥 FILTER DATA
-    const filteredTools =
-    localState.tools.filter(t =>
-        t.status === 'Open' &&
-        t.name &&
-        t.name.toLowerCase().includes(keyword)
-    );
+const keyword =
+searchInput
+? searchInput.value.toLowerCase()
+: '';
 
-    // 🔥 RENDER + RESTORE CHECKLIST
-    container.innerHTML =
-    filteredTools.map(t => {
+// 🔥 filter tools dengan keyword
+const filteredTools =
+localState.tools.filter(t =>
+    t.status === 'Open' &&
+    t.name &&
+    t.name.toLowerCase().includes(keyword)
+);
 
-        const isChecked =
-            selectedToolCache.includes(t.id);
+// 🔥 render ulang list tools
+container.innerHTML =
+filteredTools.map(t => `
 
-        return `
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
 
-    <input 
-        type="checkbox" 
+    <input type="checkbox" 
         name="tools" 
         value="${t.id}" 
-        ${isChecked ? 'checked' : ''}
-        class="mb-1"
-    >
+        class="mb-1">
 
     <span class="text-[10px] font-bold truncate">
         ${t.name}
@@ -2612,14 +2604,8 @@ document.addEventListener('DOMContentLoaded', () => {
     </span>
 
 </label>
-`;
-    }).join('');
 
-    submitBtn.disabled = false;
-    submitBtn.classList.remove('opacity-50');
-
-    return;
-}
+`).join('');
 
 // 🔥 aktifkan tombol submit
 submitBtn.disabled = false;
