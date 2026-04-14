@@ -2295,16 +2295,51 @@ if(window.innerWidth < 768){
         };
 
         window.openBooking = () => {
-            document.getElementById('booking-modal-title').innerText = "Form Pemesanan";
-            document.getElementById('edit-booking-id').value = "";
-            const select = document.getElementById('book-room');
-            select.innerHTML = localState.rooms.filter(r => r.status === 'Open').map(r => `<option value="${r.id}">${r.name}</option>`).join('');
-            document.getElementById('book-dept').value = currentUser?.dept || 'Umum';
-            document.getElementById('form-booking').reset();
-            window.toggleBookingType('room');
-            window.validateToolSelection();
-            document.getElementById('modal-booking').classList.remove('hide');
-        };
+
+    // Reset form dulu
+    document.getElementById('form-booking').reset();
+
+    // Set Judul Modal
+    document.getElementById('booking-modal-title').innerText = "Form Pemesanan";
+
+    // Kosongkan edit ID
+    document.getElementById('edit-booking-id').value = "";
+
+
+
+    // Load Room List
+    const select = document.getElementById('book-room');
+
+    select.innerHTML =
+        localState.rooms
+        .filter(r => r.status === 'Open')
+        .map(r => `<option value="${r.id}">${r.name}</option>`)
+        .join('');
+
+
+
+    // Set Departemen (SETELAH RESET)
+    document.getElementById('book-dept').value =
+        currentUser?.dept || 'Umum';
+
+
+
+    // Default Mode
+    window.toggleBookingType('room');
+
+
+
+    // Validasi Tool
+    window.validateToolSelection();
+
+
+
+    // Tampilkan Modal
+    document
+        .getElementById('modal-booking')
+        .classList.remove('hide');
+
+};
 
 		// 🔎 LIVE SEARCH TOOLS (WAJIB UNTUK FILTER LANGSUNG)
 document.addEventListener('DOMContentLoaded', () => {
