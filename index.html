@@ -2394,7 +2394,17 @@ localState.tools
                 if(b && b.tools) currentSelectedToolIds = b.tools.map(t => t.id);
             }
 
-            container.innerHTML = localState.tools.filter(t => t.status === 'Open').map(t => {
+            const keyword =
+document.getElementById('search-tools')
+?.value?.toLowerCase() || '';
+
+container.innerHTML =
+localState.tools
+.filter(t =>
+    t.status === 'Open' &&
+    t.name.toLowerCase().includes(keyword)
+)
+.map(t => {
                 const isToolBentrok = activeBookingsForTools.some(b => 
                     b.tools && 
                     b.tools.some(bt => bt.id === t.id) && 
