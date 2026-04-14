@@ -207,7 +207,7 @@ overflow-x: hidden;
 </head>
 
 <body class="text-slate-700">
-    // LOGIN SCREEN -->
+    <!-- LOGIN SCREEN -->
     <div id="login-screen" class="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
             <div class="text-center mb-8">
@@ -219,18 +219,18 @@ overflow-x: hidden;
                 <p class="text-blue-600 text-sm font-semibold">RUMAH NINGRAT</p>
 				<div class="flex items-center gap-3 my-2">
     
-    // KIRI (2 garis) -->
+    <!-- KIRI (2 garis) -->
     <div class="flex-1 flex flex-col gap-1">
         <div class="h-[1px] bg-slate-400"></div>
         <div class="h-[1px] bg-slate-400"></div>
     </div>
 
-    // TEXT -->
+    <!-- TEXT -->
     <p class="text-black text-sm font-bold tracking-wide whitespace-nowrap">
         Asset Management
     </p>
 
-    // KANAN (2 garis) -->
+    <!-- KANAN (2 garis) -->
     <div class="flex-1 flex flex-col gap-1">
         <div class="h-[1px] bg-slate-400"></div>
         <div class="h-[1px] bg-slate-400"></div>
@@ -256,7 +256,7 @@ overflow-x: hidden;
         </div>
     </div>
 
-    // REGISTER MODAL -->
+    <!-- REGISTER MODAL -->
     <div id="modal-register" class="fixed inset-0 z-[210] hide modal-overlay flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
@@ -309,16 +309,16 @@ overflow-x: hidden;
         </div>
     </div>
 
-    // MOBILE OVERLAY FOR SIDEBAR -->
+    <!-- MOBILE OVERLAY FOR SIDEBAR -->
     <div id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-[90] hide md:hidden"></div>
 
     <div class="flex min-h-screen">
-        // SIDEBAR (Responsive) -->
+        <!-- SIDEBAR (Responsive) -->
        <aside id="mobile-sidebar" class="fixed md:sticky top-0 left-0 h-screen w-64 border-r border-slate-200 z-[100] -translate-x-full md:translate-x-0 flex flex-col">
 
     <div class="p-6">
 
-        // 🔥 HEADER PUTIH -->
+        <!-- 🔥 HEADER PUTIH -->
         <div class="sidebar-header">
             <div class="flex items-center justify-between">
 
@@ -335,10 +335,10 @@ overflow-x: hidden;
             </div>
         </div>
 
-        // 🔥 MENU -->
+        <!-- 🔥 MENU -->
         <nav class="mt-4" id="main-nav">
 
-            // GROUP 1 -->
+            <!-- GROUP 1 -->
             <div class="menu-group">
                 <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg sidebar-item-active" data-view="dashboard">
                     <i class="fas fa-th-large w-5"></i> Dashboard
@@ -349,14 +349,14 @@ overflow-x: hidden;
                 </button>
             </div>
 
-            // USER MENU -->
+            <!-- USER MENU -->
             <div id="user-menu-section" class="menu-group mt-3 hide">
                 <button onclick="showView('riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="riwayat">
                     <i class="fas fa-history w-5"></i> Pesanan Saya
                 </button>
             </div>
 
-            // ADMIN MENU -->
+            <!-- ADMIN MENU -->
             <div id="admin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
 
                 <div class="menu-group">
@@ -381,7 +381,7 @@ overflow-x: hidden;
         </nav>
     </div>
 
-    // 🔥 USER CARD -->
+    <!-- 🔥 USER CARD -->
     <div class="mt-auto p-6 border-t border-slate-100">
         <div class="bg-slate-900 rounded-2xl p-4 text-white">
             <p class="text-[10px] font-bold text-slate-400 uppercase mb-1" id="role-label">User</p>
@@ -404,7 +404,7 @@ overflow-x: hidden;
         <main class="flex-1 flex flex-col min-w-0">
             <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    // MOBILE MENU TOGGLE -->
+                    <!-- MOBILE MENU TOGGLE -->
                     <button onclick="toggleMobileSidebar()" class="md:hidden w-12 h-12 flex items-center justify-center bg-white/80 backdrop-blur border border-slate-200 rounded-lg text-slate-700 shadow"
                         <i class="text-lg">☰</i>
                     </button>
@@ -454,10 +454,10 @@ overflow-x: hidden;
     <div id="view-dashboard" class="view">
         <div id="admin-dashboard-ui" class="hide">
 
-            // 🔥 GRID UPDATE (jadi 9 kolom biar muat semua) -->
+            <!-- 🔥 GRID UPDATE (jadi 9 kolom biar muat semua) -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 mb-8">
 
-// TOTAL RUANGAN -->
+<!-- TOTAL RUANGAN -->
 <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showRoomStatsDetail()">
     <div class="flex justify-between items-start">
         <p class="text-slate-500 text-[9px] font-black uppercase">Total Ruangan</p>
@@ -469,7 +469,7 @@ overflow-x: hidden;
     <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
 </div>
 
-// TOTAL ALAT -->
+<!-- TOTAL ALAT -->
 <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showToolStatsDetail()">
     <div class="flex justify-between items-start">
         <p class="text-slate-500 text-[9px] font-black uppercase">Total Alat</p>
@@ -482,7 +482,7 @@ overflow-x: hidden;
     <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
 </div>
 
-// PESANAN RUANGAN -->
+<!-- PESANAN RUANGAN -->
 <div class="stat-card card-pop p-4 border-t-4 border-blue-500" onclick="window.showStatTable('room')">
     <div class="flex justify-between items-start">
         <p class="text-blue-500 text-[9px] font-black uppercase">Pesanan Ruangan</p>
@@ -496,7 +496,7 @@ overflow-x: hidden;
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-room-booking-ratio">0/0</p>
 </div>
 
-// PESANAN ALAT -->
+<!-- PESANAN ALAT -->
 <div class="stat-card card-pop p-4 border-t-4 border-emerald-500" onclick="window.showStatTable('tool-only')">
     <div class="flex justify-between items-start">
         <p class="text-emerald-500 text-[9px] font-black uppercase">Pesanan Alat</p>
@@ -510,7 +510,7 @@ overflow-x: hidden;
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-tool-booking-ratio">0/0</p>
 </div>
 
-// APPROVED -->
+<!-- APPROVED -->
 <div class="stat-card card-pop p-4 border-t-4 border-indigo-500" onclick="window.showStatTable('Approved')">
     <div class="flex justify-between items-start">
         <p class="text-indigo-500 text-[9px] font-black uppercase">Disetujui</p>
@@ -523,7 +523,7 @@ overflow-x: hidden;
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-approved-ratio">0/0</p>
 </div>
 
-// PENDING -->
+<!-- PENDING -->
 <div class="stat-card card-pop p-4 border-t-4 border-amber-500" onclick="window.showStatTable('Pending')">
     <div class="flex justify-between items-start">
         <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
@@ -537,7 +537,7 @@ overflow-x: hidden;
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-pending-ratio">0/0</p>
 </div>
 
-// ONGOING -->
+<!-- ONGOING -->
 <div class="stat-card card-pop p-4 border-t-4 border-cyan-500" onclick="window.showStatTable('Ongoing')">
     <div class="flex justify-between items-start">
         <p class="text-cyan-500 text-[9px] font-black uppercase">Ongoing</p>
@@ -550,7 +550,7 @@ overflow-x: hidden;
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-ongoing-ratio">0/0</p>
 </div>
 
-// COMPLETED -->
+<!-- COMPLETED -->
 <div class="stat-card card-pop p-4 border-t-4 border-green-500" onclick="window.showStatTable('Completed')">
     <div class="flex justify-between items-start">
         <p class="text-green-500 text-[9px] font-black uppercase">Completed</p>
@@ -563,7 +563,7 @@ overflow-x: hidden;
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-completed-ratio">0/0</p>
 </div>
 
-// REJECTED -->
+<!-- REJECTED -->
 <div class="stat-card card-pop p-4 border-t-4 border-rose-500" onclick="window.showStatTable('Rejected')">
     <div class="flex justify-between items-start">
         <p class="text-rose-500 text-[9px] font-black uppercase">Ditolak</p>
@@ -654,7 +654,7 @@ overflow-x: hidden;
 
     </div>
 
-	// 📊 TABLE -->				
+	<!-- 📊 TABLE -->				
     <div class="overflow-auto max-h-[500px] bg-white rounded-2xl border shadow-sm">
 
     <table class="min-w-[1400px] w-full text-sm">
@@ -702,7 +702,7 @@ overflow-x: hidden;
         </main>
     </div>
 
-    // SCANNER MODAL -->
+    <!-- SCANNER MODAL -->
 <div id="modal-scanner" class="fixed inset-0 z-[220] hide modal-overlay flex items-center justify-center p-4">
 
     <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
@@ -719,10 +719,10 @@ overflow-x: hidden;
 
         </div>
 
-        // CAMERA READER -->
+        <!-- CAMERA READER -->
         <div id="reader" class="mb-4"></div>
 
-        // ================= TAMBAHAN GALLERY ================= -->
+        <!-- ================= TAMBAHAN GALLERY ================= -->
 
         <div class="w-full mt-3 border-t pt-3">
 
@@ -746,7 +746,7 @@ overflow-x: hidden;
 
         </div>
 
-        // ================= END TAMBAHAN ================= -->
+        <!-- ================= END TAMBAHAN ================= -->
 
         <p class="text-xs text-slate-500 text-center italic mt-3">
             Arahkan kamera ke QR Code di layar Admin atau upload dari galeri untuk menyelesaikan pesanan.
@@ -758,7 +758,7 @@ overflow-x: hidden;
 
 
 
-// MODAL LIST RUANGAN -->
+<!-- MODAL LIST RUANGAN -->
 <div id="modal-room-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
 
     <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
@@ -781,7 +781,7 @@ overflow-x: hidden;
 
 </div>
 
-    // MODAL LIST ALAT -->
+    <!-- MODAL LIST ALAT -->
     <div id="modal-tool-stats" class="fixed inset-0 z-[180] hide modal-overlay flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-center mb-6">
@@ -792,7 +792,7 @@ overflow-x: hidden;
         </div>
     </div>
 
-    // MODAL TABEL STATISTIK -->
+    <!-- MODAL TABEL STATISTIK -->
     <div id="modal-stat-table" class="fixed inset-0 z-[185] hide modal-overlay flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-5xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-center mb-6">
@@ -816,7 +816,7 @@ overflow-x: hidden;
         </div>
     </div>
 
-    // MODAL RIWAYAT RUANGAN -->
+    <!-- MODAL RIWAYAT RUANGAN -->
     <div id="modal-room-history" class="fixed inset-0 z-[190] hide modal-overlay flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[80vh]">
             <div class="flex justify-between items-center mb-6">
@@ -827,7 +827,7 @@ overflow-x: hidden;
         </div>
     </div>
 
-    // MODAL MASTER DATA -->
+    <!-- MODAL MASTER DATA -->
 <div id="modal-master" class="fixed inset-0 z-[170] hide modal-overlay flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
         
@@ -843,7 +843,7 @@ overflow-x: hidden;
             <input type="hidden" id="master-type">
             <input type="hidden" id="master-id">
 
-            // NAMA ASET -->
+            <!-- NAMA ASET -->
             <div>
                 <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
                     Nama Aset
@@ -852,10 +852,10 @@ overflow-x: hidden;
                     class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
             </div>
 
-            // FIELD TAMBAHAN (KAPASITAS / POSISI) -->
+            <!-- FIELD TAMBAHAN (KAPASITAS / POSISI) -->
             <div id="master-extra-field"></div>
 
-            // ✅ FIELD GAMBAR (BARU) -->
+            <!-- ✅ FIELD GAMBAR (BARU) -->
             <div>
                 <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
                     Gambar
@@ -864,7 +864,7 @@ overflow-x: hidden;
                     class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm">
             </div>
 
-            // STATUS -->
+            <!-- STATUS -->
             <div>
                 <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">
                     Status Ketersediaan
@@ -876,7 +876,7 @@ overflow-x: hidden;
                 </select>
             </div>
 
-            // BUTTON -->
+            <!-- BUTTON -->
             <div class="flex gap-3 pt-4">
                 <button type="button"
                     onclick="closeModal('modal-master')"
@@ -895,7 +895,7 @@ overflow-x: hidden;
     </div>
 </div>
 
-    // MODAL DETAIL PEMESANAN -->
+    <!-- MODAL DETAIL PEMESANAN -->
     <div id="modal-detail" class="fixed inset-0 z-[150] hide modal-overlay flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="p-6 border-b flex justify-between items-center">
@@ -907,7 +907,7 @@ overflow-x: hidden;
         </div>
     </div>
 
-    // MODAL FORM BOOKING -->
+    <!-- MODAL FORM BOOKING -->
     <div id="modal-booking" class="fixed inset-0 z-[100] hide modal-overlay flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden">
             <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -956,7 +956,7 @@ overflow-x: hidden;
         </div>
     </div>
 
-	// EMAILJS -->
+	<!-- EMAILJS -->
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 <script>
 (function(){
@@ -964,7 +964,7 @@ overflow-x: hidden;
 })();
 </script>
 
-// SCRIPT UTAMA LO -->
+<!-- SCRIPT UTAMA LO -->
 
     <script type="module">
 
@@ -1554,13 +1554,13 @@ window.showStatTable = (category) => {
 class="bg-slate-50 hover:bg-white hover:border-indigo-300 border border-transparent 
 transition-all p-3 rounded-2xl cursor-pointer flex items-center gap-3 group">
 
-    // GAMBAR -->
+    <!-- GAMBAR -->
     <img 
         src="${room.image || 'https://via.placeholder.com/100'}"
         class="w-16 h-16 object-cover rounded-xl flex-shrink-0"
     />
 
-    // CONTENT -->
+    <!-- CONTENT -->
     <div class="flex-1">
 
         <div class="flex items-center gap-2">
@@ -1576,7 +1576,7 @@ transition-all p-3 rounded-2xl cursor-pointer flex items-center gap-3 group">
             </span>
         </div>
 
-        // KAPASITAS -->
+        <!-- KAPASITAS -->
         <p class="text-[10px] text-indigo-500 font-bold">
             👥 ${room.capacity || 0} Orang
         </p>
@@ -1661,13 +1661,13 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
 
 };
 
-    // GAMBAR -->
+    <!-- GAMBAR -->
     <img 
         src="${tool.image || 'https://via.placeholder.com/100'}"
         class="w-16 h-16 object-cover rounded-xl flex-shrink-0"
     />
 
-    // CONTENT -->
+    <!-- CONTENT -->
     <div class="flex-1">
 
         <div class="flex items-center gap-2">
@@ -1683,7 +1683,7 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
             </span>
         </div>
 
-        // LOKASI -->
+        <!-- LOKASI -->
         <p class="text-[10px] text-indigo-500 font-bold">
             📍 ${tool.pos || '-'}
         </p>
@@ -1960,7 +1960,7 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
         class="bg-white rounded-2xl shadow-sm border border-slate-100 flex overflow-hidden relative cursor-pointer hover:shadow-md transition ${isClosed ? 'opacity-60 grayscale' : ''}"
     >
 
-        // OVERLAY CLOSED -->
+        <!-- OVERLAY CLOSED -->
         ${isClosed ? `
         <div class="absolute inset-0 bg-slate-900/10 flex items-center justify-center z-10">
             <span class="bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
@@ -1968,7 +1968,7 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
             </span>
         </div>` : ''}
 
-        // BADGE STATUS -->
+        <!-- BADGE STATUS -->
         ${!isClosed ? `
         <div class="absolute top-0 right-0 
             ${isOccupied 
@@ -1978,16 +1978,16 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
             ${isOccupied ? 'DIPESAN' : 'TERSEDIA'}
         </div>` : ''}
 
-        // GAMBAR -->
+        <!-- GAMBAR -->
         <img 
             src="${item.image || 'https://via.placeholder.com/150'}"
             class="w-32 h-32 object-cover flex-shrink-0 ${isClosed ? 'opacity-70' : ''}"
         />
 
-        // CONTENT -->
+        <!-- CONTENT -->
         <div class="p-4 flex flex-col justify-center text-left flex-1">
 
-            // TITLE + ICON (FIX DI KIRI) -->
+            <!-- TITLE + ICON (FIX DI KIRI) -->
             <div class="flex items-center gap-2">
                 <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-slate-400 text-sm"></i>
 
@@ -1996,7 +1996,7 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
                 </h5>
             </div>
 
-            // INFO -->
+            <!-- INFO -->
             <p class="text-xs text-slate-500 mt-1">
                 ${
                     type === 'room'
@@ -2445,7 +2445,7 @@ localState.tools
 
             <div class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group">
 
-    // 📅 TANGGAL -->
+    <!-- 📅 TANGGAL -->
     <div class="text-center min-w-[45px] leading-tight">
         <p class="text-xl font-black text-slate-900">
             ${b.date ? b.date.split('-')[2] : '-'}
@@ -2455,7 +2455,7 @@ localState.tools
         </p>
     </div>
 
-    // 📋 CONTENT -->
+    <!-- 📋 CONTENT -->
     <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0 flex flex-col gap-1">
 
         <p class="font-bold text-sm text-slate-800 truncate">
@@ -2480,17 +2480,17 @@ localState.tools
 
     </div>
 
-    // 👉 ACTION -->
+    <!-- 👉 ACTION -->
     <div class="flex flex-col items-end gap-2 shrink-0">
 
-    // STATUS -->
+    <!-- STATUS -->
     <span 
     onclick="window.openDetail('${b.id}')"
     class="text-[9px] font-bold uppercase px-3 py-1 rounded-full whitespace-nowrap ${getStatusClass(b.status)}">
         ${b.status}
     </span>
 
-   // ICON ACTION -->
+   <!-- ICON ACTION -->
 <div class="flex gap-2">
 
 ${b.status === 'Pending' ? `
@@ -2509,9 +2509,9 @@ class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition
 
 </div>
 
-</div> // ACTION -->
+</div> <!-- ACTION -->
 
-</div> // 🔥 CARD (WAJIB ADA) -->
+</div> <!-- 🔥 CARD (WAJIB ADA) -->
 
 `;
 
@@ -2983,7 +2983,7 @@ function renderMaster(){
 
 <div class="relative p-4 border-b flex items-center gap-4 hover:bg-slate-50 transition group">
 
-    // STATUS -->
+    <!-- STATUS -->
     <span class="absolute top-3 right-3 text-[8px] font-black px-2 py-0.5 rounded-full
     ${r.status === 'Open'
         ? 'bg-emerald-100 text-emerald-600'
@@ -2991,13 +2991,13 @@ function renderMaster(){
         ${r.status === 'Open' ? 'Tersedia' : 'Tutup'}
     </span>
 
-    // FOTO -->
+    <!-- FOTO -->
     <img 
         src="${r.image || 'https://via.placeholder.com/100'}"
         class="w-14 h-14 object-cover rounded-xl flex-shrink-0"
     />
 
-    // CONTENT -->
+    <!-- CONTENT -->
     <div class="flex-1">
         <p class="text-sm font-bold text-slate-800">
             ${r.name}
@@ -3008,7 +3008,7 @@ function renderMaster(){
         </p>
     </div>
 
-    // ACTION -->
+    <!-- ACTION -->
     <div class="flex items-center gap-3 text-[10px] italic">
 
         <button
@@ -3050,7 +3050,7 @@ function renderMaster(){
 
 <div class="relative p-4 border-b flex items-center gap-4 hover:bg-slate-50 transition group">
 
-    // STATUS -->
+    <!-- STATUS -->
     <span class="absolute top-3 right-3 text-[8px] font-black px-2 py-0.5 rounded-full
     ${t.status === 'Open'
         ? 'bg-emerald-100 text-emerald-600'
@@ -3058,13 +3058,13 @@ function renderMaster(){
         ${t.status === 'Open' ? 'Tersedia' : 'Tutup'}
     </span>
 
-    // FOTO -->
+    <!-- FOTO -->
     <img 
         src="${t.image || 'https://via.placeholder.com/100'}"
         class="w-14 h-14 object-cover rounded-xl flex-shrink-0"
     />
 
-    // CONTENT -->
+    <!-- CONTENT -->
     <div class="flex-1">
         <p class="text-sm font-bold text-slate-800">
             ${t.name}
@@ -3075,7 +3075,7 @@ function renderMaster(){
         </p>
     </div>
 
-    // ACTION -->
+    <!-- ACTION -->
     <div class="flex items-center gap-3 text-[10px] italic">
 
         <button
@@ -4327,7 +4327,7 @@ window.submitChangePassword = async () => {
 
 </script>
 
-// 🔥 MODAL RIWAYAT ASSET -->
+<!-- 🔥 MODAL RIWAYAT ASSET -->
 <div id="asset-booking-modal"
      class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-[9999] p-4">
 
