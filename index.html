@@ -2216,14 +2216,15 @@ localState.tools
     t.status === 'Open' &&
     t.name.toLowerCase().includes(keyword)
 )
-.map(t => {
+.map(t => `
 
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
+
     <input type="checkbox" 
         name="tools" 
         value="${t.id}" 
         class="mb-1">
-        
+
     <span class="text-[10px] font-bold truncate">
         ${t.name}
     </span>
@@ -2234,7 +2235,8 @@ localState.tools
 
 </label>
 
-`).join('');
+`)
+.join('');
 
     submitBtn.disabled = false;
     submitBtn.classList.remove('opacity-50');
@@ -4101,7 +4103,6 @@ ${t.pos}
 
 `).join('');
 
-}
 });
 
 window.logout = () => {
