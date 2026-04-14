@@ -1629,37 +1629,14 @@ transition-all p-3 rounded-2xl cursor-pointer flex items-center gap-3 group">
                 toolBookings[0];
 
             const lastUser =
-                lastBooking
-                ? `${lastBooking.userName} (${lastBooking.dept})`
-                : 'Belum digunakan';
+    lastBooking
+    ? `${lastBooking.userName} (${lastBooking.dept})`
+    : 'Belum digunakan';
 
-            return `
+return `
 <div onclick="window.showToolHistory('${tool.id}', '${tool.name}')"
 class="bg-slate-50 hover:bg-white hover:border-indigo-300 border border-transparent 
 transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
-
-    <div class="flex-1">
-
-        <div class="text-sm font-bold truncate">
-            ${tool.name}
-        </div>
-
-        <div class="text-[10px] text-slate-500">
-            ${tool.pos}
-        </div>
-
-        <div class="text-[10px] text-indigo-500 mt-1">
-            Terakhir: ${lastUser}
-        </div>
-
-    </div>
-
-</div>
-`;
-
-        }).join('');
-
-};
 
     <!-- GAMBAR -->
     <img 
@@ -1676,10 +1653,16 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
             </h5>
 
             <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded
-            ${tool.status === 'Open'
+            ${
+                tool.status === 'Open'
                 ? 'bg-emerald-100 text-emerald-600'
-                : 'bg-rose-100 text-rose-600'}">
-                ${tool.status === 'Open' ? 'Tersedia' : 'Ditutup'}
+                : 'bg-rose-100 text-rose-600'
+            }">
+                ${
+                    tool.status === 'Open'
+                    ? 'Tersedia'
+                    : 'Ditutup'
+                }
             </span>
         </div>
 
@@ -1696,32 +1679,88 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
 
 </div>
 `;
-    }).join('');
 
-    document.getElementById('modal-tool-stats').classList.remove('hide');
+}).join('');
+
+document
+.getElementById('modal-tool-stats')
+.classList.remove('hide');
+
 };
 
-        window.showRoomHistory = (roomId, roomName) => {
-            const container = document.getElementById('room-history-container');
-            document.getElementById('room-history-title').innerText = roomName;
-            const filtered = getFilteredBookings().filter(b => b.roomId === roomId);
-            
-            if(filtered.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs italic">Tidak ada riwayat pemesanan di periode ini</div>`;
-            } else {
-                container.innerHTML = filtered.slice().reverse().map(b => `
-                    <div class="border-b border-slate-50 pb-3 last:border-0">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-black uppercase ${getStatusClass(b.status)} px-2 py-0.5 rounded">${b.status}</span>
-                            <span class="text-[9px] text-slate-400 font-bold">${b.date}</span>
-                        </div>
-                        <p class="text-xs font-bold text-slate-700">${b.goal}</p>
-                        <p class="text-[10px] text-slate-400">${b.userName} (${b.dept}) • ${b.start} - ${b.end}</p>
-                    </div>
-                `).join('');
-            }
-            document.getElementById('modal-room-history').classList.remove('hide');
-        };
+
+
+window.showRoomHistory = (roomId, roomName) => {
+
+    const container =
+        document.getElementById('room-history-container');
+
+    document
+        .getElementById('room-history-title')
+        .innerText = roomName;
+
+    const filtered =
+        getFilteredBookings()
+        .filter(b => b.roomId === roomId);
+
+    if(filtered.length === 0) {
+
+        container.innerHTML =
+        `<div class="text-center py-8 text-slate-400 text-xs italic">
+            Tidak ada riwayat pemesanan di periode ini
+        </div>`;
+
+    } else {
+
+        container.innerHTML =
+            filtered
+            .slice()
+            .reverse()
+            .map(b => `
+
+<div class="border-b border-slate-50 pb-3 last:border-0">
+
+    <div class="flex justify-between items-center mb-1">
+
+        <span class="text-[10px] font-black uppercase 
+        ${getStatusClass(b.status)} 
+        px-2 py-0.5 rounded">
+
+            ${b.status}
+
+        </span>
+
+        <span class="text-[9px] text-slate-400 font-bold">
+
+            ${b.date}
+
+        </span>
+
+    </div>
+
+    <p class="text-xs font-bold text-slate-700">
+
+        ${b.goal}
+
+    </p>
+
+    <p class="text-[10px] text-slate-400">
+
+        ${b.userName} (${b.dept}) • ${b.start} - ${b.end}
+
+    </p>
+
+</div>
+
+`).join('');
+
+    }
+
+    document
+        .getElementById('modal-room-history')
+        .classList.remove('hide');
+
+};
 
 		window.showToolHistory = (toolId, toolName) => {
     const container = document.getElementById('room-history-container'); // reuse modal yg sama
