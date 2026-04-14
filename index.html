@@ -2561,39 +2561,40 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if(!date || !start || !end) {
 
-    // tetap render alat walaupun waktu belum dipilih
-const container = document.getElementById('tool-selection');
+    const container = document.getElementById('tool-selection');
+    if (!container || !localState || !localState.tools) return;
 
-// 🔥 SAFEGUARD container & data
-if (!container || !localState || !localState.tools) return;
+    // ✅ AMBIL YANG SUDAH DICEKLIS SEBELUM RENDER
+    const prevChecked = {};
+    container.querySelectorAll('input[name="tools"]:checked')
+    .forEach(cb => {
+        prevChecked[cb.value] = true;
+    });
 
-// 🔎 ambil keyword search (aman walaupun input belum ada)
-const searchInput =
-document.getElementById('search-tools');
+    const keyword =
+        document.getElementById('search-tools')
+        ?.value?.toLowerCase() || '';
 
-const keyword =
-searchInput
-? searchInput.value.toLowerCase()
-: '';
+    const filteredTools =
+    localState.tools.filter(t =>
+        t.status === 'Open' &&
+        t.name &&
+        t.name.toLowerCase().includes(keyword)
+    );
 
-// 🔥 filter tools dengan keyword
-const filteredTools =
-localState.tools.filter(t =>
-    t.status === 'Open' &&
-    t.name &&
-    t.name.toLowerCase().includes(keyword)
-);
-
-// 🔥 render ulang list tools
-container.innerHTML =
-filteredTools.map(t => `
+    // ✅ RENDER ULANG
+    container.innerHTML =
+    filteredTools.map(t => `
 
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
 
-    <input type="checkbox" 
+    <input 
+        type="checkbox" 
         name="tools" 
         value="${t.id}" 
-        class="mb-1">
+        ${prevChecked[t.id] ? 'checked' : ''}
+        class="mb-1"
+    >
 
     <span class="text-[10px] font-bold truncate">
         ${t.name}
@@ -2607,12 +2608,11 @@ filteredTools.map(t => `
 
 `).join('');
 
-// 🔥 aktifkan tombol submit
-submitBtn.disabled = false;
-submitBtn.classList.remove('opacity-50');
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-50');
 
-return;
-}
+    return;
+			}
 
             const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
             
