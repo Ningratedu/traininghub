@@ -896,65 +896,254 @@ overflow-x: hidden;
 </div>
 
     <!-- MODAL DETAIL PEMESANAN -->
-    <div id="modal-detail" class="fixed inset-0 z-[150] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-xl font-black">Detail Pemesanan</h3>
-                <button onclick="closeModal('modal-detail')"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="detail-content" class="p-6 overflow-y-auto space-y-6 pb-32"></div>
-            <div id="detail-footer" class="p-4 border-t bg-white flex gap-3 sticky bottom-0 z-10"></div>
+<div id="modal-detail" class="fixed inset-0 z-[150] hide modal-overlay flex items-center justify-center p-4">
+    
+    <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 class="text-xl font-black">Detail Pemesanan</h3>
+            
+            <button onclick="closeModal('modal-detail')">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+
+        <div id="detail-content" class="p-6 overflow-y-auto space-y-6 pb-32"></div>
+
+        <div id="detail-footer" class="p-4 border-t bg-white flex gap-3 sticky bottom-0 z-10"></div>
+
     </div>
 
-    <!-- MODAL FORM BOOKING -->
-    <div id="modal-booking" class="fixed inset-0 z-[100] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden">
-            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h3 id="booking-modal-title" class="text-2xl font-black">Form Pemesanan</h3>
-                <button onclick="closeModal('modal-booking')"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="form-booking" class="p-8 grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
-                <input type="hidden" id="edit-booking-id">
-                <div class="col-span-2">
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" onclick="window.toggleBookingType('room')" id="btn-type-room" class="py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm">Ruangan & Alat</button>
-                        <button type="button" onclick="window.toggleBookingType('tool')" id="btn-type-tool" class="py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-500 font-bold text-sm">Hanya Alat</button>
-                    </div>
-                </div>
-                <div id="booking-room-field" class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Pilih Ruangan</label><select id="book-room" class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></select></div>
-                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Departemen</label><input type="text" id="book-dept" readonly class="w-full bg-slate-200 border-none rounded-xl px-4 py-3 text-sm text-slate-500"></div>
-                <div class="col-span-2"><label class="text-[10px] font-bold uppercase text-slate-400">Tujuan</label><input type="text" id="book-goal" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"></div>
-                <div class="col-span-2 sm:col-span-1"><label class="text-[10px] font-bold uppercase text-slate-400">Tanggal</label><input type="date" id="book-date" required class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm" onchange="window.validateToolSelection()"></div>
-                <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
-                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Mulai</label><input type="time" id="book-start" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
-                    <div class="flex flex-col"><label class="text-[10px] font-bold uppercase text-slate-400">Selesai</label><input type="time" id="book-end" required class="bg-slate-100 rounded-xl px-2 py-3 text-sm" onchange="window.validateToolSelection()"></div>
-                </div>
-                <div class="col-span-2 border-t pt-4">
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Pilih Alat</label>
-					<input 
-					type="text"
-					id="search-tools"
-					placeholder="Cari alat..."
-					class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm mb-2"
-					/>
+</div>
 
-<div id="tool-selection" class="flex flex-wrap gap-2 mt-2"></div>
-                </div>
-				<div class="col-span-2">
-    <label class="text-[10px] font-bold uppercase text-slate-400">Catatan Tambahan</label>
-    <textarea 
-        id="book-notes" 
-        rows="3"
-        placeholder="Tulis catatan tambahan di sini (opsional)..."
-        class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm resize-none">
-    </textarea>
-				</div>
-                <div id="booking-error-msg" class="col-span-2 text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg">Pilihan ruangan ini sudah dipesan pada waktu tersebut.</div>
-                <button type="submit" id="btn-submit-booking" class="col-span-2 bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg">Simpan Pesanan</button>
-            </form>
+
+
+<!-- MODAL FORM BOOKING -->
+<div id="modal-booking" class="fixed inset-0 z-[100] hide modal-overlay flex items-center justify-center p-4">
+    
+    <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden">
+
+        <!-- HEADER -->
+        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            
+            <h3 id="booking-modal-title" class="text-2xl font-black">
+                Form Pemesanan
+            </h3>
+
+            <button onclick="closeModal('modal-booking')">
+                <i class="fas fa-times"></i>
+            </button>
+
         </div>
+
+
+
+        <!-- FORM -->
+        <form id="form-booking" class="p-8 grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
+
+            <input type="hidden" id="edit-booking-id">
+
+
+
+            <!-- BOOKING TYPE -->
+            <div class="col-span-2">
+
+                <div class="grid grid-cols-2 gap-3">
+
+                    <button 
+                        type="button"
+                        onclick="window.toggleBookingType('room')" 
+                        id="btn-type-room" 
+                        class="py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm"
+                    >
+                        Ruangan & Alat
+                    </button>
+
+                    <button 
+                        type="button"
+                        onclick="window.toggleBookingType('tool')" 
+                        id="btn-type-tool" 
+                        class="py-3 rounded-xl border-2 border-slate-100 bg-slate-50 text-slate-500 font-bold text-sm"
+                    >
+                        Hanya Alat
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PILIH RUANGAN -->
+            <div id="booking-room-field" class="col-span-2 sm:col-span-1">
+
+                <label class="text-[10px] font-bold uppercase text-slate-400">
+                    Pilih Ruangan
+                </label>
+
+                <select 
+                    id="book-room" 
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"
+                    onchange="window.validateToolSelection()"
+                ></select>
+
+            </div>
+
+
+
+            <!-- DEPARTEMEN (READ ONLY) -->
+            <div class="col-span-2 sm:col-span-1">
+
+                <label class="text-[10px] font-bold uppercase text-slate-400">
+                    Departemen
+                </label>
+
+                <input 
+                    type="text" 
+                    id="book-dept" 
+                    readonly 
+                    class="w-full bg-slate-200 border-none rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed"
+                >
+
+            </div>
+
+
+
+            <!-- TUJUAN -->
+            <div class="col-span-2">
+
+                <label class="text-[10px] font-bold uppercase text-slate-400">
+                    Tujuan
+                </label>
+
+                <input 
+                    type="text" 
+                    id="book-goal" 
+                    required 
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"
+                >
+
+            </div>
+
+
+
+            <!-- TANGGAL -->
+            <div class="col-span-2 sm:col-span-1">
+
+                <label class="text-[10px] font-bold uppercase text-slate-400">
+                    Tanggal
+                </label>
+
+                <input 
+                    type="date" 
+                    id="book-date" 
+                    required 
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"
+                    onchange="window.validateToolSelection()"
+                >
+
+            </div>
+
+
+
+            <!-- JAM -->
+            <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
+
+                <div class="flex flex-col">
+
+                    <label class="text-[10px] font-bold uppercase text-slate-400">
+                        Mulai
+                    </label>
+
+                    <input 
+                        type="time" 
+                        id="book-start" 
+                        required 
+                        class="bg-slate-100 rounded-xl px-2 py-3 text-sm"
+                        onchange="window.validateToolSelection()"
+                    >
+
+                </div>
+
+                <div class="flex flex-col">
+
+                    <label class="text-[10px] font-bold uppercase text-slate-400">
+                        Selesai
+                    </label>
+
+                    <input 
+                        type="time" 
+                        id="book-end" 
+                        required 
+                        class="bg-slate-100 rounded-xl px-2 py-3 text-sm"
+                        onchange="window.validateToolSelection()"
+                    >
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PILIH ALAT -->
+            <div class="col-span-2 border-t pt-4">
+
+                <label class="text-[10px] font-bold uppercase text-slate-400">
+                    Pilih Alat
+                </label>
+
+                <input 
+                    type="text"
+                    id="search-tools"
+                    placeholder="Cari alat..."
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm mb-2"
+                />
+
+                <div id="tool-selection" class="flex flex-wrap gap-2 mt-2"></div>
+
+            </div>
+
+
+
+            <!-- CATATAN -->
+            <div class="col-span-2">
+
+                <label class="text-[10px] font-bold uppercase text-slate-400">
+                    Catatan Tambahan
+                </label>
+
+                <textarea 
+                    id="book-notes" 
+                    rows="3"
+                    placeholder="Tulis catatan tambahan di sini (opsional)..."
+                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm resize-none"
+                ></textarea>
+
+            </div>
+
+
+
+            <!-- ERROR -->
+            <div id="booking-error-msg" class="col-span-2 text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg">
+                Pilihan ruangan ini sudah dipesan pada waktu tersebut.
+            </div>
+
+
+
+            <!-- SUBMIT -->
+            <button 
+                type="submit" 
+                id="btn-submit-booking" 
+                class="col-span-2 bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg"
+            >
+                Simpan Pesanan
+            </button>
+
+        </form>
+
     </div>
+
+</div>
 
 	<!-- EMAILJS -->
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
