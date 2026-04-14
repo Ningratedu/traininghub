@@ -3349,31 +3349,36 @@ window.editBooking = (bookingId) => {
 
 
     // =========================
-    // CENTANG TOOLS
-    // =========================
+// CENTANG TOOLS + MASUKKAN KE STATE
+// =========================
 
-    setTimeout(() => {
+setTimeout(() => {
 
-        if (booking.tools) {
+    if (booking.tools) {
 
-            booking.tools.forEach(t => {
+        // 🔥 FORCE render ulang biar masuk ke sistem baru
+        window.validateToolSelection();
 
-                const checkbox =
-                    document.querySelector(
-                        `input[name="tools"][value="${t.id}"]`
-                    );
+        booking.tools.forEach(t => {
 
-                if (checkbox) {
+            // 🔥 tandai sebagai checked di DOM
+            const checkbox =
+                document.querySelector(
+                    `input[name="tools"][value="${t.id}"]`
+                );
 
-                    checkbox.checked = true;
+            if (checkbox) {
+                checkbox.checked = true;
+            }
 
-                }
+        });
 
-            });
+        // 🔥 trigger ulang biar ke-detect sebagai selected (keranjang)
+        window.validateToolSelection();
 
-        }
+    }
 
-    }, 300);
+}, 300);
 
 
 
