@@ -1463,6 +1463,8 @@ let deptChart = null;
 let html5QrCode = null;
 
 let localState = {
+	// 🔥 CACHE TOOL YANG DIPILIH (WAJIB)
+let selectedToolCache = [];
     users: [],
     rooms: [],
     tools: [],
@@ -2654,10 +2656,16 @@ return;
 document.getElementById('search-tools')
 ?.value?.toLowerCase() || '';
 
-// 🔥 SIMPAN TOOL YANG SUDAH DICEKLIS SEBELUM RENDER ULANG
-const selectedTools = Array.from(
-    container.querySelectorAll('input[name="tools"]:checked')
-).map(cb => cb.value);
+// 🔥 SIMPAN TOOL YANG DICEKLIS KE CACHE
+container
+.querySelectorAll('input[name="tools"]:checked')
+.forEach(cb => {
+
+    if (!selectedToolCache.includes(cb.value)) {
+        selectedToolCache.push(cb.value);
+    }
+
+});
 
 container.innerHTML =
 localState.tools
