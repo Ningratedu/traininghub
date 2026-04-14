@@ -2561,39 +2561,47 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if(!date || !start || !end) {
 
-    // tetap render alat walaupun waktu belum dipilih
-const container = document.getElementById('tool-selection');
+    const container = document.getElementById('tool-selection');
+    if (!container || !localState || !localState.tools) return;
 
-// 🔥 SAFEGUARD container & data
-if (!container || !localState || !localState.tools) return;
+    const keyword =
+        document.getElementById('search-tools')
+        ?.value?.toLowerCase() || '';
 
-// 🔎 ambil keyword search (aman walaupun input belum ada)
-const searchInput =
-document.getElementById('search-tools');
+    // 🔥 SIMPAN YANG SUDAH DICENTANG KE CACHE
+    container
+    .querySelectorAll('input[name="tools"]:checked')
+    .forEach(cb => {
+        if (!selectedToolCache.includes(cb.value)) {
+            selectedToolCache.push(cb.value);
+        }
+    });
 
-const keyword =
-searchInput
-? searchInput.value.toLowerCase()
-: '';
+    // 🔥 FILTER DATA
+    const filteredTools =
+    localState.tools.filter(t =>
+        t.status === 'Open' &&
+        t.name &&
+        t.name.toLowerCase().includes(keyword)
+    );
 
-// 🔥 filter tools dengan keyword
-const filteredTools =
-localState.tools.filter(t =>
-    t.status === 'Open' &&
-    t.name &&
-    t.name.toLowerCase().includes(keyword)
-);
+    // 🔥 RENDER + RESTORE CHECKLIST
+    container.innerHTML =
+    filteredTools.map(t => {
 
-// 🔥 render ulang list tools
-container.innerHTML =
-filteredTools.map(t => `
+        const isChecked =
+            selectedToolCache.includes(t.id);
 
+        return `
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
 
-    <input type="checkbox" 
+    <input 
+        type="checkbox" 
         name="tools" 
         value="${t.id}" 
-        class="mb-1">
+        ${isChecked ? 'checked' : ''}
+        class="mb-1"
+    >
 
     <span class="text-[10px] font-bold truncate">
         ${t.name}
@@ -2604,8 +2612,14 @@ filteredTools.map(t => `
     </span>
 
 </label>
+`;
+    }).join('');
 
-`).join('');
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-50');
+
+    return;
+}
 
 // 🔥 aktifkan tombol submit
 submitBtn.disabled = false;
