@@ -2656,16 +2656,10 @@ return;
 document.getElementById('search-tools')
 ?.value?.toLowerCase() || '';
 
-// 🔥 SIMPAN TOOL YANG DICEKLIS KE CACHE
-container
-.querySelectorAll('input[name="tools"]:checked')
-.forEach(cb => {
-
-    if (!selectedToolCache.includes(cb.value)) {
-        selectedToolCache.push(cb.value);
-    }
-
-});
+// 🔥 SIMPAN TOOL YANG SUDAH DICEKLIS SEBELUM RENDER ULANG
+const selectedTools = Array.from(
+    container.querySelectorAll('input[name="tools"]:checked')
+).map(cb => cb.value);
 
 container.innerHTML =
 localState.tools
