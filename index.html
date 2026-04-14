@@ -1463,8 +1463,6 @@ let deptChart = null;
 let html5QrCode = null;
 
 let localState = {
-	// 🔥 CACHE TOOL YANG DIPILIH (WAJIB)
-let selectedToolCache = [];
     users: [],
     rooms: [],
     tools: [],
@@ -2486,8 +2484,6 @@ if(window.innerWidth < 768){
         };
 
         window.openBooking = () => {
-			// 🔥 reset cache saat buka form baru
-selectedToolCache = [];
 
     // Reset form dulu
     document.getElementById('form-booking').reset();
@@ -2658,16 +2654,10 @@ return;
 document.getElementById('search-tools')
 ?.value?.toLowerCase() || '';
 
-// 🔥 SIMPAN TOOL YANG DICEKLIS KE CACHE
-container
-.querySelectorAll('input[name="tools"]:checked')
-.forEach(cb => {
-
-    if (!selectedToolCache.includes(cb.value)) {
-        selectedToolCache.push(cb.value);
-    }
-
-});
+// 🔥 SIMPAN TOOL YANG SUDAH DICEKLIS SEBELUM RENDER ULANG
+const selectedTools = Array.from(
+    container.querySelectorAll('input[name="tools"]:checked')
+).map(cb => cb.value);
 
 container.innerHTML =
 localState.tools
@@ -2685,8 +2675,8 @@ localState.tools
 
     // 🔥 CEK TOOL SUDAH DIPILIH SEBELUMNYA
     const isChecked =
-    selectedToolCache.includes(t.id) ||
-    currentSelectedToolIds.includes(t.id);
+        selectedTools.includes(t.id) ||
+        currentSelectedToolIds.includes(t.id);
 
     return `
         <label class="${
