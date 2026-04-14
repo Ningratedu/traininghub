@@ -2677,22 +2677,22 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('search-tools')
 ?.value?.toLowerCase() || '';
 
-// 🔥 AMBIL TOOL YANG SUDAH DICEKLIS
+// 🔥 AMBIL TOOL YANG SUDAH DICEKLIS (DARI DOM)
 const selectedTools = Array.from(
     container.querySelectorAll('input[name="tools"]:checked')
 ).map(cb => cb.value);
 
-// 🔎 keyword search
-const keyword =
-document.getElementById('search-tools')
-?.value?.toLowerCase() || '';
-
-// 🔥 FILTER TOOL OPEN SAJA
+// 🔥 AMBIL SEMUA TOOL OPEN
 const allTools = localState.tools.filter(t =>
     t.status === 'Open' && t.name
 );
 
-// 🔥 PISAHKAN
+// 🔎 AMBIL KEYWORD SEARCH
+const keyword =
+    document.getElementById('search-tools')
+    ?.value?.toLowerCase() || '';
+
+// 🔥 PISAHKAN: YANG SUDAH DIPILIH & BELUM
 const selectedList = allTools.filter(t =>
     selectedTools.includes(t.id)
 );
@@ -2702,14 +2702,14 @@ const unselectedList = allTools.filter(t =>
     t.name.toLowerCase().includes(keyword)
 );
 
-// 🔥 SORT BERDASARKAN POS
+// 🔥 SORT BERDASARKAN POS (LOKASI)
 const sortByPos = (a, b) =>
     (a.pos || '').localeCompare(b.pos || '');
 
 selectedList.sort(sortByPos);
 unselectedList.sort(sortByPos);
 
-// 🔥 GABUNG (KERANJANG)
+// 🔥 GABUNG (KERANJANG DI ATAS)
 const finalTools = [
     ...selectedList,
     ...unselectedList
