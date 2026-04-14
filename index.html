@@ -2306,6 +2306,26 @@ if(window.innerWidth < 768){
             document.getElementById('modal-booking').classList.remove('hide');
         };
 
+		// 🔎 LIVE SEARCH TOOLS (WAJIB UNTUK FILTER LANGSUNG)
+document.addEventListener('DOMContentLoaded', () => {
+
+    const searchInput =
+        document.getElementById('search-tools');
+
+    if(searchInput){
+
+        searchInput.addEventListener('input', () => {
+
+            if(typeof window.validateToolSelection === 'function'){
+                window.validateToolSelection();
+            }
+
+        });
+
+    }
+
+});
+		
         window.validateToolSelection = () => {
             const date = document.getElementById('book-date').value;
             const start = document.getElementById('book-start').value;
