@@ -932,12 +932,12 @@ overflow-x: hidden;
                 </div>
                 <div class="col-span-2 border-t pt-4">
                     <label class="text-[10px] font-bold uppercase text-slate-400">Pilih Alat</label>
-                    <input 
-    type="text"
-    id="tool-search"
-    placeholder="Cari alat..."
-    class="w-full mb-2 bg-slate-100 border-none rounded-xl px-4 py-2 text-sm"
-/>
+					<input 
+					type="text"
+					id="search-tools"
+					placeholder="Cari alat..."
+					class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm mb-2"
+					/>
 
 <div id="tool-selection" class="flex flex-wrap gap-2 mt-2"></div>
                 </div>
@@ -2161,10 +2161,13 @@ setTimeout(()=>{
             // Close mobile sidebar after selecting view
             const sidebar = document.getElementById('mobile-sidebar');
             const overlay = document.getElementById('mobile-sidebar-overlay');
-            if(sidebar.classList.contains('sidebar-open')) {
-                sidebar.classList.remove('sidebar-open');
-                overlay.classList.add('hide');
-            }
+            // 🔥 CLOSE SIDEBAR (SAFE)
+if(window.innerWidth < 768){
+
+    sidebar.classList.remove('sidebar-open');
+    overlay.classList.add('hide');
+
+}
             
             refreshUI();
         };
@@ -2203,9 +2206,17 @@ setTimeout(()=>{
     // tetap render alat walaupun waktu belum dipilih
     const container = document.getElementById('tool-selection');
 
-    container.innerHTML = localState.tools
-        .filter(t => t.status === 'Open')
-        .map(t => `
+    const keyword =
+document.getElementById('search-tools')
+?.value?.toLowerCase() || '';
+
+container.innerHTML =
+localState.tools
+.filter(t =>
+    t.status === 'Open' &&
+    t.name.toLowerCase().includes(keyword)
+)
+.map(t => {
 
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
     <input type="checkbox" 
@@ -4041,9 +4052,17 @@ window.showView('riwayat','Pesanan Saya');
 <script>
 
 document.addEventListener('input', (e) => {
+
     if(e.target.id === 'search-all-bookings'){
         renderAllBookings();
     }
+
+    // 🔥 SEARCH TOOL
+    if(e.target.id === 'search-tools'){
+        window.validateToolSelection();
+    }
+
+});
 
 	if(e.target.id === 'tool-search'){
 
