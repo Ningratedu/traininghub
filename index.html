@@ -2673,10 +2673,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(b && b.tools) currentSelectedToolIds = b.tools.map(t => t.id);
             }
 
-            const keyword =
-document.getElementById('search-tools')
-?.value?.toLowerCase() || '';
-
 // 🔥 AMBIL TOOL YANG SUDAH DICEKLIS (DARI DOM)
 const selectedTools = Array.from(
     container.querySelectorAll('input[name="tools"]:checked')
@@ -2753,6 +2749,8 @@ finalTools.map(t => {
 `;
 }).join('');
 
+};			
+			
 const initAuth = async () => {
     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token)
         await signInWithCustomToken(auth, __initial_auth_token);
