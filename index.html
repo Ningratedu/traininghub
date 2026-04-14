@@ -2721,6 +2721,12 @@ finalTools.map(t => {
         isOverlapping(start, end, b.start, b.end)
     );
 
+	// 🔥 AUTO REMOVE TOOL YANG BENTROK DARI CHECKLIST
+if (isToolBentrok) {
+    const idx = selectedTools.indexOf(t.id);
+    if (idx !== -1) selectedTools.splice(idx, 1);
+}
+
     const isChecked =
         selectedTools.includes(t.id) ||
         currentSelectedToolIds.includes(t.id);
