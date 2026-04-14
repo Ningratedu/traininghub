@@ -2430,6 +2430,11 @@ return;
 document.getElementById('search-tools')
 ?.value?.toLowerCase() || '';
 
+// 🔥 SIMPAN TOOL YANG SUDAH DICEKLIS SEBELUM RENDER ULANG
+const selectedTools = Array.from(
+    container.querySelectorAll('input[name="tools"]:checked')
+).map(cb => cb.value);
+
 container.innerHTML =
 localState.tools
 .filter(t =>
@@ -2437,36 +2442,92 @@ localState.tools
     t.name.toLowerCase().includes(keyword)
 )
 .map(t => {
-                const isToolBentrok = activeBookingsForTools.some(b => 
-                    b.tools && 
-                    b.tools.some(bt => bt.id === t.id) && 
-                    isOverlapping(start, end, b.start, b.end)
-                );
-                const isChecked = currentSelectedToolIds.includes(t.id);
-                return `
-                    <label class="${isToolBentrok ? 'opacity-40 bg-slate-200 cursor-not-allowed' : 'bg-slate-50 hover:border-indigo-300 cursor-pointer'} px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
-                        <input type="checkbox" name="tools" value="${t.id}" ${isToolBentrok ? 'disabled' : ''} ${isChecked ? 'checked' : ''} class="mb-1">
-                        <span class="text-[10px] font-bold truncate">${t.name}</span>
-                        <span class="text-[8px] text-indigo-500">${isToolBentrok ? 'DIPESAN' : t.pos}</span>
-                    </label>`;
-            }).join('');
-        };
 
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-            else await signInAnonymously(auth);
-        };
+    const isToolBentrok = activeBookingsForTools.some(b => 
+        b.tools && 
+        b.tools.some(bt => bt.id === t.id) && 
+        isOverlapping(start, end, b.start, b.end)
+    );
 
-        onAuthStateChanged(auth, (user) => { if (user) listenToData(); });
+    // 🔥 CEK TOOL SUDAH DIPILIH SEBELUMNYA
+    const isChecked =
+        selectedTools.includes(t.id) ||
+        currentSelectedToolIds.includes(t.id);
 
-        const listenToData = () => {
-            ['rooms', 'tools', 'bookings', 'users'].forEach(coll => {
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', coll), (snap) => {
-                    localState[coll] = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                    refreshUI();
-                }, (err) => console.error("Firestore Error:", err));
-            });
-        };
+    return `
+        <label class="${
+            isToolBentrok
+            ? 'opacity-40 bg-slate-200 cursor-not-allowed'
+            : 'bg-slate-50 hover:border-indigo-300 cursor-pointer'
+        } px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
+
+            <input 
+                type="checkbox" 
+                name="tools" 
+                value="${t.id}" 
+                ${isToolBentrok ? 'disabled' : ''} 
+                ${isChecked ? 'checked' : ''} 
+                class="mb-1"
+            >
+
+            <span class="text-[10px] font-bold truncate">
+                ${t.name}
+            </span>
+
+            <span class="text-[8px] text-indigo-500">
+                ${isToolBentrok ? 'DIPESAN' : t.pos}
+            </span>
+
+        </label>
+    `;
+})
+.join('');
+
+};
+
+const initAuth = async () => {
+    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token)
+        await signInWithCustomToken(auth, __initial_auth_token);
+    else
+        await signInAnonymously(auth);
+};
+
+onAuthStateChanged(auth, (user) => {
+    if (user) listenToData();
+});
+
+const listenToData = () => {
+    ['rooms', 'tools', 'bookings', 'users'].forEach(coll => {
+
+        onSnapshot(
+            collection(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                coll
+            ),
+
+            (snap) => {
+
+                localState[coll] =
+                    snap.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+
+                refreshUI();
+
+            },
+
+            (err) =>
+                console.error("Firestore Error:", err)
+
+        );
+
+    });
+};
 
         function getStatusClass(status) {
             switch(status) {
