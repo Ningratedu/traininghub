@@ -967,7 +967,8 @@ overflow-x: hidden;
 <!-- SCRIPT UTAMA LO -->
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
@@ -978,20 +979,33 @@ import {
 } from 
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-        const firebaseConfig = {
-  		apiKey: "AIzaSyAdNlDuqIbpoZvb1f1_u6SC2zcFcXbB8DM",
-  		authDomain: "booking-ruang-training.firebaseapp.com",
-  		projectId: "booking-ruang-training",
-  		storageBucket: "booking-ruang-training.firebasestorage.app",
-  		messagingSenderId: "627204181280",
-  		appId: "1:627204181280:web:df6653f289326d65135b45"
-	};
+const firebaseConfig = {
+    apiKey: "AIzaSyAdNlDuqIbpoZvb1f1_u6SC2zcFcXbB8DM",
+    authDomain: "booking-ruang-training.firebaseapp.com",
+    projectId: "booking-ruang-training",
+    storageBucket: "booking-ruang-training.firebasestorage.app",
+    messagingSenderId: "627204181280",
+    appId: "1:627204181280:web:df6653f289326d65135b45"
+};
 
-	const app = initializeApp(firebaseConfig);
-	const auth = getAuth(app);
-	const db = getFirestore(app);
-	const storage = getStorage(app);
-	const appId = "booking-ruang-training";
+
+
+// ================= GLOBAL STATE (WAJIB ADA) =================
+window.localState = {
+    rooms: [],
+    tools: [],
+    bookings: [],
+    users: []
+};
+
+
+
+// ================= FIREBASE INIT =================
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+const appId = "booking-ruang-training";
 	// 🔥 FIX IMPORTANT
 	window.auth = auth;
 	window.db = db;
@@ -1580,19 +1594,72 @@ transition-all p-3 rounded-2xl cursor-pointer flex items-center gap-3 group">
         };
 
         window.showToolStatsDetail = () => {
-    const container = document.getElementById('tool-stats-container');
-    container.innerHTML = localState.tools.map(tool => {
-        const toolBookings = localState.bookings
-            .filter(b => b.tools && b.tools.some(t => t.id === tool.id) && (b.status === 'Approved' || b.status === 'Completed' || b.status === 'Ongoing'))
-            .sort((a,b) => b.date.localeCompare(a.date));
-        
-        const lastBooking = toolBookings[0];
-        const lastUser = lastBooking ? `${lastBooking.userName} (${lastBooking.dept})` : 'Belum digunakan';
-        
-        return `
+
+    // 🔥 SAFE GUARD localState
+    if (!window.localState || !localState.tools || !localState.bookings) {
+        console.warn('localState belum siap');
+        return;
+    }
+
+    const container =
+        document.getElementById('tool-stats-container');
+
+    // 🔥 SAFE GUARD container
+    if (!container) return;
+
+    container.innerHTML =
+        localState.tools.map(tool => {
+
+            const toolBookings =
+                localState.bookings
+                .filter(b =>
+                    b.tools &&
+                    b.tools.some(t => t.id === tool.id) &&
+                    (
+                        b.status === 'Approved' ||
+                        b.status === 'Completed' ||
+                        b.status === 'Ongoing'
+                    )
+                )
+                .sort((a,b) =>
+                    b.date.localeCompare(a.date)
+                );
+
+            const lastBooking =
+                toolBookings[0];
+
+            const lastUser =
+                lastBooking
+                ? `${lastBooking.userName} (${lastBooking.dept})`
+                : 'Belum digunakan';
+
+            return `
 <div onclick="window.showToolHistory('${tool.id}', '${tool.name}')"
 class="bg-slate-50 hover:bg-white hover:border-indigo-300 border border-transparent 
 transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
+
+    <div class="flex-1">
+
+        <div class="text-sm font-bold truncate">
+            ${tool.name}
+        </div>
+
+        <div class="text-[10px] text-slate-500">
+            ${tool.pos}
+        </div>
+
+        <div class="text-[10px] text-indigo-500 mt-1">
+            Terakhir: ${lastUser}
+        </div>
+
+    </div>
+
+</div>
+`;
+
+        }).join('');
+
+};
 
     <!-- GAMBAR -->
     <img 
@@ -4063,13 +4130,11 @@ window.showView('riwayat','Pesanan Saya');
 
 document.addEventListener('input', (e) => {
 
-    // SEARCH ALL BOOKINGS
-    if(e.target.id === 'search-all-bookings'){
-        renderAllBookings();
-    }
-
-    // 🔥 SEARCH TOOL REALTIME
     if(e.target.id === 'search-tools'){
+
+        // 🔥 SAFE GUARD localState
+        if(!window.localState ||
+           !localState.tools) return;
 
         const keyword =
             e.target.value.toLowerCase();
@@ -4077,7 +4142,7 @@ document.addEventListener('input', (e) => {
         const container =
             document.getElementById('tool-selection');
 
-        if(!container || !localState?.tools) return;
+        if(!container) return;
 
         const filtered =
             localState.tools
