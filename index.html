@@ -3185,7 +3185,7 @@ ${b.status}
         };
 
 		// ================================
-// EDIT BOOKING (FIX FINAL)
+// EDIT BOOKING (FIX FINAL STABLE)
 // ================================
 
 window.editBooking = (bookingId) => {
@@ -3207,47 +3207,128 @@ window.editBooking = (bookingId) => {
         alert("Booking tidak ditemukan");
         return;
     }
-	// 🔥 BLOK JIKA COMPLETED
-    if (booking.status !== 'Pending') {
-    alert("Hanya booking Pending yang bisa diedit");
-    return;
-}
 
-    // Simpan ID edit
+    // 🔥 BLOK JIKA BUKAN PENDING
+    if (booking.status !== 'Pending') {
+
+        alert("Hanya booking Pending yang bisa diedit");
+        return;
+
+    }
+
+    // =========================
+    // LOAD ROOM LIST ULANG
+    // =========================
+
+    const select =
+        document.getElementById('book-room');
+
+    select.innerHTML =
+        localState.rooms
+        .filter(r => r.status === 'Open')
+        .map(r =>
+            `<option value="${r.id}">${r.name}</option>`
+        )
+        .join('');
+
+
+
+    // =========================
+    // SET ID EDIT
+    // =========================
+
     document.getElementById(
         "edit-booking-id"
     ).value = bookingId;
 
-    // Ubah judul modal
+
+
+    // =========================
+    // UBAH JUDUL
+    // =========================
+
     document.getElementById(
         "booking-modal-title"
     ).textContent = "Edit Pemesanan";
 
-    // Set tipe booking
-    bookingType = booking.type || "room";
 
-    window.toggleBookingType(bookingType);
 
-    // Isi field form
-    document.getElementById("book-room").value =
+    // =========================
+    // SET TIPE BOOKING
+    // =========================
+
+    bookingType =
+        booking.type || "room";
+
+    window.toggleBookingType(
+        bookingType
+    );
+
+
+
+    // =========================
+    // SET DEPARTEMEN (READ ONLY)
+    // =========================
+
+    document.getElementById(
+        "book-dept"
+    ).value =
+        currentUser?.dept ||
+        booking.dept ||
+        "Umum";
+
+
+
+    // =========================
+    // ISI FORM
+    // =========================
+
+    document.getElementById(
+        "book-room"
+    ).value =
         booking.roomId || "";
 
-    document.getElementById("book-goal").value =
+
+
+    document.getElementById(
+        "book-goal"
+    ).value =
         booking.goal || "";
 
-    document.getElementById("book-notes").value =
+
+
+    document.getElementById(
+        "book-notes"
+    ).value =
         booking.notes || "";
 
-    document.getElementById("book-date").value =
+
+
+    document.getElementById(
+        "book-date"
+    ).value =
         booking.date || "";
 
-    document.getElementById("book-start").value =
+
+
+    document.getElementById(
+        "book-start"
+    ).value =
         booking.start || "";
 
-    document.getElementById("book-end").value =
+
+
+    document.getElementById(
+        "book-end"
+    ).value =
         booking.end || "";
 
-    // Centang tools
+
+
+    // =========================
+    // CENTANG TOOLS
+    // =========================
+
     setTimeout(() => {
 
         if (booking.tools) {
@@ -3260,7 +3341,9 @@ window.editBooking = (bookingId) => {
                     );
 
                 if (checkbox) {
+
                     checkbox.checked = true;
+
                 }
 
             });
@@ -3269,7 +3352,20 @@ window.editBooking = (bookingId) => {
 
     }, 300);
 
-    // Buka modal
+
+
+    // =========================
+    // VALIDASI TOOL
+    // =========================
+
+    window.validateToolSelection();
+
+
+
+    // =========================
+    // BUKA MODAL
+    // =========================
+
     openModal("modal-booking");
 
 };
