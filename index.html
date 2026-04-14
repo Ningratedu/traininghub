@@ -2683,8 +2683,8 @@ localState.tools
 
     // 🔥 CEK TOOL SUDAH DIPILIH SEBELUMNYA
     const isChecked =
-        selectedTools.includes(t.id) ||
-        currentSelectedToolIds.includes(t.id);
+    selectedToolCache.includes(t.id) ||
+    currentSelectedToolIds.includes(t.id);
 
     return `
         <label class="${
