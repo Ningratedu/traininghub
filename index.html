@@ -2564,7 +2564,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('tool-selection');
     if (!container || !localState || !localState.tools) return;
 
-    // ✅ AMBIL YANG SUDAH DICEKLIS SEBELUM RENDER
+    // ✅ AMBIL YANG SUDAH DICEKLIS
     const prevChecked = {};
     container.querySelectorAll('input[name="tools"]:checked')
     .forEach(cb => {
@@ -2575,24 +2575,47 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('search-tools')
         ?.value?.toLowerCase() || '';
 
-    const filteredTools =
-    localState.tools.filter(t =>
-        t.status === 'Open' &&
-        t.name &&
+    // 🔥 PISAHKAN DATA
+    const allTools = localState.tools.filter(t =>
+        t.status === 'Open' && t.name
+    );
+
+    const selectedTools = allTools.filter(t =>
+        prevChecked[t.id]
+    );
+
+    const unselectedTools = allTools.filter(t =>
+        !prevChecked[t.id] &&
         t.name.toLowerCase().includes(keyword)
     );
 
-    // ✅ RENDER ULANG
-    container.innerHTML =
-    filteredTools.map(t => `
+    // 🔥 SORT BERDASARKAN POS (LOKASI)
+    const sortByPos = (a, b) =>
+        (a.pos || '').localeCompare(b.pos || '');
 
+    selectedTools.sort(sortByPos);
+    unselectedTools.sort(sortByPos);
+
+    // 🔥 GABUNG: YANG DICEKLIS DI ATAS
+    const finalTools = [
+        ...selectedTools,
+        ...unselectedTools
+    ];
+
+    // 🔥 RENDER
+    container.innerHTML =
+    finalTools.map(t => {
+
+        const isChecked = prevChecked[t.id];
+
+        return `
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
 
     <input 
         type="checkbox" 
         name="tools" 
         value="${t.id}" 
-        ${prevChecked[t.id] ? 'checked' : ''}
+        ${isChecked ? 'checked' : ''}
         class="mb-1"
     >
 
@@ -2605,14 +2628,14 @@ document.addEventListener('DOMContentLoaded', () => {
     </span>
 
 </label>
-
-`).join('');
+`;
+    }).join('');
 
     submitBtn.disabled = false;
     submitBtn.classList.remove('opacity-50');
 
     return;
-			}
+}
 
             const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
             
