@@ -2205,49 +2205,6 @@ const trendMap = {};
 dataList.forEach(b => {
 
     const dateValue = b.startTime || b.date || b.createdAt || b.bookingDate;
-
-    if (!dateValue) return;
-
-    const d = new Date(dateValue);
-
-    if (isNaN(d)) return; // jaga-jaga invalid date
-
-    const label = d.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short'
-    });
-
-    trendMap[label] = (trendMap[label] || 0) + 1;
-});
-
-const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
-const trendData = sortedLabels.map(l => trendMap[l]);
-
-const ctx3 = document.getElementById('trendChart');
-
-if (ctx3) {
-
-    if (trendChart) trendChart.destroy();
-
-    trendChart = new Chart(ctx3, {
-        type: 'line',
-        data: {
-            labels: sortedLabels,
-            datasets: [{
-                label: 'Booking',
-                data: trendData,
-				pointRadius: 3,
-				borderWidth: 2,
-				tension: 0.35,
-                fill: true,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99,102,241,0.1)',
-// ================= TREND BOOKING =================
-const trendMap = {};
-
-dataList.forEach(b => {
-
-    const dateValue = b.startTime || b.date || b.createdAt || b.bookingDate;
     if (!dateValue) return;
 
     const d = new Date(dateValue);
