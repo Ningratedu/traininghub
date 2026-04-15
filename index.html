@@ -2195,15 +2195,25 @@ window.showRoomHistory = (roomId, roomName) => {
         function initSession() {
 
     // 🔥 PENGAMAN WAJIB
-    if(!currentUser){
-        return;
-    }
+    if (!currentUser) return;
 
+    // 🔥 AMBIL ELEMEN UTAMA
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main-content');
+    const loginPage = document.getElementById('login-screen');
+
+    // 🔥 TAMPILKAN APP (INI YANG SEBELUMNYA GA ADA)
+    if (sidebar) sidebar.classList.remove('hidden');
+    if (main) main.classList.remove('hidden');
+    if (loginPage) loginPage.classList.add('hide');
+
+    // 🔥 SET USER INFO
     document.getElementById('user-display').innerText = currentUser.username;
     document.getElementById('role-label').innerText = currentUser.role.toUpperCase();
 
     const isAdmin = currentUser.role === 'admin';
 
+    // 🔥 TOGGLE MENU
     document.getElementById('admin-menu-section')
         .classList.toggle('hide', !isAdmin);
 
@@ -2221,9 +2231,19 @@ window.showRoomHistory = (roomId, roomName) => {
 
     calculateFilterRange();
 
-    window.showView('dashboard', 'Dashboard');
-}
+    // 🔥 PAKSA MENU DASHBOARD AKTIF (PENTING BANGET)
+    document.querySelectorAll('.nav-btn')
+        .forEach(btn => btn.classList.remove('sidebar-item-active'));
 
+    const dashboardBtn = document.querySelector('[data-view="dashboard"]');
+    if (dashboardBtn) dashboardBtn.classList.add('sidebar-item-active');
+
+    // 🔥 BUKA DASHBOARD
+    window.showView('dashboard', 'Dashboard');
+
+    // 🔥 LOAD DATA (BIAR LANGSUNG KE-RENDER)
+    listenToData();
+}
         function renderAvailableAssets(type) {
             const list = type === 'room' ? localState.rooms : localState.tools;
             const container = document.getElementById(type === 'room' ? 'available-rooms-list' : 'available-tools-list');
