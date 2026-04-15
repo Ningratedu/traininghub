@@ -1491,6 +1491,7 @@ window.addEventListener("DOMContentLoaded", () => {
 let bookingType = 'room';
 const ADMIN_PASS = "training2026";
 let deptChart = null;
+let statusChart = null;
 let html5QrCode = null;
 
 let localState = {
@@ -2078,33 +2079,104 @@ window.showRoomHistory = (roomId, roomName) => {
 }
 
         function updateChart(dataList) {
-            const ctx = document.getElementById('deptChart');
-            if(!ctx) return;
-            const deptStats = {};
-            dataList.forEach(b => {
-                const d = b.dept || 'Umum';
-                deptStats[d] = (deptStats[d] || 0) + 1;
-            });
-            const labels = Object.keys(deptStats);
-            const data = Object.values(deptStats);
-            if(deptChart) deptChart.destroy();
-            deptChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{ label: 'Pemesanan', data, backgroundColor: '#6366f1', borderRadius: 8, barThickness: 28 }]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }, 
-                        x: { grid: { display: false } } 
+
+    // ===== CHART DEPARTEMEN =====
+    const ctx = document.getElementById('deptChart');
+    if(!ctx) return;
+
+    const deptStats = {};
+    dataList.forEach(b => {
+        const d = b.dept || 'Umum';
+        deptStats[d] = (deptStats[d] || 0) + 1;
+    });
+
+    const labels = Object.keys(deptStats);
+    const data = Object.values(deptStats);
+
+    if(deptChart) deptChart.destroy();
+
+    deptChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Pemesanan',
+                data,
+                backgroundColor: '#6366f1',
+                borderRadius: 8,
+                barThickness: 28
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }, 
+                x: { grid: { display: false } } 
+            }
+        }
+    });
+
+
+    // 🔥 ================= STATUS CHART =================
+    const statusCount = {
+        Pending: 0,
+        Approved: 0,
+        Ongoing: 0,
+        Completed: 0,
+        Rejected: 0,
+        Cancelled: 0
+    };
+
+    dataList.forEach(b => {
+        const s = (b.status || '').toLowerCase();
+
+        if (s === 'pending') statusCount.Pending++;
+        else if (s === 'approved') statusCount.Approved++;
+        else if (s === 'ongoing') statusCount.Ongoing++;
+        else if (s === 'completed') statusCount.Completed++;
+        else if (s === 'rejected') statusCount.Rejected++;
+        else if (s === 'cancelled') statusCount.Cancelled++;
+    });
+
+    const ctx2 = document.getElementById('statusChart');
+
+    if (ctx2) {
+
+        if (statusChart) statusChart.destroy();
+
+        statusChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusCount),
+                datasets: [{
+                    data: Object.values(statusCount),
+                    backgroundColor: [
+                        '#f59e0b',
+                        '#6366f1',
+                        '#06b6d4',
+                        '#10b981',
+                        '#ef4444',
+                        '#64748b'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 }
-            });
-        }
+            }
+        });
+
+    }
+
+}
 
         // AUTH HANDLERS
         document.getElementById('form-login').onsubmit = async (e) => {
