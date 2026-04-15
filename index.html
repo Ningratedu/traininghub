@@ -2163,15 +2163,30 @@ window.showRoomHistory = (roomId, roomName) => {
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+        legend: {
+            position: 'bottom'
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    const label = context.label || '';
+                    const value = context.raw || 0;
+
+                    const dataArr = context.dataset.data;
+                    const total = dataArr.reduce((a, b) => a + b, 0);
+
+                    const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+
+                    return `${label}: ${value} (${percent}%)`;
                 }
             }
+        }
+    }
+}
         });
 
     }
