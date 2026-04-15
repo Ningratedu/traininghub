@@ -2793,38 +2793,25 @@ const initAuth = async () => {
 
 onAuthStateChanged(auth, (user) => {
 
-    const sidebar = document.getElementById('sidebar');
-    const main = document.getElementById('main-content');
-    const loginPage = document.getElementById('login-page');
-
     if (user) {
 
-    if (sidebar) sidebar.classList.remove('hidden');
-    if (main) main.classList.remove('hidden');
-    if (loginPage) loginPage.classList.add('hidden');
+        // 🔥 HANYA UNTUK SYNC DATA FIRESTORE
+        listenToData();
 
-    // 🔥 cukup ini aja
-    listenToData();
+    } else {
 
-// 🔥 PAKSA AKTIFKAN MENU DASHBOARD
-setTimeout(() => {
+        // 🔥 OPTIONAL: kalau logout via Firebase
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main-content');
+        const loginPage = document.getElementById('login-screen');
 
-    const firstMenu = document.querySelector('[data-view="dashboard"]');
-
-    if (firstMenu) {
-
-        document.querySelectorAll('.nav-btn')
-            .forEach(btn => btn.classList.remove('sidebar-item-active'));
-
-        firstMenu.classList.add('sidebar-item-active');
+        if (sidebar) sidebar.classList.add('hidden');
+        if (main) main.classList.add('hidden');
+        if (loginPage) loginPage.classList.remove('hide');
 
     }
 
-    refreshUI();
-
-}, 100);
-
-} else {
+}); else {
 
         // sembunyikan UI utama
         if (sidebar) sidebar.classList.add('hidden');
