@@ -2987,7 +2987,7 @@ class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:b
 </button>
 
 </div>
-` : b.status !== 'Completed' ? `
+` : b.status === 'Pending' ? `
 <button onclick="window.deleteBooking('${b.id}')"
 class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
     <i class="fas fa-trash-alt text-sm"></i>
@@ -3821,7 +3821,7 @@ if(b){
 
         // ================= REFRESH UI =================
 
-        renderBookings();
+        refreshUI();
 
     }
     catch(err){
@@ -3831,38 +3831,6 @@ if(b){
             err
         );
 
-    }
-
-};
-
-window.cancelBooking = async (id) => {
-
-    try {
-
-        const b = localState.bookings.find(x => x.id === id);
-
-        if(!b){
-            console.warn("Booking tidak ditemukan:", id);
-            return;
-        }
-
-        await updateDoc(
-            doc(db,'artifacts',appId,'public','data','bookings',id),
-            {
-                status: 'Cancelled',
-                tools: [],
-                roomId: null,
-                roomName: null,
-                cancelledAt: serverTimestamp()
-            }
-        );
-
-        console.log("✅ Booking dibatalkan");
-
-        renderBookings();
-
-    } catch(err){
-        console.error("❌ Gagal cancel:", err);
     }
 
 };
@@ -3953,7 +3921,7 @@ else{
 
 // ================= REFRESH UI =================
 
-renderBookings();
+refreshUI();
 
 }
 catch(err){
