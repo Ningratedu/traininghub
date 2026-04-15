@@ -2966,31 +2966,39 @@ const listenToData = () => {
    <!-- ICON ACTION -->
 <div class="flex gap-2">
 
-${(b.status || '').toLowerCase() === 'pending' ? `
-<button onclick="window.editBooking('${b.id}')"
-class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
-    <i class="fas fa-pen text-sm"></i>
-</button>
+${b.status === 'Pending' ? `
+    <button onclick="window.editBooking('${b.id}')"
+    class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
+        <i class="fas fa-pen text-sm"></i>
+    </button>
 
-<button onclick="window.deleteBooking('${b.id}')"
-class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
-    <i class="fas fa-trash-alt text-sm"></i>
-</button>
-` : (b.status || '').toLowerCase() === 'approved' ? `
-<button onclick="window.openDetail('${b.id}')"
-class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
-    Mulai
-</button>
+    <button onclick="window.deleteBooking('${b.id}')"
+    class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
+        <i class="fas fa-trash-alt text-sm"></i>
+    </button>
+` : b.status === 'Approved' ? `
+    <div class="flex gap-2">
 
-<button onclick="window.cancelBooking('${b.id}')"
-class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
-    Batal
-</button>
-` : (b.status || '').toLowerCase() === 'ongoing' ? `
-<button onclick="window.openDetail('${b.id}')"
-class="px-3 py-1 text-[10px] font-bold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition">
-    Akhiri
-</button>
+        <button onclick="window.openDetail('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+            Mulai
+        </button>
+
+        <button onclick="window.cancelBooking('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
+            Batal
+        </button>
+
+    </div>
+` : b.status === 'Ongoing' ? `
+    <div class="flex gap-2">
+
+        <button onclick="window.openDetail('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition">
+            Akhiri
+        </button>
+
+    </div>
 ` : ``}
 
 </div>
@@ -2998,12 +3006,9 @@ class="px-3 py-1 text-[10px] font-bold bg-emerald-500 text-white rounded-lg hove
 </div> <!-- ACTION -->
 
 </div> <!-- 🔥 CARD (WAJIB ADA) -->
-
 `;
-
-}).join('');
                 
-let sortField = null;
+		let sortField = null;
 let sortAsc = true;
 
 window.sortAllBookings = (field) => {
@@ -3228,8 +3233,6 @@ ${b.status}
         }).join('');
 
     }
-	
-	};
 
     // TAMPILKAN MODAL
     document
