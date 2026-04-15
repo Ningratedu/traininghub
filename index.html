@@ -2244,9 +2244,46 @@ if (ctx3) {
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false
+    responsive: true,
+    maintainAspectRatio: false,
+			
+			interaction: {
+        mode: 'index',
+        intersect: false
+    },
+
+    layout: {
+        padding: {
+            left: 10,
+            right: 20,
+            top: 10,
+            bottom: 10
         }
+    },
+
+    plugins: {
+        legend: { display: false }
+    },
+
+    scales: {
+        y: {
+            beginAtZero: true,
+            ticks: {
+                stepSize: 1,
+                precision: 0
+            },
+            grid: {
+                color: '#f1f5f9'
+            }
+        },
+        x: {
+            offset: true,
+            grid: {
+                display: false
+            }
+        }
+    }
+}
     });
 
 }
