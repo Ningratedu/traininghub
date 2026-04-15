@@ -575,6 +575,19 @@ overflow-x: hidden;
     <h3 class="text-xl font-black mt-1" id="stat-rejected-pct">0%</h3>
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-rejected-ratio">0/0</p>
 </div>
+
+<!-- CANCELLED -->
+<div class="stat-card card-pop p-4 border-t-4 border-slate-400" onclick="window.showStatTable('Cancelled')">
+    <div class="flex justify-between items-start">
+        <p class="text-slate-500 text-[9px] font-black uppercase">Dibatalkan</p>
+        <svg class="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9 12h6"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-cancelled-pct">0%</h3>
+    <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-cancelled-ratio">0/0</p>
+</div>
 				
 </div>
                         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10">
@@ -1630,6 +1643,8 @@ function renderAdminDashboard() {
 
     const pending = filtered.filter(b => getStatus(b) === 'pending');
     const rejected = filtered.filter(b => getStatus(b) === 'rejected');
+	const cancelled = filtered.filter(b => getStatus(b) === 'cancelled');
+	const cancelled = filtered.filter(b => getStatus(b) === 'cancelled');
 
     // ✅ TAMBAHAN BARU
     const ongoing = filtered.filter(b => getStatus(b) === 'ongoing');
@@ -1649,6 +1664,7 @@ function renderAdminDashboard() {
     setStat('approved', approved.length);
     setStat('pending', pending.length);
     setStat('rejected', rejected.length);
+	setStat('cancelled', cancelled.length);
 
     // ✅ TAMBAHAN BARU (BIAR CARD NYA HIDUP)
     setStat('ongoing', ongoing.length);
@@ -2564,75 +2580,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('tool-selection');
     if (!container || !localState || !localState.tools) return;
 
-    // ✅ AMBIL YANG SUDAH DICEKLIS
-    const prevChecked = {};
-    container.querySelectorAll('input[name="tools"]:checked')
-    .forEach(cb => {
-        prevChecked[cb.value] = true;
-    });
-
-    const keyword =
-        document.getElementById('search-tools')
-        ?.value?.toLowerCase() || '';
-
-    // 🔥 PISAHKAN DATA
     const allTools = localState.tools.filter(t =>
         t.status === 'Open' && t.name
     );
 
-    const selectedTools = allTools.filter(t =>
-        prevChecked[t.id]
-    );
+    // 🔥 RENDER TAPI DISABLE SEMUA
+    container.innerHTML = allTools.map(t => `
+        <label class="bg-slate-100 opacity-50 cursor-not-allowed px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
+            <input 
+                type="checkbox" 
+                name="tools" 
+                value="${t.id}" 
+                disabled
+                class="mb-1"
+            >
+            <span class="text-[10px] font-bold truncate">
+                ${t.name}
+            </span>
+            <span class="text-[8px] text-indigo-500">
+                ${t.pos || ''}
+            </span>
+        </label>
+    `).join('');
 
-    const unselectedTools = allTools.filter(t =>
-        !prevChecked[t.id] &&
-        t.name.toLowerCase().includes(keyword)
-    );
-
-    // 🔥 SORT BERDASARKAN POS (LOKASI)
-    const sortByPos = (a, b) =>
-        (a.pos || '').localeCompare(b.pos || '');
-
-    selectedTools.sort(sortByPos);
-    unselectedTools.sort(sortByPos);
-
-    // 🔥 GABUNG: YANG DICEKLIS DI ATAS
-    const finalTools = [
-        ...selectedTools,
-        ...unselectedTools
-    ];
-
-    // 🔥 RENDER
-    container.innerHTML =
-    finalTools.map(t => {
-
-        const isChecked = prevChecked[t.id];
-
-        return `
-<label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
-
-    <input 
-        type="checkbox" 
-        name="tools" 
-        value="${t.id}" 
-        ${isChecked ? 'checked' : ''}
-        class="mb-1"
-    >
-
-    <span class="text-[10px] font-bold truncate">
-        ${t.name}
-    </span>
-
-    <span class="text-[8px] text-indigo-500">
-        ${t.pos || ''}
-    </span>
-
-</label>
-`;
-    }).join('');
-
-    submitBtn.disabled = false;
-    submitBtn.classList.remove('opacity-50');
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-50');
 
     return;
 }
@@ -2802,13 +2774,28 @@ const listenToData = () => {
 };
 
         function getStatusClass(status) {
-            switch(status) {
-                case 'Approved': case 'Ongoing': return 'bg-emerald-50 text-emerald-600';
-                case 'Completed': return 'bg-indigo-50 text-indigo-600';
-                case 'Rejected': return 'bg-rose-50 text-rose-600';
-                default: return 'bg-amber-50 text-amber-600';
-            }
-        }
+
+    if (!status) return 'bg-amber-50 text-amber-600';
+
+    switch(status) {
+
+        case 'Approved':
+        case 'Ongoing':
+            return 'bg-emerald-50 text-emerald-600';
+
+        case 'Completed':
+            return 'bg-indigo-50 text-indigo-600';
+
+        case 'Rejected':
+            return 'bg-rose-50 text-rose-600';
+
+        case 'Cancelled': // 🔥 TAMBAHAN BARU
+            return 'bg-slate-200 text-slate-500';
+
+        default:
+            return 'bg-amber-50 text-amber-600';
+    }
+}
 
         function updatePendingBadge() {
             const count = localState.bookings.filter(b => b.status === 'Pending').length;
@@ -2914,7 +2901,12 @@ class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transi
 </button>
 ` : ``}
 
-${b.status !== 'Completed' ? `
+${b.status === 'Approved' ? `
+<button onclick="window.cancelBooking('${b.id}')"
+class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
+    <i class="fas fa-trash-alt text-sm"></i>
+</button>
+` : b.status !== 'Completed' ? `
 <button onclick="window.deleteBooking('${b.id}')"
 class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
     <i class="fas fa-trash-alt text-sm"></i>
@@ -3742,7 +3734,37 @@ if(b){
 
 };
 
+window.cancelBooking = async (id) => {
 
+    try {
+
+        const b = localState.bookings.find(x => x.id === id);
+
+        if(!b){
+            console.warn("Booking tidak ditemukan:", id);
+            return;
+        }
+
+        await updateDoc(
+            doc(db,'artifacts',appId,'public','data','bookings',id),
+            {
+                status: 'Cancelled',
+                tools: [],
+                roomId: null,
+                roomName: null,
+                cancelledAt: serverTimestamp()
+            }
+        );
+
+        console.log("✅ Booking dibatalkan");
+
+        renderBookings();
+
+    } catch(err){
+        console.error("❌ Gagal cancel:", err);
+    }
+
+};
 
 // ================= REJECT BOOKING =================
 
@@ -3852,7 +3874,8 @@ function renderJadwal() {
     const approved = getFilteredBookings()
         .filter(b =>
             ['Approved','Ongoing','Pending']
-            .includes(b.status)
+            .includes(b.status) &&
+            b.status !== 'Cancelled'
         )
         .sort((a,b) =>
             a.date.localeCompare(b.date)
