@@ -454,8 +454,8 @@ overflow-x: hidden;
     <div id="view-dashboard" class="view">
         <div id="admin-dashboard-ui" class="hide">
 
-            <!-- 🔥 GRID UPDATE (jadi 9 kolom biar muat semua) -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 mb-8">
+            <!-- 🔥 GRID UPDATE (jadi 10 kolom biar muat semua) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
 
 <!-- TOTAL RUANGAN -->
 <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showRoomStatsDetail()">
@@ -2974,10 +2974,19 @@ class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transi
 ` : ``}
 
 ${b.status === 'Approved' ? `
-<button onclick="window.cancelBooking('${b.id}')"
-class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
-    <i class="fas fa-trash-alt text-sm"></i>
+<div class="flex gap-2">
+
+<button onclick="window.openDetail('${b.id}')"
+class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+    Mulai
 </button>
+
+<button onclick="window.cancelBooking('${b.id}')"
+class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
+    Batal
+</button>
+
+</div>
 ` : b.status !== 'Completed' ? `
 <button onclick="window.deleteBooking('${b.id}')"
 class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
@@ -3484,6 +3493,26 @@ setTimeout(() => {
     // =========================
 
     openModal("modal-booking");
+
+};
+		window.cancelBooking = async (id) => {
+
+    if(!confirm("Batalkan pesanan ini?")) return;
+
+    try {
+
+        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
+
+        await updateDoc(ref, {
+            status: 'Cancelled',
+            cancelledAt: serverTimestamp()
+        });
+
+        console.log("✅ Booking berhasil dibatalkan");
+
+    } catch(err) {
+        console.error("❌ Gagal cancel:", err);
+    }
 
 };
 
