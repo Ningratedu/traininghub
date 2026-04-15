@@ -2008,20 +2008,56 @@ window.showRoomHistory = (roomId, roomName) => {
 };
 
         function refreshUI() {
-            if (!currentUser) return;
-            const activeView = document.querySelector('.nav-btn.sidebar-item-active')?.dataset.view || 'dashboard';
-            
-            if(activeView === 'dashboard') {
-                if(currentUser.role === 'admin') renderAdminDashboard();
-                else renderAvailableAssets(document.getElementById('tab-rooms').classList.contains('tab-active') ? 'room' : 'tool');
-            }
-            if(activeView === 'riwayat') renderRiwayat();
-            if(activeView === 'approval') renderApproval();
-            if(activeView === 'master-data') renderMaster();
-            if(activeView === 'jadwal') renderJadwal();
-			if(activeView === 'all-bookings') renderAllBookings();
-            updatePendingBadge();
+
+    if (!currentUser) return;
+
+    // 🔥 ambil menu aktif
+    let activeBtn = document.querySelector('.nav-btn.sidebar-item-active');
+
+    // 🔥 kalau belum ada (kasus login pertama), paksa dashboard aktif
+    if (!activeBtn) {
+
+        const dashboardBtn = document.querySelector('[data-view="dashboard"]');
+
+        if (dashboardBtn) {
+            document.querySelectorAll('.nav-btn')
+                .forEach(btn => btn.classList.remove('sidebar-item-active'));
+
+            dashboardBtn.classList.add('sidebar-item-active');
+            activeBtn = dashboardBtn;
         }
+    }
+
+    const activeView = activeBtn?.dataset.view || 'dashboard';
+
+    // 🔥 RENDER SESUAI VIEW
+    if (activeView === 'dashboard') {
+
+        if (currentUser.role === 'admin') {
+
+            renderAdminDashboard();
+
+        } else {
+
+            const tabRooms = document.getElementById('tab-rooms');
+
+            const type =
+                (tabRooms && tabRooms.classList.contains('tab-active'))
+                ? 'room'
+                : 'tool';
+
+            renderAvailableAssets(type);
+        }
+    }
+
+    if (activeView === 'riwayat') renderRiwayat();
+    if (activeView === 'approval') renderApproval();
+    if (activeView === 'master-data') renderMaster();
+    if (activeView === 'jadwal') renderJadwal();
+    if (activeView === 'all-bookings') renderAllBookings();
+
+    updatePendingBadge();
+}
 
         function updateChart(dataList) {
             const ctx = document.getElementById('deptChart');
@@ -2743,17 +2779,32 @@ onAuthStateChanged(auth, (user) => {
 
     if (user) {
 
-        // tampilkan UI utama
-        if (sidebar) sidebar.classList.remove('hidden');
-        if (main) main.classList.remove('hidden');
-        if (loginPage) loginPage.classList.add('hidden');
+    if (sidebar) sidebar.classList.remove('hidden');
+    if (main) main.classList.remove('hidden');
+    if (loginPage) loginPage.classList.add('hidden');
 
-        // load data + render ulang
-        listenToData();
-        renderAdminDashboard();
-        renderRiwayat();
+    // 🔥 cukup ini aja
+    listenToData();
 
-    } else {
+// 🔥 PAKSA AKTIFKAN MENU DASHBOARD
+setTimeout(() => {
+
+    const firstMenu = document.querySelector('[data-view="dashboard"]');
+
+    if (firstMenu) {
+
+        document.querySelectorAll('.nav-btn')
+            .forEach(btn => btn.classList.remove('sidebar-item-active'));
+
+        firstMenu.classList.add('sidebar-item-active');
+
+    }
+
+    refreshUI();
+
+}, 100);
+
+} else {
 
         // sembunyikan UI utama
         if (sidebar) sidebar.classList.add('hidden');
