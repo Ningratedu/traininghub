@@ -2242,55 +2242,91 @@ if (ctx3) {
                 fill: true,
                 borderColor: '#6366f1',
                 backgroundColor: 'rgba(99,102,241,0.1)',
+// ================= TREND BOOKING =================
+const trendMap = {};
+
+dataList.forEach(b => {
+
+    const dateValue = b.startTime || b.date || b.createdAt || b.bookingDate;
+    if (!dateValue) return;
+
+    const d = new Date(dateValue);
+    if (isNaN(d)) return;
+
+    const label = d.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short'
+    });
+
+    trendMap[label] = (trendMap[label] || 0) + 1;
+});
+
+const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
+const trendData = sortedLabels.map(l => trendMap[l]);
+
+const ctx3 = document.getElementById('trendChart');
+
+if (ctx3) {
+
+    if (trendChart) trendChart.destroy();
+
+    trendChart = new Chart(ctx3, {
+        type: 'line',
+        data: {
+            labels: sortedLabels,
+            datasets: [{
+                label: 'Booking',
+                data: trendData,
+                tension: 0.35,
+                fill: true,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99,102,241,0.08)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#6366f1'
             }]
         },
         options: {
-    responsive: true,
-    maintainAspectRatio: false,
+            responsive: true,
+            maintainAspectRatio: false,
 
-    layout: {
-        padding: {
-            left: 0,
-            right: 10,
-            top: 10,
-            bottom: 0
-        }
-    },
-
-    interaction: {
-        mode: 'index',
-        intersect: false
-    },
-
-    plugins: {
-        legend: { display: false }
-    },
-
-    scales: {
-        y: {
-            beginAtZero: true,
-            ticks: {
-                stepSize: 1,
-                precision: 0,
-                padding: 6
+            layout: {
+                padding: 10 // 🔥 sama semua sisi (biar center)
             },
-            grid: {
-                color: '#f1f5f9',
-                drawBorder: false
-            }
-        },
-        x: {
-            offset: false, // 🔥 ini penting (biar gak kegeser)
-            ticks: {
-                padding: 6
+
+            interaction: {
+                mode: 'index',
+                intersect: false
             },
-            grid: {
-                display: false,
-                drawBorder: false
+
+            plugins: {
+                legend: { display: false }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    },
+                    grid: {
+                        color: '#f1f5f9',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    offset: false, // 🔥 biar gak geser
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        padding: 6
+                    }
+                }
             }
         }
-    }
-}
     });
 
 }
