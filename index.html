@@ -2100,6 +2100,7 @@ window.showRoomHistory = (roomId, roomName) => {
         username: 'Administrator',
         uid: 'admin-123'
     };
+	initSession(); // 🔥 TAMBAH INI
 
     // 🔥 simpan session ADMIN
     localStorage.setItem(
@@ -2147,6 +2148,7 @@ window.showRoomHistory = (roomId, roomName) => {
         ...found,
         uid: found.id
     };
+	initSession(); // 🔥 TAMBAH INI
 
     localStorage.setItem(
         "traininghub_user",
@@ -2194,20 +2196,19 @@ window.showRoomHistory = (roomId, roomName) => {
 
         function initSession() {
 
-    // 🔥 PENGAMAN WAJIB
     if (!currentUser) return;
 
-    // 🔥 AMBIL ELEMEN UTAMA
+    // 🔥 AMBIL ELEMEN
     const sidebar = document.getElementById('sidebar');
     const main = document.getElementById('main-content');
     const loginPage = document.getElementById('login-screen');
 
-    // 🔥 TAMPILKAN APP (INI YANG SEBELUMNYA GA ADA)
+    // 🔥 TAMPILKAN APP
     if (sidebar) sidebar.classList.remove('hidden');
     if (main) main.classList.remove('hidden');
     if (loginPage) loginPage.classList.add('hide');
 
-    // 🔥 SET USER INFO
+    // 🔥 USER INFO
     document.getElementById('user-display').innerText = currentUser.username;
     document.getElementById('role-label').innerText = currentUser.role.toUpperCase();
 
@@ -2229,19 +2230,19 @@ window.showRoomHistory = (roomId, roomName) => {
     document.getElementById('user-dashboard-ui')
         .classList.toggle('hide', isAdmin);
 
-    calculateFilterRange();
-
-    // 🔥 PAKSA MENU DASHBOARD AKTIF (PENTING BANGET)
+    // 🔥 SET DASHBOARD AKTIF
     document.querySelectorAll('.nav-btn')
         .forEach(btn => btn.classList.remove('sidebar-item-active'));
 
     const dashboardBtn = document.querySelector('[data-view="dashboard"]');
     if (dashboardBtn) dashboardBtn.classList.add('sidebar-item-active');
 
+    calculateFilterRange();
+
     // 🔥 BUKA DASHBOARD
     window.showView('dashboard', 'Dashboard');
 
-    // 🔥 LOAD DATA (BIAR LANGSUNG KE-RENDER)
+    // 🔥 LOAD DATA
     listenToData();
 }
         function renderAvailableAssets(type) {
@@ -2792,25 +2793,7 @@ const initAuth = async () => {
 };
 
 onAuthStateChanged(auth, (user) => {
-
-    if (user) {
-
-        // 🔥 HANYA UNTUK SYNC DATA FIRESTORE
-        listenToData();
-
-    } else {
-
-        // 🔥 HANDLE LOGOUT UI
-        const sidebar = document.getElementById('sidebar');
-        const main = document.getElementById('main-content');
-        const loginPage = document.getElementById('login-screen');
-
-        if (sidebar) sidebar.classList.add('hidden');
-        if (main) main.classList.add('hidden');
-        if (loginPage) loginPage.classList.remove('hide');
-
-    }
-
+    // 🔥 NONAKTIFKAN AGAR TIDAK KONFLIK DENGAN LOGIN MANUAL
 });
 const listenToData = () => {
     ['rooms', 'tools', 'bookings', 'users'].forEach(coll => {
