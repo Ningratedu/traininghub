@@ -1644,7 +1644,6 @@ function renderAdminDashboard() {
     const pending = filtered.filter(b => getStatus(b) === 'pending');
     const rejected = filtered.filter(b => getStatus(b) === 'rejected');
 	const cancelled = filtered.filter(b => getStatus(b) === 'cancelled');
-	const cancelled = filtered.filter(b => getStatus(b) === 'cancelled');
 
     // ✅ TAMBAHAN BARU
     const ongoing = filtered.filter(b => getStatus(b) === 'ongoing');
