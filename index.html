@@ -600,7 +600,7 @@ overflow-x: hidden;
     <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
         <i class="fas fa-chart-line text-indigo-500"></i> Trend Booking
     </h4>
-    <div class="h-[280px] w-full">
+    <div class="h-[250px] w-full">
         <canvas id="trendChart"></canvas>
     </div>
 </div>
@@ -2236,29 +2236,30 @@ if (ctx3) {
             datasets: [{
                 label: 'Booking',
                 data: trendData,
-                tension: 0.4,
+				pointRadius: 3,
+				borderWidth: 2,
+				tension: 0.35,
                 fill: true,
                 borderColor: '#6366f1',
                 backgroundColor: 'rgba(99,102,241,0.1)',
-                pointRadius: 4
             }]
         },
         options: {
     responsive: true,
     maintainAspectRatio: false,
-			
-			interaction: {
-        mode: 'index',
-        intersect: false
-    },
 
     layout: {
         padding: {
-            left: 10,
-            right: 20,
+            left: 0,
+            right: 10,
             top: 10,
-            bottom: 10
+            bottom: 0
         }
+    },
+
+    interaction: {
+        mode: 'index',
+        intersect: false
     },
 
     plugins: {
@@ -2270,16 +2271,22 @@ if (ctx3) {
             beginAtZero: true,
             ticks: {
                 stepSize: 1,
-                precision: 0
+                precision: 0,
+                padding: 6
             },
             grid: {
-                color: '#f1f5f9'
+                color: '#f1f5f9',
+                drawBorder: false
             }
         },
         x: {
-            offset: true,
+            offset: false, // 🔥 ini penting (biar gak kegeser)
+            ticks: {
+                padding: 6
+            },
             grid: {
-                display: false
+                display: false,
+                drawBorder: false
             }
         }
     }
