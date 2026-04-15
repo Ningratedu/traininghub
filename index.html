@@ -2987,6 +2987,15 @@ class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:b
 </button>
 
 </div>
+` : b.status === 'Ongoing' ? `
+<div class="flex gap-2">
+
+<button onclick="window.openDetail('${b.id}')"
+class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+    Akhiri
+</button>
+
+</div>
 ` : b.status === 'Pending' ? `
 <button onclick="window.deleteBooking('${b.id}')"
 class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
