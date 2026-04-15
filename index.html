@@ -2800,7 +2800,7 @@ onAuthStateChanged(auth, (user) => {
 
     } else {
 
-        // 🔥 OPTIONAL: kalau logout via Firebase
+        // 🔥 HANDLE LOGOUT UI
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
         const loginPage = document.getElementById('login-screen');
@@ -2808,15 +2808,6 @@ onAuthStateChanged(auth, (user) => {
         if (sidebar) sidebar.classList.add('hidden');
         if (main) main.classList.add('hidden');
         if (loginPage) loginPage.classList.remove('hide');
-
-    }
-
-}); else {
-
-        // sembunyikan UI utama
-        if (sidebar) sidebar.classList.add('hidden');
-        if (main) main.classList.add('hidden');
-        if (loginPage) loginPage.classList.remove('hidden');
 
     }
 
