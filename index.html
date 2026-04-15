@@ -2736,9 +2736,33 @@ const initAuth = async () => {
 };
 
 onAuthStateChanged(auth, (user) => {
-    if (user) listenToData();
-});
 
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main-content');
+    const loginPage = document.getElementById('login-page');
+
+    if (user) {
+
+        // tampilkan UI utama
+        if (sidebar) sidebar.classList.remove('hidden');
+        if (main) main.classList.remove('hidden');
+        if (loginPage) loginPage.classList.add('hidden');
+
+        // load data + render ulang
+        listenToData();
+        renderAdminDashboard();
+        renderRiwayat();
+
+    } else {
+
+        // sembunyikan UI utama
+        if (sidebar) sidebar.classList.add('hidden');
+        if (main) main.classList.add('hidden');
+        if (loginPage) loginPage.classList.remove('hidden');
+
+    }
+
+});
 const listenToData = () => {
     ['rooms', 'tools', 'bookings', 'users'].forEach(coll => {
 
