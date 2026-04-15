@@ -1683,20 +1683,20 @@ window.showStatTable = (category) => {
     } else if (category === 'tool-only') {
         list = filtered.filter(b => b.type === 'tool');
         title = "Pesanan Alat";
-    } else if (['Approved', 'Pending', 'Rejected', 'Ongoing', 'Completed'].includes(category)) {
+    } else if (['Approved', 'Pending', 'Rejected', 'Ongoing', 'Completed', 'Cancelled'].includes(category)) {
 
-        list = filtered.filter(b => {
-            const status = (b.status || "").toLowerCase();
+    list = filtered.filter(b => {
+        const status = (b.status || "").toLowerCase();
 
-            if (category === 'Approved') {
-                return ['approved','ongoing','completed'].includes(status);
-            }
+        if (category === 'Approved') {
+            return ['approved','ongoing','completed'].includes(status);
+        }
 
-            return status === category.toLowerCase();
-        });
+        return status === category.toLowerCase();
+    });
 
-        title = `Data Status: ${category}`;
-    }
+    title = `Data Status: ${category}`;
+}
 
     // 🔥 INI HARUS DI LUAR IF (GLOBAL)
     list = list.sort((a, b) => {
