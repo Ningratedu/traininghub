@@ -593,14 +593,29 @@ overflow-x: hidden;
 </div>
 				
 </div>
-                        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10">
-                            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
-                            </h4>
-                            <div class="h-[280px] w-full">
-                                <canvas id="deptChart"></canvas>
-                            </div>
-                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+
+    <!-- CHART DEPARTEMEN -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
+        </h4>
+        <div class="h-[280px] w-full">
+            <canvas id="deptChart"></canvas>
+        </div>
+    </div>
+
+    <!-- 🔥 CHART STATUS -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-chart-pie text-indigo-500"></i> Status Pesanan
+        </h4>
+        <div class="h-[280px] w-full">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+</div>
                     </div>
 
                     <div id="user-dashboard-ui" class="hide">
