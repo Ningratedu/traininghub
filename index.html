@@ -615,6 +615,16 @@ overflow-x: hidden;
         </div>
     </div>
 
+	<!-- 🔥 TREND BOOKING -->
+		<div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10">
+    <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <i class="fas fa-chart-line text-indigo-500"></i> Trend Booking
+    </h4>
+    <div class="h-[280px] w-full">
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+
 </div>
                     </div>
 
@@ -1492,6 +1502,7 @@ let bookingType = 'room';
 const ADMIN_PASS = "training2026";
 let deptChart = null;
 let statusChart = null;
+let trendChart = null;
 let html5QrCode = null;
 
 let localState = {
@@ -2080,7 +2091,7 @@ window.showRoomHistory = (roomId, roomName) => {
 
         function updateChart(dataList) {
 
-    // ===== CHART DEPARTEMEN =====
+    // ================= DEPT CHART =================
     const ctx = document.getElementById('deptChart');
     if(!ctx) return;
 
@@ -2119,7 +2130,7 @@ window.showRoomHistory = (roomId, roomName) => {
     });
 
 
-    // 🔥 ================= STATUS CHART =================
+    // ================= STATUS CHART =================
     const statusCount = {
         Pending: 0,
         Approved: 0,
@@ -2163,30 +2174,90 @@ window.showRoomHistory = (roomId, roomName) => {
                 }]
             },
             options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: {
-        legend: {
-            position: 'bottom'
-        },
-        tooltip: {
-            callbacks: {
-                label: function(context) {
-                    const label = context.label || '';
-                    const value = context.raw || 0;
-
-                    const dataArr = context.dataset.data;
-                    const total = dataArr.reduce((a, b) => a + b, 0);
-
-                    const percent = total ? ((value / total) * 100).toFixed(1) : 0;
-
-                    return `${label}: ${value} (${percent}%)`;
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${percent}%)`;
+                            }
+                        }
+                    }
                 }
             }
-        }
+        });
+
     }
-}
+
+
+    // ================= TREND BOOKING =================
+    const trendMap = {};
+
+    dataList.forEach(b => {
+        if (!b.startTime) return;
+
+        const d = new Date(b.startTime);
+        const label = d.toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'short'
+        });
+
+        trendMap[label] = (trendMap[label] || 0) + 1;
+    });
+
+    const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
+    const trendData = sortedLabels.map(l => trendMap[l]);
+
+    const ctx3 = document.getElementById('trendChart');
+
+    if (ctx3) {
+
+        if (trendChart) trendChart.destroy();
+
+        trendChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: sortedLabels,
+                datasets: [{
+                    label: 'Booking',
+                    data: trendData,
+                    tension: 0.4,
+                    fill: true,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.1)',
+                    pointRadius: 4,
+                    pointBackgroundColor: '#6366f1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return `Total: ${ctx.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
         });
 
     }
