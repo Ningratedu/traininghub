@@ -2150,10 +2150,10 @@ if (activeView === 'all-bookings') renderAllBookings();
     updatePendingBadge();
 }
 
-        function updateChart(dataList) {
+        function updateChart(dataList, viewId = 'dashboard') {
 
     // ================= DEPT CHART =================
-    const ctx = document.querySelector(`#view-${activeView} #deptChart`);
+    const ctx = document.querySelector(`#view-${viewId} #deptChart`);
     if(!ctx) return;
 
     const deptStats = {};
@@ -2212,7 +2212,7 @@ if (activeView === 'all-bookings') renderAllBookings();
         else if (s === 'cancelled') statusCount.Cancelled++;
     });
 
-    const ctx2 = document.querySelector(`#view-${activeView} #statusChart`);
+    const ctx2 = document.querySelector(`#view-${viewId} #statusChart`);
     if (ctx2) {
 
         if (statusChart) statusChart.destroy();
@@ -2281,7 +2281,7 @@ dataList.forEach(b => {
 const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
 const trendData = sortedLabels.map(l => trendMap[l]);
 
-const ctx3 = document.querySelector(`#view-${activeView} #trendChart`);
+const ctx3 = document.querySelector(`#view-${viewId} #trendChart`);
 if (ctx3) {
 
     if (trendChart) trendChart.destroy();
