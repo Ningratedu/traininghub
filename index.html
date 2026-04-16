@@ -2786,38 +2786,39 @@ if(id){
             .getElementById('view-title')
             .innerText = titleText;
     }
-
-    // RESET SEARCH SAAT BUKA SEMUA PESANAN
+			    // RESET SEARCH SAAT BUKA SEMUA PESANAN
     if(id === 'all-bookings'){
-        const search = document.getElementById('search-all-bookings');
+
+        const search =
+            document.getElementById('search-all-bookings');
+
         if(search){
             search.value = '';
         }
+
     }
 
-    // 🔥 STATISTIK
-    if(id === 'statistik'){
-        const data = getFilteredBookings();
+    // 🔥 CLOSE SIDEBAR ONLY IF USER CLICK MENU
+if(window.innerWidth < 768){
 
-        setTimeout(() => {
-            updateChartUniversal(data, 'User');
-        }, 100);
+    const sidebar =
+        document.getElementById('mobile-sidebar');
+
+    const overlay =
+        document.getElementById('mobile-sidebar-overlay');
+
+    // hanya close kalau sidebar memang sudah terbuka
+    if(sidebar.classList.contains('sidebar-open')){
+
+        sidebar.classList.remove('sidebar-open');
+        overlay.classList.add('hide');
+
     }
 
-    // 🔥 CLOSE SIDEBAR (PINDAH KE DALAM FUNCTION)
-    if(window.innerWidth < 768){
+}
 
-        const sidebar = document.getElementById('mobile-sidebar');
-        const overlay = document.getElementById('mobile-sidebar-overlay');
-
-        if(sidebar.classList.contains('sidebar-open')){
-            sidebar.classList.remove('sidebar-open');
-            overlay.classList.add('hide');
-        }
-    }
-
-    // 🔥 REFRESH UI (JUGA HARUS DI DALAM)
     refreshUI();
+
 };
         window.switchDashTab = (type) => {
             document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('tab-active', 'text-slate-500'));
