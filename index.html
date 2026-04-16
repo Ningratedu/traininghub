@@ -2776,6 +2776,17 @@ if(id){
             )
         );
 
+    // 🔥 WAJIB: simpan active view
+    activeView = id;
+
+    // 🔥 INI BAGIAN YANG LO TANYA (SUDAH DIPASANG DI TEMPAT YANG BENAR)
+    if(id === 'statistik'){
+        setTimeout(() => {
+            renderAdminDashboard();
+        }, 100);
+    }
+}
+
     // Update title
     if(titleText) {
         document
