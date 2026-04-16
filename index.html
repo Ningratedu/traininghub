@@ -666,43 +666,6 @@ overflow-x: hidden;
 
                 <div id="view-jadwal" class="view hide"><div id="calendar-list" class="space-y-4"></div></div>
                 <div id="view-riwayat" class="view hide"><div id="my-booking-list" class="space-y-4"></div></div>
-				<div id="view-statistik" class="view hide">
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-
-        <!-- TREND -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <i class="fas fa-chart-line text-indigo-500"></i> Trend Booking
-            </h4>
-            <div class="h-[280px] w-full">
-                <canvas id="trendChartUser"></canvas>
-            </div>
-        </div>
-
-        <!-- STATUS -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <i class="fas fa-chart-pie text-indigo-500"></i> Status Pesanan
-            </h4>
-            <div class="h-[280px] w-full">
-                <canvas id="statusChartUser"></canvas>
-            </div>
-        </div>
-
-        <!-- DEPARTEMEN -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
-            </h4>
-            <div class="h-[280px] w-full">
-                <canvas id="deptChartUser"></canvas>
-            </div>
-        </div>
-
-    </div>
-
-</div>
                 <div id="view-approval" class="view hide"><div id="approval-list" class="space-y-4"></div></div>
                 <div id="view-master-data" class="view hide">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1544,9 +1507,6 @@ let deptChart = null;
 let statusChart = null;
 let trendChart = null;
 let html5QrCode = null;
-let deptChart = null;
-let statusChart = null;
-let trendChart = null;
 
 let localState = {
     users: [],
