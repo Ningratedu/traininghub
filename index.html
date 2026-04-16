@@ -2153,7 +2153,7 @@ if (activeView === 'all-bookings') renderAllBookings();
         function updateChart(dataList) {
 
     // ================= DEPT CHART =================
-    const ctx = document.getElementById('deptChart');
+    const ctx = document.querySelector(`#view-${activeView} #deptChart`);
     if(!ctx) return;
 
     const deptStats = {};
@@ -2212,8 +2212,7 @@ if (activeView === 'all-bookings') renderAllBookings();
         else if (s === 'cancelled') statusCount.Cancelled++;
     });
 
-    const ctx2 = document.getElementById('statusChart');
-
+    const ctx2 = document.querySelector(`#view-${activeView} #statusChart`);
     if (ctx2) {
 
         if (statusChart) statusChart.destroy();
@@ -2282,8 +2281,7 @@ dataList.forEach(b => {
 const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
 const trendData = sortedLabels.map(l => trendMap[l]);
 
-const ctx3 = document.getElementById('trendChart');
-
+const ctx3 = document.querySelector(`#view-${activeView} #trendChart`);
 if (ctx3) {
 
     if (trendChart) trendChart.destroy();
