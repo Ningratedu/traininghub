@@ -2122,28 +2122,30 @@ window.showRoomHistory = (roomId, roomName) => {
     // 🔥 RENDER SESUAI VIEW
     if (activeView === 'dashboard') {
 
-        if (currentUser.role === 'admin') {
+    if (currentUser.role === 'admin') {
+        renderAdminDashboard();
+    } else {
+        const tabRooms = document.getElementById('tab-rooms');
 
-            renderAdminDashboard();
+        const type =
+            (tabRooms && tabRooms.classList.contains('tab-active'))
+            ? 'room'
+            : 'tool';
 
-        } else {
-
-            const tabRooms = document.getElementById('tab-rooms');
-
-            const type =
-                (tabRooms && tabRooms.classList.contains('tab-active'))
-                ? 'room'
-                : 'tool';
-
-            renderAvailableAssets(type);
-        }
+        renderAvailableAssets(type);
     }
+}
 
-    if (activeView === 'riwayat') renderRiwayat();
-    if (activeView === 'approval') renderApproval();
-    if (activeView === 'master-data') renderMaster();
-    if (activeView === 'jadwal') renderJadwal();
-    if (activeView === 'all-bookings') renderAllBookings();
+// 🔥 TAMBAHAN INI
+if (activeView === 'statistik') {
+    renderAdminDashboard();
+}
+
+if (activeView === 'riwayat') renderRiwayat();
+if (activeView === 'approval') renderApproval();
+if (activeView === 'master-data') renderMaster();
+if (activeView === 'jadwal') renderJadwal();
+if (activeView === 'all-bookings') renderAllBookings();
 
     updatePendingBadge();
 }
