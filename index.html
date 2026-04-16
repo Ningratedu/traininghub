@@ -2176,10 +2176,10 @@ dataList.forEach(b => {
     deptStats[d] = (deptStats[d] || 0) + 1;
 });
 
-if(isDashboard){
-    if(deptChartDashboard) deptChartDashboard.destroy();
-}else{
-    if(deptChartStat) deptChartStat.destroy();
+if (isDashboard) {
+    if (deptChartDashboard) deptChartDashboard.destroy();
+} else {
+    if (deptChartStat) deptChartStat.destroy();
 }
 
 const newDeptChart = new Chart(ctx, {
@@ -2192,17 +2192,17 @@ const newDeptChart = new Chart(ctx, {
     }
 });
 
-// 🔥 ASSIGN SESUAI MODE
-if(isDashboard){
+if (isDashboard) {
     deptChartDashboard = newDeptChart;
-}else{
+} else {
     deptChartStat = newDeptChart;
 }
 
 
 // ================= STATUS =================
 const ctx2 = document.getElementById(statusId);
-if(ctx2){
+
+if (ctx2) {
 
     const statusCount = {};
     dataList.forEach(b => {
@@ -2210,10 +2210,10 @@ if(ctx2){
         statusCount[s] = (statusCount[s] || 0) + 1;
     });
 
-    if(isDashboard){
-        if(statusChartDashboard) statusChartDashboard.destroy();
-    }else{
-        if(statusChartStat) statusChartStat.destroy();
+    if (isDashboard) {
+        if (statusChartDashboard) statusChartDashboard.destroy();
+    } else {
+        if (statusChartStat) statusChartStat.destroy();
     }
 
     const newStatusChart = new Chart(ctx2, {
@@ -2226,10 +2226,9 @@ if(ctx2){
         }
     });
 
-    // 🔥 ASSIGN
-    if(isDashboard){
+    if (isDashboard) {
         statusChartDashboard = newStatusChart;
-    }else{
+    } else {
         statusChartStat = newStatusChart;
     }
 }
@@ -2237,7 +2236,8 @@ if(ctx2){
 
 // ================= TREND =================
 const ctx3 = document.getElementById(trendId);
-if(ctx3){
+
+if (ctx3) {
 
     const trendMap = {};
     dataList.forEach(b => {
@@ -2245,10 +2245,10 @@ if(ctx3){
         trendMap[d] = (trendMap[d] || 0) + 1;
     });
 
-    if(isDashboard){
-        if(trendChartDashboard) trendChartDashboard.destroy();
-    }else{
-        if(trendChartStat) trendChartStat.destroy();
+    if (isDashboard) {
+        if (trendChartDashboard) trendChartDashboard.destroy();
+    } else {
+        if (trendChartStat) trendChartStat.destroy();
     }
 
     const newTrendChart = new Chart(ctx3, {
@@ -2261,13 +2261,12 @@ if(ctx3){
         }
     });
 
-    // 🔥 ASSIGN
-    if(isDashboard){
+    if (isDashboard) {
         trendChartDashboard = newTrendChart;
-    }else{
+    } else {
         trendChartStat = newTrendChart;
     }
-}
+		}
 
 
         // AUTH HANDLERS
