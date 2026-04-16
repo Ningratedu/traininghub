@@ -2176,7 +2176,11 @@ if (activeView === 'all-bookings') renderAllBookings();
         deptStats[d] = (deptStats[d] || 0) + 1;
     });
 
-    if(deptChart) deptChart.destroy();
+    if(isDashboard){
+    if(deptChartDashboard) deptChartDashboard.destroy();
+}else{
+    if(deptChartStat) deptChartStat.destroy();
+}
 
     deptChart = new Chart(ctx, {
         type: 'bar',
