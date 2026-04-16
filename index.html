@@ -2776,14 +2776,29 @@ if(id){
             )
         );
 
-    // 🔥 WAJIB: simpan active view
+    // 🔥 simpan active view
     activeView = id;
 
-    // 🔥 INI BAGIAN YANG LO TANYA (SUDAH DIPASANG DI TEMPAT YANG BENAR)
+    // 🔥 render statistik (ADMIN STYLE)
     if(id === 'statistik'){
         setTimeout(() => {
             renderAdminDashboard();
         }, 100);
+    }
+
+    // 🔥 Update title (PINDAH KE DALAM FUNCTION)
+    if(titleText) {
+        document
+            .getElementById('view-title')
+            .innerText = titleText;
+    }
+
+    // 🔥 RESET SEARCH
+    if(id === 'all-bookings'){
+        const search = document.getElementById('search-all-bookings');
+        if(search){
+            search.value = '';
+        }
     }
 }
 
