@@ -2759,7 +2759,6 @@ if(id){
         history.pushState({ id, titleText }, "", "#" + id);
     }
 
-    // Switch view
     document.querySelectorAll('.view')
         .forEach(v => v.classList.add('hide'));
 
@@ -2767,7 +2766,6 @@ if(id){
         .getElementById('view-' + id)
         .classList.remove('hide');
 
-    // Active menu highlight
     document.querySelectorAll('.nav-btn')
         .forEach(btn =>
             btn.classList.toggle(
@@ -2776,53 +2774,41 @@ if(id){
             )
         );
 
-    // 🔥 simpan active view
     activeView = id;
 
-    // 🔥 render statistik (ADMIN STYLE)
     if(id === 'statistik'){
         setTimeout(() => {
             renderAdminDashboard();
         }, 100);
     }
 
-    // 🔥 Update title (PINDAH KE DALAM FUNCTION)
     if(titleText) {
         document
             .getElementById('view-title')
             .innerText = titleText;
     }
 
-    // 🔥 RESET SEARCH
     if(id === 'all-bookings'){
         const search = document.getElementById('search-all-bookings');
         if(search){
             search.value = '';
         }
     }
-}
 
-    // 🔥 CLOSE SIDEBAR ONLY IF USER CLICK MENU
-if(window.innerWidth < 768){
+    if(window.innerWidth < 768){
 
-    const sidebar =
-        document.getElementById('mobile-sidebar');
+        const sidebar = document.getElementById('mobile-sidebar');
+        const overlay = document.getElementById('mobile-sidebar-overlay');
 
-    const overlay =
-        document.getElementById('mobile-sidebar-overlay');
-
-    // hanya close kalau sidebar memang sudah terbuka
-    if(sidebar.classList.contains('sidebar-open')){
-
-        sidebar.classList.remove('sidebar-open');
-        overlay.classList.add('hide');
-
+        if(sidebar && sidebar.classList.contains('sidebar-open')){
+            sidebar.classList.remove('sidebar-open');
+            overlay.classList.add('hide');
+        }
     }
 
-}
-
-    refreshUI();
-
+    if(typeof refreshUI === 'function'){
+        refreshUI();
+    }
 };
         window.switchDashTab = (type) => {
             document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('tab-active', 'text-slate-500'));
