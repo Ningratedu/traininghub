@@ -2150,202 +2150,83 @@ if (activeView === 'all-bookings') renderAllBookings();
     updatePendingBadge();
 }
 
-        function updateChart(dataList, viewId = 'dashboard') {
+        function updateChart(dataList, mode = 'statistik') {
 
-    // ================= DEPT CHART =================
-    const ctx = document.querySelector(`#view-${viewId} #deptChart`);
+    const isDashboard = mode === 'dashboard';
+
+    const deptId = isDashboard ? 'deptChartDashboard' : 'deptChart';
+    const statusId = isDashboard ? 'statusChartDashboard' : 'statusChart';
+    const trendId = isDashboard ? 'trendChartDashboard' : 'trendChart';
+
+    const ctx = document.getElementById(deptId);
     if(!ctx) return;
 
+    // ================= DEPT =================
     const deptStats = {};
     dataList.forEach(b => {
         const d = b.dept || 'Umum';
         deptStats[d] = (deptStats[d] || 0) + 1;
     });
 
-    const labels = Object.keys(deptStats);
-    const data = Object.values(deptStats);
-
     if(deptChart) deptChart.destroy();
 
     deptChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels,
+            labels: Object.keys(deptStats),
             datasets: [{
-                label: 'Pemesanan',
-                data,
-                backgroundColor: '#6366f1',
-                borderRadius: 8,
-                barThickness: 28
+                data: Object.values(deptStats)
             }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { legend: { display: false } },
-            scales: { 
-                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }, 
-                x: { grid: { display: false } } 
-            }
         }
     });
 
+    // ================= STATUS =================
+    const ctx2 = document.getElementById(statusId);
+    if(ctx2){
 
-    // ================= STATUS CHART =================
-    const statusCount = {
-        Pending: 0,
-        Approved: 0,
-        Ongoing: 0,
-        Completed: 0,
-        Rejected: 0,
-        Cancelled: 0
-    };
+        const statusCount = {};
+        dataList.forEach(b => {
+            const s = b.status || 'Unknown';
+            statusCount[s] = (statusCount[s] || 0) + 1;
+        });
 
-    dataList.forEach(b => {
-        const s = (b.status || '').toLowerCase();
-
-        if (s === 'pending') statusCount.Pending++;
-        else if (s === 'approved') statusCount.Approved++;
-        else if (s === 'ongoing') statusCount.Ongoing++;
-        else if (s === 'completed') statusCount.Completed++;
-        else if (s === 'rejected') statusCount.Rejected++;
-        else if (s === 'cancelled') statusCount.Cancelled++;
-    });
-
-    const ctx2 = document.querySelector(`#view-${viewId} #statusChart`);
-    if (ctx2) {
-
-        if (statusChart) statusChart.destroy();
+        if(statusChart) statusChart.destroy();
 
         statusChart = new Chart(ctx2, {
-            type: 'doughnut',
+            type: 'pie',
             data: {
                 labels: Object.keys(statusCount),
                 datasets: [{
-                    data: Object.values(statusCount),
-                    backgroundColor: [
-                        '#f59e0b',
-                        '#6366f1',
-                        '#06b6d4',
-                        '#10b981',
-                        '#ef4444',
-                        '#64748b'
-                    ]
+                    data: Object.values(statusCount)
                 }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percent = total ? ((value / total) * 100).toFixed(1) : 0;
-                                return `${label}: ${value} (${percent}%)`;
-                            }
-                        }
-                    }
-                }
             }
         });
-
     }
 
+    // ================= TREND =================
+    const ctx3 = document.getElementById(trendId);
+    if(ctx3){
 
-    // ================= TREND BOOKING =================
-const trendMap = {};
+        const trendMap = {};
+        dataList.forEach(b => {
+            const d = b.date;
+            trendMap[d] = (trendMap[d] || 0) + 1;
+        });
 
-dataList.forEach(b => {
+        if(trendChart) trendChart.destroy();
 
-    const dateValue = b.startTime || b.date || b.createdAt || b.bookingDate;
-    if (!dateValue) return;
-
-    const d = new Date(dateValue);
-    if (isNaN(d)) return;
-
-    const label = d.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short'
-    });
-
-    trendMap[label] = (trendMap[label] || 0) + 1;
-});
-
-const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
-const trendData = sortedLabels.map(l => trendMap[l]);
-
-const ctx3 = document.querySelector(`#view-${viewId} #trendChart`);
-if (ctx3) {
-
-    if (trendChart) trendChart.destroy();
-
-    trendChart = new Chart(ctx3, {
-        type: 'line',
-        data: {
-            labels: sortedLabels,
-            datasets: [{
-                label: 'Booking',
-                data: trendData,
-                tension: 0.35,
-                fill: true,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99,102,241,0.08)',
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: '#6366f1'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            layout: {
-                padding: 10 // 🔥 sama semua sisi (biar center)
-            },
-
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-
-            plugins: {
-                legend: { display: false }
-            },
-
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        precision: 0
-                    },
-                    grid: {
-                        color: '#f1f5f9',
-                        drawBorder: false
-                    }
-                },
-                x: {
-                    offset: false, // 🔥 biar gak geser
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    },
-                    ticks: {
-                        padding: 6
-                    }
-                }
+        trendChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: Object.keys(trendMap),
+                datasets: [{
+                    data: Object.values(trendMap)
+                }]
             }
-        }
-    });
-   }
+        });
+    }
 }
+
 
         // AUTH HANDLERS
         document.getElementById('form-login').onsubmit = async (e) => {
