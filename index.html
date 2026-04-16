@@ -2170,72 +2170,102 @@ if (activeView === 'all-bookings') renderAllBookings();
     if(!ctx) return;
 
     // ================= DEPT =================
-    const deptStats = {};
-    dataList.forEach(b => {
-        const d = b.dept || 'Umum';
-        deptStats[d] = (deptStats[d] || 0) + 1;
-    });
+const deptStats = {};
+dataList.forEach(b => {
+    const d = b.dept || 'Umum';
+    deptStats[d] = (deptStats[d] || 0) + 1;
+});
 
-    if(isDashboard){
+if(isDashboard){
     if(deptChartDashboard) deptChartDashboard.destroy();
 }else{
     if(deptChartStat) deptChartStat.destroy();
 }
 
-    deptChart = new Chart(ctx, {
-        type: 'bar',
+const newDeptChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: Object.keys(deptStats),
+        datasets: [{
+            data: Object.values(deptStats)
+        }]
+    }
+});
+
+// 🔥 ASSIGN SESUAI MODE
+if(isDashboard){
+    deptChartDashboard = newDeptChart;
+}else{
+    deptChartStat = newDeptChart;
+}
+
+
+// ================= STATUS =================
+const ctx2 = document.getElementById(statusId);
+if(ctx2){
+
+    const statusCount = {};
+    dataList.forEach(b => {
+        const s = b.status || 'Unknown';
+        statusCount[s] = (statusCount[s] || 0) + 1;
+    });
+
+    if(isDashboard){
+        if(statusChartDashboard) statusChartDashboard.destroy();
+    }else{
+        if(statusChartStat) statusChartStat.destroy();
+    }
+
+    const newStatusChart = new Chart(ctx2, {
+        type: 'pie',
         data: {
-            labels: Object.keys(deptStats),
+            labels: Object.keys(statusCount),
             datasets: [{
-                data: Object.values(deptStats)
+                data: Object.values(statusCount)
             }]
         }
     });
 
-    // ================= STATUS =================
-    const ctx2 = document.getElementById(statusId);
-    if(ctx2){
+    // 🔥 ASSIGN
+    if(isDashboard){
+        statusChartDashboard = newStatusChart;
+    }else{
+        statusChartStat = newStatusChart;
+    }
+}
 
-        const statusCount = {};
-        dataList.forEach(b => {
-            const s = b.status || 'Unknown';
-            statusCount[s] = (statusCount[s] || 0) + 1;
-        });
 
-        if(statusChart) statusChart.destroy();
+// ================= TREND =================
+const ctx3 = document.getElementById(trendId);
+if(ctx3){
 
-        statusChart = new Chart(ctx2, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(statusCount),
-                datasets: [{
-                    data: Object.values(statusCount)
-                }]
-            }
-        });
+    const trendMap = {};
+    dataList.forEach(b => {
+        const d = b.date;
+        trendMap[d] = (trendMap[d] || 0) + 1;
+    });
+
+    if(isDashboard){
+        if(trendChartDashboard) trendChartDashboard.destroy();
+    }else{
+        if(trendChartStat) trendChartStat.destroy();
     }
 
-    // ================= TREND =================
-    const ctx3 = document.getElementById(trendId);
-    if(ctx3){
+    const newTrendChart = new Chart(ctx3, {
+        type: 'line',
+        data: {
+            labels: Object.keys(trendMap),
+            datasets: [{
+                data: Object.values(trendMap)
+            }]
+        }
+    });
 
-        const trendMap = {};
-        dataList.forEach(b => {
-            const d = b.date;
-            trendMap[d] = (trendMap[d] || 0) + 1;
-        });
-
-        if(trendChart) trendChart.destroy();
-
-        trendChart = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels: Object.keys(trendMap),
-                datasets: [{
-                    data: Object.values(trendMap)
-                }]
-            }
-        });
+    // 🔥 ASSIGN
+    if(isDashboard){
+        trendChartDashboard = newTrendChart;
+    }else{
+        trendChartStat = newTrendChart;
     }
 }
 
