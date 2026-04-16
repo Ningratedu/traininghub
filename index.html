@@ -2802,24 +2802,6 @@ if(id){
     }
 }
 
-    // Update title
-    if(titleText) {
-        document
-            .getElementById('view-title')
-            .innerText = titleText;
-    }
-			    // RESET SEARCH SAAT BUKA SEMUA PESANAN
-    if(id === 'all-bookings'){
-
-        const search =
-            document.getElementById('search-all-bookings');
-
-        if(search){
-            search.value = '';
-        }
-
-    }
-
     // 🔥 CLOSE SIDEBAR ONLY IF USER CLICK MENU
 if(window.innerWidth < 768){
 
