@@ -1758,7 +1758,7 @@ function renderAdminDashboard() {
     setStat('ongoing', ongoing.length);
     setStat('completed', completed.length);
 
-    updateChart(filtered);
+    updateChart(filtered, 'dashboard');
 }
 
 window.showStatTable = (category) => {
