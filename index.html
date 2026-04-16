@@ -664,59 +664,78 @@ overflow-x: hidden;
 </div>
 </div>
 
-                <div id="view-jadwal" class="view hide"><div id="calendar-list" class="space-y-4"></div></div>
-                <div id="view-riwayat" class="view hide"><div id="my-booking-list" class="space-y-4"></div></div>
-				<div id="view-statistik" class="view hide">
+                <div id="view-jadwal" class="view hide">
+    <div id="calendar-list" class="space-y-4"></div>
+</div>
+
+<div id="view-riwayat" class="view hide">
+    <div id="my-booking-list" class="space-y-4"></div>
+</div>
+
+<!-- 🔥 TAMBAHAN STATISTIK -->
+<div id="view-statistik" class="view hide">
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
 
         <!-- TREND -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
                 <i class="fas fa-chart-line text-indigo-500"></i> Trend Booking
             </h4>
-            <div class="h-[280px] w-full">
-                <canvas id="trendChartUser"></canvas>
+            <div class="h-[280px]">
+                <canvas id="trendChart"></canvas>
             </div>
         </div>
 
         <!-- STATUS -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
                 <i class="fas fa-chart-pie text-indigo-500"></i> Status Pesanan
             </h4>
-            <div class="h-[280px] w-full">
-                <canvas id="statusChartUser"></canvas>
+            <div class="h-[280px]">
+                <canvas id="statusChart"></canvas>
             </div>
         </div>
 
         <!-- DEPARTEMEN -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
                 <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
             </h4>
-            <div class="h-[280px] w-full">
-                <canvas id="deptChartUser"></canvas>
+            <div class="h-[280px]">
+                <canvas id="deptChart"></canvas>
             </div>
         </div>
 
     </div>
 
 </div>
-                <div id="view-approval" class="view hide"><div id="approval-list" class="space-y-4"></div></div>
-                <div id="view-master-data" class="view hide">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div>
-                            <div class="flex justify-between items-center mb-4"><h4 class="font-bold">Ruangan</h4><button onclick="window.openMasterModal('room')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">Tambah</button></div>
-                            <div id="master-room-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-4"><h4 class="font-bold">Alat & Lokasi</h4><button onclick="window.openMasterModal('tool')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">Tambah</button></div>
-                            <div id="master-tool-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
-                        </div>
-                    </div>
-                </div>
-				<div id="view-all-bookings" class="view hide">
+
+<div id="view-approval" class="view hide">
+    <div id="approval-list" class="space-y-4"></div>
+</div>
+
+<div id="view-master-data" class="view hide">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-bold">Ruangan</h4>
+                <button onclick="window.openMasterModal('room')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">Tambah</button>
+            </div>
+            <div id="master-room-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
+        </div>
+
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-bold">Alat & Lokasi</h4>
+                <button onclick="window.openMasterModal('tool')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">Tambah</button>
+            </div>
+            <div id="master-tool-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
+        </div>
+    </div>
+</div>
+
+<div id="view-all-bookings" class="view hide">
     
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         
@@ -1544,9 +1563,6 @@ let deptChart = null;
 let statusChart = null;
 let trendChart = null;
 let html5QrCode = null;
-let deptChart = null;
-let statusChart = null;
-let trendChart = null;
 
 let localState = {
     users: [],
@@ -2106,28 +2122,30 @@ window.showRoomHistory = (roomId, roomName) => {
     // 🔥 RENDER SESUAI VIEW
     if (activeView === 'dashboard') {
 
-        if (currentUser.role === 'admin') {
+    if (currentUser.role === 'admin') {
+        renderAdminDashboard();
+    } else {
+        const tabRooms = document.getElementById('tab-rooms');
 
-            renderAdminDashboard();
+        const type =
+            (tabRooms && tabRooms.classList.contains('tab-active'))
+            ? 'room'
+            : 'tool';
 
-        } else {
-
-            const tabRooms = document.getElementById('tab-rooms');
-
-            const type =
-                (tabRooms && tabRooms.classList.contains('tab-active'))
-                ? 'room'
-                : 'tool';
-
-            renderAvailableAssets(type);
-        }
+        renderAvailableAssets(type);
     }
+}
 
-    if (activeView === 'riwayat') renderRiwayat();
-    if (activeView === 'approval') renderApproval();
-    if (activeView === 'master-data') renderMaster();
-    if (activeView === 'jadwal') renderJadwal();
-    if (activeView === 'all-bookings') renderAllBookings();
+// 🔥 TAMBAHAN INI
+if (activeView === 'statistik') {
+    renderAdminDashboard();
+}
+
+if (activeView === 'riwayat') renderRiwayat();
+if (activeView === 'approval') renderApproval();
+if (activeView === 'master-data') renderMaster();
+if (activeView === 'jadwal') renderJadwal();
+if (activeView === 'all-bookings') renderAllBookings();
 
     updatePendingBadge();
 }
