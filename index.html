@@ -604,7 +604,7 @@ overflow-x: hidden;
         <i class="fas fa-chart-line text-indigo-500"></i> Trend Booking
     </h4>
     <div class="h-[280px] w-full">
-        <canvas id="trendChartDashboard"></canvas>
+        <canvas id="trendChart"></canvas>
     </div>
 </div>
 
@@ -614,7 +614,7 @@ overflow-x: hidden;
             <i class="fas fa-chart-pie text-indigo-500"></i> Status Pesanan
         </h4>
         <div class="h-[280px] w-full">
-            <canvas id="statusChartDashboard"></canvas>
+            <canvas id="statusChart"></canvas>
         </div>
     </div>						
 							
@@ -624,7 +624,7 @@ overflow-x: hidden;
             <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
         </h4>
         <div class="h-[280px] w-full">
-            <canvas id="deptChartDashboard"></canvas>
+            <canvas id="deptChart"></canvas>
         </div>
     </div>
 
@@ -1559,17 +1559,9 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 let bookingType = 'room';
 const ADMIN_PASS = "training2026";
-		
-// DASHBOARD
-let deptChartDashboard;
-let statusChartDashboard;
-let trendChartDashboard;
-
-// STATISTIK
-let deptChartStat;
-let statusChartStat;
-let trendChartStat;
-		
+let deptChart = null;
+let statusChart = null;
+let trendChart = null;
 let html5QrCode = null;
 
 let localState = {
@@ -1766,7 +1758,7 @@ function renderAdminDashboard() {
     setStat('ongoing', ongoing.length);
     setStat('completed', completed.length);
 
-    updateChart(filtered, 'dashboard');
+    updateChart(filtered);
 }
 
 window.showStatTable = (category) => {
@@ -2158,116 +2150,204 @@ if (activeView === 'all-bookings') renderAllBookings();
     updatePendingBadge();
 }
 
-        function updateChart(dataList, mode = 'statistik') {
+        function updateChart(dataList) {
 
-    const isDashboard = mode === 'dashboard';
-
-    const deptId = isDashboard ? 'deptChartDashboard' : 'deptChart';
-    const statusId = isDashboard ? 'statusChartDashboard' : 'statusChart';
-    const trendId = isDashboard ? 'trendChartDashboard' : 'trendChart';
-
-    const ctx = document.getElementById(deptId);
+    // ================= DEPT CHART =================
+    const ctx = document.getElementById('deptChart');
     if(!ctx) return;
 
-    // ================= DEPT =================
-const deptStats = {};
-dataList.forEach(b => {
-    const d = b.dept || 'Umum';
-    deptStats[d] = (deptStats[d] || 0) + 1;
-});
-
-if (isDashboard) {
-    if (deptChartDashboard) deptChartDashboard.destroy();
-} else {
-    if (deptChartStat) deptChartStat.destroy();
-}
-
-const newDeptChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: Object.keys(deptStats),
-        datasets: [{
-            data: Object.values(deptStats)
-        }]
-    }
-});
-
-if (isDashboard) {
-    deptChartDashboard = newDeptChart;
-} else {
-    deptChartStat = newDeptChart;
-}
-
-
-// ================= STATUS =================
-const ctx2 = document.getElementById(statusId);
-
-if (ctx2) {
-
-    const statusCount = {};
+    const deptStats = {};
     dataList.forEach(b => {
-        const s = b.status || 'Unknown';
-        statusCount[s] = (statusCount[s] || 0) + 1;
+        const d = b.dept || 'Umum';
+        deptStats[d] = (deptStats[d] || 0) + 1;
     });
 
-    if (isDashboard) {
-        if (statusChartDashboard) statusChartDashboard.destroy();
-    } else {
-        if (statusChartStat) statusChartStat.destroy();
-    }
+    const labels = Object.keys(deptStats);
+    const data = Object.values(deptStats);
 
-    const newStatusChart = new Chart(ctx2, {
-        type: 'pie',
+    if(deptChart) deptChart.destroy();
+
+    deptChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-            labels: Object.keys(statusCount),
+            labels: labels,
             datasets: [{
-                data: Object.values(statusCount)
+                label: 'Pemesanan',
+                data,
+                backgroundColor: '#6366f1',
+                borderRadius: 8,
+                barThickness: 28
             }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }, 
+                x: { grid: { display: false } } 
+            }
         }
     });
 
-    if (isDashboard) {
-        statusChartDashboard = newStatusChart;
-    } else {
-        statusChartStat = newStatusChart;
+
+    // ================= STATUS CHART =================
+    const statusCount = {
+        Pending: 0,
+        Approved: 0,
+        Ongoing: 0,
+        Completed: 0,
+        Rejected: 0,
+        Cancelled: 0
+    };
+
+    dataList.forEach(b => {
+        const s = (b.status || '').toLowerCase();
+
+        if (s === 'pending') statusCount.Pending++;
+        else if (s === 'approved') statusCount.Approved++;
+        else if (s === 'ongoing') statusCount.Ongoing++;
+        else if (s === 'completed') statusCount.Completed++;
+        else if (s === 'rejected') statusCount.Rejected++;
+        else if (s === 'cancelled') statusCount.Cancelled++;
+    });
+
+    const ctx2 = document.getElementById('statusChart');
+
+    if (ctx2) {
+
+        if (statusChart) statusChart.destroy();
+
+        statusChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusCount),
+                datasets: [{
+                    data: Object.values(statusCount),
+                    backgroundColor: [
+                        '#f59e0b',
+                        '#6366f1',
+                        '#06b6d4',
+                        '#10b981',
+                        '#ef4444',
+                        '#64748b'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${percent}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
     }
-}
 
 
-// ================= TREND =================
-const ctx3 = document.getElementById(trendId);
+    // ================= TREND BOOKING =================
+const trendMap = {};
+
+dataList.forEach(b => {
+
+    const dateValue = b.startTime || b.date || b.createdAt || b.bookingDate;
+    if (!dateValue) return;
+
+    const d = new Date(dateValue);
+    if (isNaN(d)) return;
+
+    const label = d.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short'
+    });
+
+    trendMap[label] = (trendMap[label] || 0) + 1;
+});
+
+const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
+const trendData = sortedLabels.map(l => trendMap[l]);
+
+const ctx3 = document.getElementById('trendChart');
 
 if (ctx3) {
 
-    const trendMap = {};
-    dataList.forEach(b => {
-        const d = b.date;
-        trendMap[d] = (trendMap[d] || 0) + 1;
-    });
+    if (trendChart) trendChart.destroy();
 
-    if (isDashboard) {
-        if (trendChartDashboard) trendChartDashboard.destroy();
-    } else {
-        if (trendChartStat) trendChartStat.destroy();
-    }
-
-    const newTrendChart = new Chart(ctx3, {
+    trendChart = new Chart(ctx3, {
         type: 'line',
         data: {
-            labels: Object.keys(trendMap),
+            labels: sortedLabels,
             datasets: [{
-                data: Object.values(trendMap)
+                label: 'Booking',
+                data: trendData,
+                tension: 0.35,
+                fill: true,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99,102,241,0.08)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#6366f1'
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            layout: {
+                padding: 10 // 🔥 sama semua sisi (biar center)
+            },
+
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+
+            plugins: {
+                legend: { display: false }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    },
+                    grid: {
+                        color: '#f1f5f9',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    offset: false, // 🔥 biar gak geser
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        padding: 6
+                    }
+                }
+            }
         }
     });
-
-    if (isDashboard) {
-        trendChartDashboard = newTrendChart;
-    } else {
-        trendChartStat = newTrendChart;
-    }
-		}
-
+   }
+}
 
         // AUTH HANDLERS
         document.getElementById('form-login').onsubmit = async (e) => {
