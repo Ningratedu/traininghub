@@ -2151,75 +2151,92 @@ window.showRoomHistory = (roomId, roomName) => {
     updatePendingBadge();
 }
 
-        function updateChart(dataList) {
+       function updateChartUniversal(dataList, prefix = '') {
+
+    const deptId = `deptChart${prefix}`;
+    const statusId = `statusChart${prefix}`;
+    const trendId = `trendChart${prefix}`;
+
+    const deptEl = document.getElementById(deptId);
+    const statusEl = document.getElementById(statusId);
+    const trendEl = document.getElementById(trendId);
 
     // ================= DEPT CHART =================
-    const ctx = document.getElementById('deptChart');
-    if(!ctx) return;
+    if (deptEl) {
 
-    const deptStats = {};
-    dataList.forEach(b => {
-        const d = b.dept || 'Umum';
-        deptStats[d] = (deptStats[d] || 0) + 1;
-    });
+        const deptStats = {};
+        dataList.forEach(b => {
+            const d = b.dept || 'Umum';
+            deptStats[d] = (deptStats[d] || 0) + 1;
+        });
 
-    const labels = Object.keys(deptStats);
-    const data = Object.values(deptStats);
+        const labels = Object.keys(deptStats);
+        const data = Object.values(deptStats);
 
-    if(deptChart) deptChart.destroy();
-
-    deptChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Pemesanan',
-                data,
-                backgroundColor: '#6366f1',
-                borderRadius: 8,
-                barThickness: 28
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { legend: { display: false } },
-            scales: { 
-                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }, 
-                x: { grid: { display: false } } 
-            }
+        if (prefix === '') {
+            if (deptChart) deptChart.destroy();
+        } else {
+            if (deptChartUser) deptChartUser.destroy();
         }
-    });
+
+        const instance = new Chart(deptEl, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Pemesanan',
+                    data,
+                    backgroundColor: '#6366f1',
+                    borderRadius: 8,
+                    barThickness: 28
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        if (prefix === '') deptChart = instance;
+        else deptChartUser = instance;
+    }
 
 
     // ================= STATUS CHART =================
-    const statusCount = {
-        Pending: 0,
-        Approved: 0,
-        Ongoing: 0,
-        Completed: 0,
-        Rejected: 0,
-        Cancelled: 0
-    };
+    if (statusEl) {
 
-    dataList.forEach(b => {
-        const s = (b.status || '').toLowerCase();
+        const statusCount = {
+            Pending: 0,
+            Approved: 0,
+            Ongoing: 0,
+            Completed: 0,
+            Rejected: 0,
+            Cancelled: 0
+        };
 
-        if (s === 'pending') statusCount.Pending++;
-        else if (s === 'approved') statusCount.Approved++;
-        else if (s === 'ongoing') statusCount.Ongoing++;
-        else if (s === 'completed') statusCount.Completed++;
-        else if (s === 'rejected') statusCount.Rejected++;
-        else if (s === 'cancelled') statusCount.Cancelled++;
-    });
+        dataList.forEach(b => {
+            const s = (b.status || '').toLowerCase();
 
-    const ctx2 = document.getElementById('statusChart');
+            if (s === 'pending') statusCount.Pending++;
+            else if (s === 'approved') statusCount.Approved++;
+            else if (s === 'ongoing') statusCount.Ongoing++;
+            else if (s === 'completed') statusCount.Completed++;
+            else if (s === 'rejected') statusCount.Rejected++;
+            else if (s === 'cancelled') statusCount.Cancelled++;
+        });
 
-    if (ctx2) {
+        if (prefix === '') {
+            if (statusChart) statusChart.destroy();
+        } else {
+            if (statusChartUser) statusChartUser.destroy();
+        }
 
-        if (statusChart) statusChart.destroy();
-
-        statusChart = new Chart(ctx2, {
+        const instance = new Chart(statusEl, {
             type: 'doughnut',
             data: {
                 labels: Object.keys(statusCount),
@@ -2240,9 +2257,7 @@ window.showRoomHistory = (roomId, roomName) => {
                 maintainAspectRatio: false,
                 cutout: '70%',
                 plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
+                    legend: { position: 'bottom' },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -2258,97 +2273,83 @@ window.showRoomHistory = (roomId, roomName) => {
             }
         });
 
+        if (prefix === '') statusChart = instance;
+        else statusChartUser = instance;
     }
 
 
     // ================= TREND BOOKING =================
-const trendMap = {};
+    if (trendEl) {
 
-dataList.forEach(b => {
+        const trendMap = {};
 
-    const dateValue = b.startTime || b.date || b.createdAt || b.bookingDate;
-    if (!dateValue) return;
+        dataList.forEach(b => {
+            const dateValue = b.startTime || b.date || b.createdAt || b.bookingDate;
+            if (!dateValue) return;
 
-    const d = new Date(dateValue);
-    if (isNaN(d)) return;
+            const d = new Date(dateValue);
+            if (isNaN(d)) return;
 
-    const label = d.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short'
-    });
+            const label = d.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short'
+            });
 
-    trendMap[label] = (trendMap[label] || 0) + 1;
-});
+            trendMap[label] = (trendMap[label] || 0) + 1;
+        });
 
-const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
-const trendData = sortedLabels.map(l => trendMap[l]);
+        const sortedLabels = Object.keys(trendMap).sort((a, b) => new Date(a) - new Date(b));
+        const trendData = sortedLabels.map(l => trendMap[l]);
 
-const ctx3 = document.getElementById('trendChart');
+        if (prefix === '') {
+            if (trendChart) trendChart.destroy();
+        } else {
+            if (trendChartUser) trendChartUser.destroy();
+        }
 
-if (ctx3) {
-
-    if (trendChart) trendChart.destroy();
-
-    trendChart = new Chart(ctx3, {
-        type: 'line',
-        data: {
-            labels: sortedLabels,
-            datasets: [{
-                label: 'Booking',
-                data: trendData,
-                tension: 0.35,
-                fill: true,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99,102,241,0.08)',
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: '#6366f1'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            layout: {
-                padding: 10 // 🔥 sama semua sisi (biar center)
+        const instance = new Chart(trendEl, {
+            type: 'line',
+            data: {
+                labels: sortedLabels,
+                datasets: [{
+                    label: 'Booking',
+                    data: trendData,
+                    tension: 0.35,
+                    fill: true,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.08)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#6366f1'
+                }]
             },
-
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-
-            plugins: {
-                legend: { display: false }
-            },
-
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        precision: 0
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: 10 },
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, precision: 0 },
+                        grid: { color: '#f1f5f9', drawBorder: false }
                     },
-                    grid: {
-                        color: '#f1f5f9',
-                        drawBorder: false
-                    }
-                },
-                x: {
-                    offset: false, // 🔥 biar gak geser
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    },
-                    ticks: {
-                        padding: 6
+                    x: {
+                        offset: false,
+                        grid: { display: false, drawBorder: false },
+                        ticks: { padding: 6 }
                     }
                 }
             }
-        }
-    });
-   }
-}
+        });
+
+        if (prefix === '') trendChart = instance;
+        else trendChartUser = instance;
+    }
+} 
+            
+            
 
         // AUTH HANDLERS
         document.getElementById('form-login').onsubmit = async (e) => {
