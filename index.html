@@ -354,16 +354,29 @@ overflow-x: hidden;
 
             <!-- USER MENU -->
             <div id="user-menu-section" class="menu-group mt-3 hide">
-                <button onclick="showView('riwayat', 'Pesanan Saya')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="riwayat">
-                    <i class="fas fa-history w-5"></i> Pesanan Saya
-                </button>
-                <button onclick="showView('statistik', 'Statistik All')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="statistik">
-                    <i class="fas fa-chart-line w-5"></i> Statistik All
-                </button>
-				<button onclick="showView('view-cara-penggunaan', 'Cara Penggunaan')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="view-cara-penggunaan">
-                    <i class="fas fa-chart-line w-5"></i> Cara Penggunaan
-                </button>
-			</div>
+
+    <button onclick="showView('riwayat', 'Pesanan Saya')" 
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    data-view="riwayat">
+        <i class="fas fa-history w-5"></i>
+        <span>Pesanan Saya</span>
+    </button>
+
+    <button onclick="showView('statistik', 'Statistik All')" 
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    data-view="statistik">
+        <i class="fas fa-chart-line w-5"></i>
+        <span>Statistik All</span>
+    </button>
+
+    <button onclick="showView('view-cara-penggunaan', 'Cara Penggunaan')" 
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    data-view="view-cara-penggunaan">
+        <i class="fas fa-book w-5"></i>
+        <span>Cara Penggunaan</span>
+    </button>
+
+</div>
 
             <!-- ADMIN MENU -->
             <div id="admin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
