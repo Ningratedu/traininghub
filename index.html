@@ -680,30 +680,38 @@ overflow-x: hidden;
         <!-- TREND -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <h4 class="font-bold mb-6 flex items-center gap-2">
-                <i class="fas fa-chart-line text-indigo-500"></i> Trend Booking
+                <i class="fas fa-chart-line text-indigo-500"></i> 
+                Trend Booking
             </h4>
+
             <div class="h-[280px]">
-                <canvas id="trendChart"></canvas>
+                <canvas id="trendChartUser"></canvas>
             </div>
         </div>
+
 
         <!-- STATUS -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <h4 class="font-bold mb-6 flex items-center gap-2">
-                <i class="fas fa-chart-pie text-indigo-500"></i> Status Pesanan
+                <i class="fas fa-chart-pie text-indigo-500"></i> 
+                Status Pesanan
             </h4>
+
             <div class="h-[280px]">
-                <canvas id="statusChart"></canvas>
+                <canvas id="statusChartUser"></canvas>
             </div>
         </div>
 
+
         <!-- DEPARTEMEN -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-2">
             <h4 class="font-bold mb-6 flex items-center gap-2">
-                <i class="fas fa-chart-bar text-indigo-500"></i> Distribusi Pesanan Departemen
+                <i class="fas fa-chart-bar text-indigo-500"></i> 
+                Distribusi Pesanan Departemen
             </h4>
+
             <div class="h-[280px]">
-                <canvas id="deptChart"></canvas>
+                <canvas id="deptChartUser"></canvas>
             </div>
         </div>
 
@@ -711,9 +719,11 @@ overflow-x: hidden;
 
 </div>
 
+
 <div id="view-approval" class="view hide">
     <div id="approval-list" class="space-y-4"></div>
 </div>
+
 
 <div id="view-master-data" class="view hide">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
