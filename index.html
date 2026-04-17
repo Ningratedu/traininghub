@@ -682,112 +682,147 @@ overflow-x: hidden;
 
 				<div id="view-cara-penggunaan" class="view hide overflow-y-auto">
 
-<div class="p-6 md:p-10 bg-gradient-to-br from-blue-800 to-blue-950 min-h-screen text-white">
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-blue-950 text-white px-4 md:px-10 py-10">
 
     <!-- HEADER -->
-    <div class="text-center mb-10">
-        <h1 class="text-3xl md:text-4xl font-bold">
-            CARA PEMESANAN RUANGAN
+    <div class="text-center mb-14">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">
+            Cara Pemesanan Ruangan
         </h1>
-        <p class="text-cyan-300 mt-2">
-            Ikuti langkah berikut untuk melakukan booking hingga serah terima
+        <p class="text-cyan-300 mt-3 max-w-xl mx-auto text-sm md:text-base">
+            Ikuti alur lengkap dari pemilihan hingga serah terima dengan mudah & terstruktur
         </p>
     </div>
 
-    <!-- STEP -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- GRID -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <!-- STEP 1 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>01 PILIH MENU RUANGAN</b>
-            <ul class="text-sm mt-2">
-                <li>• Masuk ke menu <b>Ruangan</b></li>
-                <li>• Lihat daftar ruangan tersedia</li>
-                <li>• Cek kapasitas & fasilitas</li>
+        <!-- CARD TEMPLATE -->
+        <!-- STEP -->
+        <div class="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition duration-300 shadow-lg">
+
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-400 text-black font-bold shadow">
+                    01
+                </div>
+                <h3 class="font-bold text-lg">Pilih Menu</h3>
+            </div>
+
+            <ul class="text-sm text-gray-300 space-y-1">
+                <li>• Masuk ke <b>Ruangan / Alat</b></li>
+                <li>• Lihat daftar tersedia</li>
+                <li>• Cek fasilitas & lokasi</li>
             </ul>
+
         </div>
 
         <!-- STEP 2 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>02 PILIH RUANGAN</b>
-            <ul class="text-sm mt-2">
-                <li>• Klik ruangan yang diinginkan</li>
-                <li>• Pastikan jadwal tersedia</li>
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-green-400 text-black font-bold">02</div>
+                <h3 class="font-bold text-lg">Pilih Ruangan</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
+                <li>• Klik ruangan</li>
+                <li>• Pastikan jadwal kosong</li>
             </ul>
         </div>
 
         <!-- STEP 3 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>03 KLIK BOOKING</b>
-            <ul class="text-sm mt-2">
-                <li>• Tekan tombol <b>Booking</b></li>
-                <li>• Form pemesanan akan muncul</li>
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-400 text-black font-bold">03</div>
+                <h3 class="font-bold text-lg">Buat Pesanan</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
+                <li>• Klik tombol <b>+ / Buat Pesanan</b></li>
+                <li>• Form akan muncul</li>
             </ul>
         </div>
 
         <!-- STEP 4 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>04 ISI FORM PEMESANAN</b>
-            <ul class="text-sm mt-2">
-                <li>• Pilih tanggal</li>
-                <li>• Pilih jam mulai & selesai</li>
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-purple-400 text-black font-bold">04</div>
+                <h3 class="font-bold text-lg">Isi Form</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
+                <li>• Pilih tanggal & jam</li>
                 <li>• Isi keperluan</li>
-                <li>• Pilih tools (jika ada)</li>
+                <li>• Pilih tools</li>
             </ul>
         </div>
 
         <!-- STEP 5 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>05 SUBMIT BOOKING</b>
-            <ul class="text-sm mt-2">
-                <li>• Klik tombol <b>Submit</b></li>
-                <li>• Data masuk ke sistem</li>
-                <li>• Status: <b>Pending</b></li>
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-400 text-black font-bold">05</div>
+                <h3 class="font-bold text-lg">Submit</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
+                <li>• Klik <b>Simpan Pesanan</b></li>
+                <li>• Status: Pending</li>
             </ul>
         </div>
 
         <!-- STEP 6 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>06 MENUNGGU PERSETUJUAN</b>
-            <ul class="text-sm mt-2">
-                <li>• Admin akan review</li>
-                <li>• Status berubah: Approve / Reject</li>
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-red-400 text-black font-bold">06</div>
+                <h3 class="font-bold text-lg">Menunggu Approval</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
+                <li>• Direview admin</li>
+                <li>• Approve / Reject</li>
+                <li>• Notifikasi email masuk</li>
             </ul>
         </div>
 
         <!-- STEP 7 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>07 CEK PESANAN</b>
-            <ul class="text-sm mt-2">
-                <li>• Buka menu <b>Pesanan Saya</b></li>
-                <li>• Lihat status booking</li>
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-pink-400 text-black font-bold">07</div>
+                <h3 class="font-bold text-lg">Cek Pesanan</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
+                <li>• Buka <b>Pesanan Saya</b></li>
+                <li>• Lihat status</li>
             </ul>
         </div>
 
         <!-- STEP 8 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>08 GUNAKAN RUANGAN</b>
-            <ul class="text-sm mt-2">
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-400 text-black font-bold">08</div>
+                <h3 class="font-bold text-lg">Gunakan Ruangan</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
                 <li>• Datang sesuai jadwal</li>
-                <li>• Gunakan ruangan sesuai kebutuhan</li>
+                <li>• Gunakan sesuai kebutuhan</li>
             </ul>
         </div>
 
         <!-- STEP 9 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl">
-            <b>09 UPLOAD FOTO</b>
-            <ul class="text-sm mt-2">
-                <li>• Upload foto saat mulai</li>
-                <li>• Upload foto setelah selesai</li>
+        <div class="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:scale-[1.02] transition shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-orange-400 text-black font-bold">09</div>
+                <h3 class="font-bold text-lg">Upload Foto</h3>
+            </div>
+            <ul class="text-sm text-gray-300">
+                <li>• Upload saat mulai</li>
+                <li>• Upload saat selesai</li>
             </ul>
         </div>
 
         <!-- STEP 10 -->
-        <div class="bg-blue-900/60 p-5 rounded-xl lg:col-span-2">
-            <b>10 SCAN QR SERAH TERIMA</b>
-            <ul class="text-sm mt-2">
+        <div class="group bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 rounded-2xl p-6 lg:col-span-2 hover:scale-[1.02] transition shadow-xl">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-300 text-black font-bold">10</div>
+                <h3 class="font-bold text-lg">Scan QR Serah Terima</h3>
+            </div>
+            <ul class="text-sm text-gray-200">
                 <li>• Scan QR dari admin</li>
-                <li>• Sebagai bukti serah terima</li>
+                <li>• Validasi serah terima</li>
                 <li>• Booking selesai</li>
             </ul>
         </div>
@@ -795,10 +830,10 @@ overflow-x: hidden;
     </div>
 
     <!-- FOOTER -->
-    <div class="text-center mt-10">
-        <b>SELESAI</b>
-        <p class="text-sm text-gray-300 mt-2">
-            Pastikan mengikuti prosedur untuk kenyamanan bersama
+    <div class="text-center mt-16">
+        <h2 class="text-xl font-bold text-cyan-300">Selesai</h2>
+        <p class="text-gray-400 text-sm mt-2">
+            Gunakan sistem dengan bijak untuk kenyamanan bersama
         </p>
     </div>
 
