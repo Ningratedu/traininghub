@@ -2348,65 +2348,81 @@ if (ctx3) {
     if (trendChart) trendChart.destroy();
 
     trendChart = new Chart(ctx3, {
-        type: 'line',
-        data: {
-            labels: sortedLabels,
-            datasets: [{
-                label: 'Booking',
-                data: trendData,
-                tension: 0.35,
-                fill: true,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99,102,241,0.08)',
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: '#6366f1'
-            }]
+    type: 'line',
+    data: {
+        labels: sortedLabels,
+        datasets: [{
+            label: 'Booking',
+            data: trendData,
+            tension: 0.35,
+            fill: true,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.08)',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: '#6366f1'
+        }]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        layout: {
+            padding: 10
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
 
-            layout: {
-                padding: 10 // 🔥 sama semua sisi (biar center)
-            },
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
 
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
 
-            plugins: {
-                legend: { display: false }
-            },
+        scales: {
 
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        precision: 0
-                    },
-                    grid: {
-                        color: '#f1f5f9',
-                        drawBorder: false
+            // ================= Y AXIS =================
+            y: {
+                beginAtZero: true,
+
+                ticks: {
+                    stepSize: 1,
+
+                    // 🔥 PAKSA BILANGAN BULAT
+                    callback: function(value) {
+                        if (Number.isInteger(value)) {
+                            return value;
+                        }
                     }
                 },
-                x: {
-                    offset: false, // 🔥 biar gak geser
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    },
-                    ticks: {
-                        padding: 6
-                    }
+
+                grid: {
+                    color: '#f1f5f9',
+                    drawBorder: false
+                }
+            },
+
+            // ================= X AXIS =================
+            x: {
+                offset: false,
+
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+
+                ticks: {
+                    padding: 6
                 }
             }
+
         }
-    });
-   }
-}
+    }
+});
 		function updateUserChart(dataList) {
 
     // ================= DEPT =================
