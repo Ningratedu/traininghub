@@ -695,13 +695,10 @@ overflow-x: hidden;
     </div>
 
     <!-- STEP GRID -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-        <!-- CARD TEMPLATE -->
-        <!-- Tambahin: flex flex-col + min-h -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
 
         <!-- STEP 01 -->
-        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[160px]">
+        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[190px] h-full">
             <div class="flex items-center gap-2 mb-2">
                 <div class="bg-purple-500 w-6 h-6 text-[10px] flex items-center justify-center rounded-full font-bold">01</div>
                 <h3 class="text-xs font-semibold text-purple-300">LIHAT RUANGAN</h3>
@@ -715,7 +712,7 @@ overflow-x: hidden;
         </div>
 
         <!-- STEP 02 -->
-        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[160px]">
+        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[190px] h-full">
             <div class="flex items-center gap-2 mb-2">
                 <div class="bg-cyan-500 w-6 h-6 text-[10px] flex items-center justify-center rounded-full font-bold">02</div>
                 <h3 class="text-xs font-semibold text-cyan-300">BOOKING RUANGAN</h3>
@@ -730,7 +727,7 @@ overflow-x: hidden;
         </div>
 
         <!-- STEP 03 -->
-        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[160px]">
+        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[190px] h-full">
             <div class="flex items-center gap-2 mb-2">
                 <div class="bg-red-500 w-6 h-6 text-[10px] flex items-center justify-center rounded-full font-bold">03</div>
                 <h3 class="text-xs font-semibold text-red-300">CEK STATUS PESANAN</h3>
@@ -744,7 +741,7 @@ overflow-x: hidden;
         </div>
 
         <!-- STEP 04 -->
-        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[160px]">
+        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[190px] h-full">
             <div class="flex items-center gap-2 mb-2">
                 <div class="bg-green-500 w-6 h-6 text-[10px] flex items-center justify-center rounded-full font-bold">04</div>
                 <h3 class="text-xs font-semibold text-green-300">MULAI PENGGUNAAN</h3>
@@ -758,7 +755,7 @@ overflow-x: hidden;
         </div>
 
         <!-- STEP 05 -->
-        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[160px] col-span-2 lg:col-span-2">
+        <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-3 shadow flex flex-col min-h-[190px] h-full col-span-2 lg:col-span-2">
             <div class="flex items-center gap-2 mb-2">
                 <div class="bg-indigo-500 w-6 h-6 text-[10px] flex items-center justify-center rounded-full font-bold">05</div>
                 <h3 class="text-xs font-semibold text-indigo-300">SCAN QR SERAH TERIMA</h3>
@@ -773,8 +770,34 @@ overflow-x: hidden;
 
     </div>
 
-</div>
-</div>
+    <!-- TIPS & ATURAN -->
+    <div class="grid grid-cols-2 gap-3 mt-6 items-stretch">
+
+        <!-- TIPS -->
+        <div class="bg-[#0b1e3a] border border-yellow-400/30 rounded-xl p-3 shadow flex flex-col min-h-[160px] h-full">
+            <h3 class="text-xs font-semibold text-yellow-300 mb-1">💡 TIPS PENTING</h3>
+            <ul class="text-[11px] text-gray-300 leading-snug space-y-[2px] break-words flex-grow">
+                <li>• Gunakan email aktif saat mendaftar</li>
+                <li>• Lakukan booking minimal H-1</li>
+                <li>• Upload foto kegiatan jika diminta</li>
+                <li>• Cek status pesanan secara berkala</li>
+            </ul>
+        </div>
+
+        <!-- ATURAN -->
+        <div class="bg-[#0b1e3a] border border-cyan-400/30 rounded-xl p-3 shadow flex flex-col min-h-[160px] h-full">
+            <h3 class="text-xs font-semibold text-cyan-300 mb-1">✔ ATURAN PENGGUNAAN</h3>
+            <ul class="text-[11px] text-gray-300 leading-snug space-y-[2px] break-words flex-grow">
+                <li>✔ Datang tepat waktu sesuai jadwal</li>
+                <li>✔ Gunakan fasilitas dengan baik</li>
+                <li>✔ Rapikan ruangan setelah digunakan</li>
+                <li>✔ Laporkan kerusakan jika ada</li>
+                <li class="text-red-400">✖ Tidak merusak fasilitas</li>
+                <li class="text-red-400">✖ Tidak meninggalkan sampah</li>
+            </ul>
+        </div>
+
+    </div>
 
     <!-- FOOTER -->
     <div class="text-center mt-6">
