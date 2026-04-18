@@ -1803,9 +1803,9 @@ window.sendReminder = (id) => {
         b.description ||
         "-";
 
-    // ================= FORMAT DETAIL (SAMAKAN sendBookingEmail) =================
+    // ================= FORMAT DETAIL (PER BARIS) =================
 
-    let detailParts = [];
+    let detailLines = [];
 
     const validRoomId =
         b.roomId &&
@@ -1820,30 +1820,30 @@ window.sendReminder = (id) => {
         roomName !== 'null'
     ) {
 
-        detailParts.push(
-            "🏢 Ruangan: " + roomName
+        detailLines.push(
+            `🏢 Ruangan : ${roomName}`
         );
 
     }
 
     if (agendaText && agendaText !== "-") {
 
-        detailParts.push(
-            "🎯 Agenda: " + agendaText
+        detailLines.push(
+            `🎯 Agenda  : ${agendaText}`
         );
 
     }
 
     if (b.tools && b.tools.length > 0) {
 
-        detailParts.push(
-            "🧰 Peralatan: " + toolsText
+        detailLines.push(
+            `🧰 Peralatan : ${toolsText}`
         );
 
     }
 
     const detail =
-        detailParts.join(" | ") ||
+        detailLines.join("\n") ||
         "Tidak ada detail";
 
     // ================= SUBJECT =================
@@ -1861,14 +1861,15 @@ Ini adalah reminder penggunaan ruangan yang telah dijadwalkan.
 📅 Tanggal : ${b.date}
 ⏰ Waktu   : ${b.start} - ${b.end}
 
+DETAIL PEMESANAN
 ${detail}
 
 Mohon hadir sesuai jadwal yang telah ditentukan.
 
 Saat mulai penggunaan Ruangan/Alat, harap melakukan:
 
-📸 Upload foto penggunaan ruangan  
-📲 Scan QR Code Serah Terima dari admin Ruang Training  
+📸 Upload foto penggunaan ruangan
+📲 Scan QR Code Serah Terima dari admin Ruang Training
 
 Terima kasih atas kerjasamanya.
 
