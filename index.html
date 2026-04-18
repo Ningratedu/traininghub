@@ -5039,42 +5039,45 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
     </div>
 
 
-    <!-- RIGHT SIDE BUTTON -->
-${
-    (currentUser && currentUser.role === 'admin' && canShowReminder(b.date, b.status)) ? `
-    
-    <div class="flex flex-col gap-1 flex-shrink-0">
+        <!-- RIGHT SIDE BUTTON -->
+    ${
+        (currentUser && currentUser.role === 'admin' && canShowReminder(b.date, b.status)) ? `
+        
+        <div class="flex flex-col gap-1 flex-shrink-0">
 
-        <!-- REMINDER -->
-        <button
-            onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
-            class="px-3 py-1 text-[10px] font-bold 
-            bg-amber-500 text-white 
-            rounded-lg hover:bg-amber-600 
-            transition whitespace-nowrap">
-            🔔 Reminder
-        </button>
-
-        <!-- KIRIM QR -->
-        ${
-            (b.finishedPhotoUrl || b.finishedAt) ? `
+            <!-- REMINDER -->
             <button
-                onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
+                onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
                 class="px-3 py-1 text-[10px] font-bold 
-                bg-indigo-600 text-white 
-                rounded-lg hover:bg-indigo-700 
+                bg-amber-500 text-white 
+                rounded-lg hover:bg-amber-600 
                 transition whitespace-nowrap">
-                📩 Kirim QR
+                🔔 Reminder
             </button>
-            ` : ``
-        }
 
-    </div>
+            <!-- KIRIM QR -->
+            ${
+                (b.finishedPhotoUrl || b.finishedAt) ? `
+                <button
+                    onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
+                    class="px-3 py-1 text-[10px] font-bold 
+                    bg-indigo-600 text-white 
+                    rounded-lg hover:bg-indigo-700 
+                    transition whitespace-nowrap">
+                    📩 Kirim QR
+                </button>
+                ` : ``
+            }
 
-    ` : ``
-}
+        </div>
 
-`;
+        ` : ``
+    }
+
+</div>
+</div>
+
+`).join('');
 
 function canShowReminder(dateStr, status){
 
