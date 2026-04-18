@@ -1997,6 +1997,40 @@ Admin Ruang Training Rumah Ningrat`;
     link.download = `QR-Booking-${window.currentQrId}.png`;
     link.click();
 };
+
+		// ================= GENERATE PUBLIC QR =================
+
+function generatePublicQR(qrText){
+
+    const qrContainer =
+    document.getElementById("qr-public");
+
+    if(!qrContainer){
+        console.error("qr-public tidak ditemukan");
+        return;
+    }
+
+    // bersihkan isi lama
+    qrContainer.innerHTML = "";
+
+    // generate QR (format sama seperti admin)
+    setTimeout(()=>{
+
+        new QRCode(
+            qrContainer,
+            {
+                text: qrText,
+                width: 200,
+                height: 200
+            }
+        );
+
+        // simpan untuk download
+        window.currentQrId = qrText;
+
+    },100);
+
+}
 		
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
