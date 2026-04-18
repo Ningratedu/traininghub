@@ -244,84 +244,7 @@ overflow-x: hidden;
 <script>
 
 /* ===============================
-   QR MODE DETECT (ONLY IF ?qr=)
-=============================== */
-
-(function () {
-
-    const params = new URLSearchParams(window.location.search);
-    const qrCode = params.get("qr");
-    const openDetailParam = params.get("openDetail");
-
-    // HANYA jalankan QR mode jika ada ?qr
-    // dan TIDAK ada openDetail
-    if (qrCode && !openDetailParam) {
-
-        console.log("QR MODE ACTIVE:", qrCode);
-
-        window.addEventListener("load", function () {
-
-            const qrPage = document.getElementById("qr-page");
-            if (qrPage) qrPage.classList.remove("hide");
-
-            // hide layout utama
-            document.querySelectorAll(
-                "#login-screen, #mobile-sidebar, header, #content-area"
-            ).forEach(el => {
-                if (el) el.style.display = "none";
-            });
-
-            const qrContainer =
-                document.getElementById("qr-public");
-
-            if (!qrContainer) return;
-
-            // reset isi QR
-            qrContainer.innerHTML = "";
-
-            // delay supaya layout stabil
-            setTimeout(() => {
-
-                new QRCode(qrContainer, {
-                    text: qrCode,
-                    width: 240,
-                    height: 240
-                });
-
-            }, 120);
-
-        });
-
-    }
-
-})();
-
-
-
-/* ===============================
-   DOWNLOAD QR
-=============================== */
-
-function downloadQR() {
-
-    const img =
-        document.querySelector("#qr-public img");
-
-    if (!img) return;
-
-    const link =
-        document.createElement("a");
-
-    link.href = img.src;
-    link.download = "qr-serah-terima.png";
-    link.click();
-
-}
-
-
-
-/* ===============================
-   BACK → OPEN DETAIL FROM QR
+   GLOBAL FUNCTION (WAJIB GLOBAL)
 =============================== */
 
 window.goToMyOrders = function () {
@@ -332,7 +255,7 @@ window.goToMyOrders = function () {
     const qrCode =
         params.get("qr");
 
-    // kalau gak ada QR → balik normal
+    // Kalau tidak ada QR → balik login normal
     if (!qrCode) {
 
         window.location.replace(
@@ -344,7 +267,7 @@ window.goToMyOrders = function () {
 
     }
 
-    // ambil ID booking
+    // Ambil ID booking
     const bookingId =
         qrCode.replace("finish-booking-", "");
 
@@ -357,12 +280,113 @@ window.goToMyOrders = function () {
         bookingId
     );
 
-    // redirect buka detail
+    // Redirect buka detail
     window.location.replace(
         baseURL +
         "?openDetail=" +
         bookingId
     );
+
+};
+
+
+
+/* ===============================
+   QR MODE DETECT
+=============================== */
+
+(function () {
+
+    const params =
+        new URLSearchParams(window.location.search);
+
+    const qrCode =
+        params.get("qr");
+
+    const openDetailParam =
+        params.get("openDetail");
+
+    // HANYA aktif jika ?qr ada
+    // dan tidak sedang openDetail
+    if (qrCode && !openDetailParam) {
+
+        console.log(
+            "QR MODE ACTIVE:",
+            qrCode
+        );
+
+        window.addEventListener(
+            "load",
+            function () {
+
+                const qrPage =
+                    document.getElementById("qr-page");
+
+                if (qrPage)
+                    qrPage.classList.remove("hide");
+
+                // Hide layout utama
+                document.querySelectorAll(
+                    "#login-screen, #mobile-sidebar, header, #content-area"
+                ).forEach(el => {
+
+                    if (el)
+                        el.style.display = "none";
+
+                });
+
+                const qrContainer =
+                    document.getElementById("qr-public");
+
+                if (!qrContainer) return;
+
+                // Reset isi QR
+                qrContainer.innerHTML = "";
+
+                // Delay supaya layout stabil
+                setTimeout(() => {
+
+                    new QRCode(
+                        qrContainer,
+                        {
+                            text: qrCode,
+                            width: 240,
+                            height: 240
+                        }
+                    );
+
+                }, 150);
+
+            }
+        );
+
+    }
+
+})();
+
+
+
+/* ===============================
+   DOWNLOAD QR
+=============================== */
+
+window.downloadQR = function () {
+
+    const img =
+        document.querySelector(
+            "#qr-public img"
+        );
+
+    if (!img) return;
+
+    const link =
+        document.createElement("a");
+
+    link.href = img.src;
+    link.download =
+        "qr-serah-terima.png";
+
+    link.click();
 
 };
 
@@ -387,72 +411,77 @@ window.goToMyOrders = function () {
         bookingId
     );
 
-    window.addEventListener("load", () => {
+    window.addEventListener(
+        "load",
+        function () {
 
-        let retryCount = 0;
+            let retryCount = 0;
 
-        const tryOpen = () => {
+            const tryOpen = () => {
 
-            if (
-                typeof window.openDetail === "function" &&
-                window.localState &&
-                localState.bookings &&
-                localState.bookings.length
-            ) {
+                if (
+                    typeof window.openDetail === "function" &&
+                    window.localState &&
+                    localState.bookings &&
+                    localState.bookings.length
+                ) {
 
-                console.log(
-                    "OPENING DETAIL:",
-                    bookingId
-                );
-
-                window.openDetail(bookingId);
-
-                // bersihkan URL
-                window.history.replaceState(
-                    {},
-                    document.title,
-                    window.location.pathname
-                );
-
-                return true;
-
-            }
-
-            return false;
-
-        };
-
-        // coba langsung
-        if (tryOpen()) return;
-
-        // retry sampai max 10x
-        const interval =
-            setInterval(() => {
-
-                retryCount++;
-
-                if (tryOpen()) {
-
-                    clearInterval(interval);
-
-                }
-
-                if (retryCount > 10) {
-
-                    console.warn(
-                        "Gagal auto open detail (timeout)"
+                    console.log(
+                        "OPENING DETAIL:",
+                        bookingId
                     );
 
-                    clearInterval(interval);
+                    window.openDetail(
+                        bookingId
+                    );
+
+                    // Bersihkan URL
+                    window.history.replaceState(
+                        {},
+                        document.title,
+                        window.location.pathname
+                    );
+
+                    return true;
 
                 }
 
-            }, 400);
+                return false;
 
-    });
+            };
+
+            // Coba langsung
+            if (tryOpen()) return;
+
+            // Retry max 10x
+            const interval =
+                setInterval(() => {
+
+                    retryCount++;
+
+                    if (tryOpen()) {
+
+                        clearInterval(interval);
+
+                    }
+
+                    if (retryCount > 10) {
+
+                        console.warn(
+                            "Auto open detail timeout"
+                        );
+
+                        clearInterval(interval);
+
+                    }
+
+                }, 400);
+
+        }
+    );
 
 })();
-	
+
 </script>
 
     <!-- LOGIN SCREEN -->
