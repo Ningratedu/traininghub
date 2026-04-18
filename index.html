@@ -2050,7 +2050,12 @@ mainLayout.style.display = "none";
     document.getElementById('login-screen').classList.add('hide');
 
     // tampilkan halaman QR
-    document.getElementById('qr-page').classList.remove('hide');
+   const qrPage =
+document.getElementById('qr-page');
+
+if(qrPage){
+qrPage.classList.remove('hide');
+}
 
     generatePublicQR(qrId);
 
