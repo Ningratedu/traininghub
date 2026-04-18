@@ -2010,26 +2010,23 @@ function generatePublicQR(qrText){
         return;
     }
 
-    // bersihkan isi lama
+    if(typeof QRCode === "undefined"){
+        console.error("QRCode library belum load");
+        return;
+    }
+
     qrContainer.innerHTML = "";
 
-    // generate QR (format sama seperti admin)
-    setTimeout(()=>{
+    new QRCode(
+        qrContainer,
+        {
+            text: qrText,
+            width: 200,
+            height: 200
+        }
+    );
 
-        new QRCode(
-            qrContainer,
-            {
-                text: qrText,
-                width: 200,
-                height: 200
-            }
-        );
-
-        // simpan untuk download
-        window.currentQrId = qrText;
-
-    },100);
-
+    window.currentQrId = qrText;
 }
 		
 // 🔥 RESTORE SESSION SAAT REFRESH
