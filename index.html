@@ -5381,75 +5381,105 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
 
         <!-- RIGHT SIDE BUTTON -->
-${
-    canShowReminder(b.date, b.status) && currentUser?.role === 'admin'
-    ? `
+${(() => {
 
-<div class="flex flex-col gap-1 flex-shrink-0">
+    const isOwner = b.userUid === currentUser?.uid;
 
-    <!-- REMINDER -->
-    <button
-    onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
-    class="px-3 py-1 text-[10px] font-bold 
-    bg-amber-500 text-white 
-    rounded-lg hover:bg-amber-600 
-    transition whitespace-nowrap">
-    🔔 Reminder
-    </button>
+    // ================= HELPER =================
+    function isHMinusOne(dateStr){
+        if (!dateStr) return false;
 
-    <!-- KIRIM QR -->
-    ${
-        (b.finishedPhotoUrl || b.finishedAt)
-        ? `
-        <button
-        onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold 
-        bg-indigo-600 text-white 
-        rounded-lg hover:bg-indigo-700 
-        transition whitespace-nowrap">
-        📩 Kirim QR
-        </button>
-        `
-        : ``
+        const today = new Date();
+        const bookingDate = new Date(dateStr);
+
+        today.setHours(0,0,0,0);
+        bookingDate.setHours(0,0,0,0);
+
+        const diffDays =
+            (bookingDate - today) /
+            (1000*60*60*24);
+
+        return diffDays === 1;
     }
 
-</div>
+    // ================= ADMIN BUTTON =================
+    const adminButtons =
+        (canShowReminder(b.date, b.status) && currentUser?.role === 'admin')
+        ? `
+        <button
+        onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-amber-500 text-white 
+        rounded-lg hover:bg-amber-600 
+        transition whitespace-nowrap">
+        🔔 Reminder
+        </button>
 
-`
-    : ``
-}
+        ${
+            (b.finishedPhotoUrl || b.finishedAt)
+            ? `
+            <button
+            onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
+            class="px-3 py-1 text-[10px] font-bold 
+            bg-indigo-600 text-white 
+            rounded-lg hover:bg-indigo-700 
+            transition whitespace-nowrap">
+            📩 Kirim QR
+            </button>
+            `
+            : ``
+        }
+        `
+        : ``;
+
+    // ================= USER BUTTON =================
+    const userButtons = isOwner ? `
+
+        ${(b.status === 'Approved' && isHMinusOne(b.date)) ? `
+        <button
+        onclick="event.stopPropagation(); window.openDetail('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-indigo-500 text-white 
+        rounded-lg hover:bg-indigo-600 transition">
+            Mulai
+        </button>
+
+        <button
+        onclick="event.stopPropagation(); window.cancelBooking('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-rose-500 text-white 
+        rounded-lg hover:bg-rose-600 transition">
+            Batal
+        </button>
+        ` : ''}
+
+        ${(b.status === 'Ongoing') ? `
+        <button
+        onclick="event.stopPropagation(); window.openDetail('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-indigo-500 text-white 
+        rounded-lg hover:bg-indigo-600 transition">
+            Akhiri
+        </button>
+        ` : ''}
+
+    ` : '';
+
+    // ================= FINAL =================
+    if(!adminButtons && !userButtons) return '';
+
+    return `
+    <div class="flex flex-col items-end gap-1 flex-shrink-0">
+        ${adminButtons}
+        ${userButtons}
+    </div>
+    `;
+
+})()}
 
 </div>
 
 `).join('');
-}
-function canShowReminder(dateStr, status){
-
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    const bookingDate =
-        new Date(dateStr);
-
-    bookingDate.setHours(0,0,0,0);
-
-    const diffDays =
-        (bookingDate - today) /
-        (1000*60*60*24);
-
-    const activeStatus =
-        status === 'Approved' ||
-        status === 'Ongoing';
-
-    const notFinished =
-        status !== 'Completed' &&
-        status !== 'Cancelled';
-
-    return (
-        activeStatus &&
-        notFinished &&
-        diffDays <= 1
-    );
 }		
 		
 // ================= STATUS UPDATE (FIXED SINGLE VERSION) =================
