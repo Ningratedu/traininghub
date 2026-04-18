@@ -1849,7 +1849,7 @@ window.sendReminder = (id) => {
     // ================= SUBJECT =================
 
     const subject =
-        `Reminder Penggunaan Ruangan - ${roomName}`;
+        `Reminder Penggunaan Ruangan / Peralatan Training`;
 
     // ================= BODY =================
 
@@ -1861,7 +1861,8 @@ Ini adalah reminder penggunaan ruangan yang telah dijadwalkan.
 📅 Tanggal : ${b.date}
 ⏰ Waktu   : ${b.start} - ${b.end}
 
-DETAIL PEMESANAN
+DETAIL PEMESANAN :
+
 ${detail}
 
 Mohon hadir sesuai jadwal yang telah ditentukan.
@@ -1872,11 +1873,12 @@ Saat mulai penggunaan Ruangan/Alat, harap melakukan:
 📲 Scan QR Code Serah Terima dari admin Ruang Training
 
 Di Link Berikut ini : 
+
 https://ningratedu.github.io/traininghub/
 
 Terima kasih atas kerjasamanya.
 
-Admin Ruang Training`;
+Admin Ruang Training Rumah Ningrat`;
 
     // ================= OPEN EMAIL =================
 
