@@ -2047,7 +2047,12 @@ document.querySelector('.flex.min-h-screen');
 if(mainLayout){
 mainLayout.style.display = "none";
 }
-    document.getElementById('login-screen').classList.add('hide');
+    const loginScreen =
+document.getElementById('login-screen');
+
+if(loginScreen){
+loginScreen.classList.add('hide');
+}
 
     // tampilkan halaman QR
    const qrPage =
