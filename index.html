@@ -1693,21 +1693,52 @@ window.sendReminder = (id) => {
         localState.bookings
         .find(x => x.id === id);
 
-    if(!b){
+    if (!b) {
 
         alert("Booking tidak ditemukan!");
         return;
 
     }
 
-    const userEmail =
+    // ================= EMAIL USER =================
+
+    let userEmail =
         b.email ||
-        b.userEmail;
+        b.userEmail ||
+        "";
 
-    if(!userEmail){
+    // Jika email tidak ada di booking,
+    // coba ambil dari data users
 
-        alert("Email pemesan tidak tersedia!");
-        return;
+    if (!userEmail && localState.users) {
+
+        const user =
+            localState.users.find(u =>
+
+                String(u.id) === String(b.userId)
+
+                ||
+
+                (u.name &&
+                 b.userName &&
+                 u.name === b.userName)
+
+            );
+
+        if (user && user.email) {
+
+            userEmail = user.email;
+
+        }
+
+    }
+
+    // Jika masih kosong
+    if (!userEmail) {
+
+        alert(
+            "Email pemesan tidak ditemukan.\nSilakan isi manual pada email."
+        );
 
     }
 
@@ -1716,7 +1747,7 @@ window.sendReminder = (id) => {
     const userName =
         b.userName ||
         b.name ||
-        "-";
+        "Peserta";
 
     // ================= AMBIL NAMA RUANGAN =================
 
@@ -1729,7 +1760,7 @@ window.sendReminder = (id) => {
             String(b.roomId)
         );
 
-    if(room){
+    if (room) {
 
         roomName = room.name;
 
@@ -1739,7 +1770,7 @@ window.sendReminder = (id) => {
 
     let toolsText = "-";
 
-    if(b.tools && b.tools.length){
+    if (b.tools && b.tools.length) {
 
         toolsText =
             b.tools
@@ -1748,27 +1779,45 @@ window.sendReminder = (id) => {
 
     }
 
+    // ================= AMBIL AGENDA / TUJUAN =================
+
+    const agendaText =
+        b.agenda ||
+        b.purpose ||
+        b.tujuan ||
+        b.description ||
+        "-";
+
     // ================= SUBJECT =================
 
     const subject =
-        `Reminder Penggunaan Ruangan`;
+        `Reminder Penggunaan Ruangan - ${roomName}`;
 
-    // ================= BODY =================
+    // ================= BODY (OUTLOOK SAFE) =================
 
     const body =
 `Halo ${userName},
 
-Ini adalah reminder penggunaan ruangan:
+Ini adalah reminder penggunaan ruangan yang telah dijadwalkan.
 
-📅 Tanggal : ${b.date}
-⏰ Waktu : ${b.start} - ${b.end}
+DETAIL PEMESANAN
 
-🏢 Ruangan : ${roomName}
-🧰 Alat : ${toolsText}
+Tanggal : ${b.date}
+Waktu   : ${b.start} - ${b.end}
 
-Mohon hadir sesuai jadwal.
+Ruangan : ${roomName}
+Agenda  : ${agendaText}
+Peralatan : ${toolsText}
 
-Terima kasih.`;
+Mohon hadir sesuai jadwal yang telah ditentukan.
+
+Setelah selesai penggunaan ruangan, harap melakukan:
+- Upload foto penggunaan ruangan
+- Scan QR Code Serah Terima dari admin Ruang Training
+
+Terima kasih atas kerjasamanya.
+
+Admin Ruang Training`;
 
     // ================= OPEN EMAIL =================
 
