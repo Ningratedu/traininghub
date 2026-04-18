@@ -16,7 +16,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>window.addEventListener("DOMContentLoaded", () => {
+    <style>
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
@@ -473,8 +473,7 @@ overflow-x: hidden;
             </header>
 
 			<!-- HALAMAN QR PUBLIC -->
-<div id="qr-page" 
-class="hide flex items-center justify-center min-h-screen bg-gray-100">
+<div id="qr-page" class="hide flex items-center justify-center min-h-screen">
 
     <div class="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full">
 
@@ -482,7 +481,7 @@ class="hide flex items-center justify-center min-h-screen bg-gray-100">
             QR Serah Terima
         </h2>
 
-        <div id="qr-public" class="mb-4 flex justify-center"></div>
+        <div id="qr-public" class="mb-4"></div>
 
         <button onclick="downloadQR()" 
             class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold">
@@ -2040,40 +2039,35 @@ window.addEventListener("DOMContentLoaded", () => {
     // ================= QR MODE =================
     if(qrId){
 
-    console.log("QR MODE:", qrId);
+        console.log("QR MODE:", qrId);
 
-    // 🔥 sembunyikan SEMUA view
-    document.querySelectorAll('.view')
-        .forEach(v => v.classList.add('hide'));
+        // 🔥 sembunyikan SEMUA view
+        document.querySelectorAll('.view')
+            .forEach(v => v.classList.add('hide'));
 
-    // 🔥 sembunyikan layout utama (header + sidebar + menu)
-    document.querySelectorAll('.flex.min-h-screen')
-        .forEach(el => el.style.display = "none");
+        // 🔥 sembunyikan login
+        const loginScreen =
+        document.getElementById('login-screen');
 
-    // 🔥 sembunyikan login
-    const loginScreen =
-    document.getElementById('login-screen');
+        if(loginScreen){
+            loginScreen.classList.add('hide');
+        }
 
-    if(loginScreen){
-        loginScreen.style.display = "none";
+        // 🔥 tampilkan QR PAGE
+        const qrPage =
+        document.getElementById('qr-page');
+
+        if(qrPage){
+            qrPage.classList.remove('hide');
+        }
+
+        // 🔥 generate QR
+        setTimeout(()=>{
+            generatePublicQR(qrId);
+        },200);
+
+        return;
     }
-
-    // 🔥 tampilkan QR page
-    const qrPage =
-    document.getElementById('qr-page');
-
-    if(qrPage){
-        qrPage.classList.remove('hide');
-        qrPage.style.display = "flex";
-    }
-
-    // 🔥 generate QR
-    setTimeout(()=>{
-        generatePublicQR(qrId);
-    },200);
-
-    return;
-}
 
     // ================= NORMAL SESSION =================
 
