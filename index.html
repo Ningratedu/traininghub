@@ -3512,7 +3512,21 @@ if (ctx3) {
     if (dashboardBtn) dashboardBtn.classList.add('sidebar-item-active');
 
     // 🔥 BUKA DASHBOARD
-    window.showView('dashboard', 'Dashboard');
+    const params =
+    new URLSearchParams(window.location.search);
+
+const openDetailParam =
+    params.get("openDetail");
+
+// 🔥 hanya buka dashboard jika bukan dari QR
+if (!openDetailParam) {
+
+    window.showView(
+        'dashboard',
+        'Dashboard'
+    );
+
+}
 
     // 🔥 LOAD DATA (BIAR LANGSUNG KE-RENDER)
     listenToData();
