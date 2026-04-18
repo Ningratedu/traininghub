@@ -1886,57 +1886,6 @@ Admin Ruang Training Rumah Ningrat`;
         `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
 };
-		window.sendSerahTerimaEmail = (id) => {
-
-    const b = localState.bookings.find(x => x.id === id);
-
-    if (!b) {
-        alert("Booking tidak ditemukan!");
-        return;
-    }
-
-    const userEmail = b.email;
-
-    if (!userEmail) {
-        alert("Email user tidak tersedia!");
-        return;
-    }
-
-    const userName = b.userName || '-';
-    const date = b.date;
-    const time = b.start + " - " + b.end;
-
-    // ambil QR dari openDetail (yang sudah dirender pakai qrcode.js)
-    const qrCanvas = document.querySelector('#qrcode canvas');
-
-    if (!qrCanvas) {
-        alert("Buka detail booking dulu untuk generate QR!");
-        return;
-    }
-
-    const qrImage = qrCanvas.toDataURL("image/jpeg");
-
-    const subject = `QR Serah Terima Penggunaan`;
-
-    const body = `
-Halo ${userName},
-
-Berikut QR Code untuk serah terima penggunaan:
-
-Tanggal: ${date}
-Waktu: ${time}
-
-QR Code:
-${qrImage}
-
-Silakan gunakan QR ini saat proses serah terima.
-
-Terima kasih.
-`;
-
-    window.location.href =
-        `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-};
 		
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
@@ -4961,11 +4910,13 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
     </div>
 
+
     <!-- RIGHT SIDE BUTTON -->
 
-<div class="flex flex-col gap-1 flex-shrink-0">
-
     ${canShowReminder(b.date, b.status) ? `
+
+    <div class="flex-shrink-0">
+
         <button
         onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
         class="px-3 py-1 text-[10px] font-bold 
@@ -4976,19 +4927,9 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
         🔔 Reminder
 
         </button>
-    ` : ``}
 
-    ${canSendSerahTerima(b) ? `
-        <button
-        onclick="event.stopPropagation(); window.sendSerahTerimaEmail('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold 
-        bg-indigo-600 text-white 
-        rounded-lg hover:bg-indigo-700 
-        transition whitespace-nowrap">
+    </div>
 
-        📷 Kirim QR
-
-        </button>
     ` : ``}
 
 </div>
@@ -5025,9 +4966,6 @@ function canShowReminder(dateStr, status){
         diffDays <= 1
     );
 }		
-		function canSendSerahTerima(b){
-    return b.startPhoto && b.finishPhoto;
-		}
 		
 // ================= STATUS UPDATE (FIXED SINGLE VERSION) =================
 window.updateBookingStatus = async (id, status) => {
