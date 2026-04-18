@@ -241,8 +241,10 @@ overflow-x: hidden;
 
 <script>
 
+<script>
+
 /* ===============================
-   QR MODE DETECT (EARLY FIX DESKTOP)
+   QR MODE DETECT (STABLE RENDER FIX)
 =============================== */
 
 (function () {
@@ -254,26 +256,37 @@ overflow-x: hidden;
 
         console.log("QR MODE ACTIVE:", qrCode);
 
-        // tunggu semua elemen siap
         window.addEventListener("load", function () {
 
-            // tampilkan QR page
             const qrPage = document.getElementById("qr-page");
             if (qrPage) qrPage.classList.remove("hide");
 
-            // hide semua layout utama
+            // hide layout
             document.querySelectorAll(
                 "#login-screen, #mobile-sidebar, header, #content-area"
             ).forEach(el => {
                 if (el) el.style.display = "none";
             });
 
-            // generate QR
-            new QRCode(document.getElementById("qr-public"), {
-                text: qrCode,
-                width: 240,
-                height: 240
-            });
+            /* ===============================
+               FIX QR STRETCH BUG
+            =============================== */
+
+            const qrContainer = document.getElementById("qr-public");
+
+            // kosongkan dulu (anti double render)
+            qrContainer.innerHTML = "";
+
+            // delay kecil supaya layout stabil
+            setTimeout(() => {
+
+                new QRCode(qrContainer, {
+                    text: qrCode,
+                    width: 240,
+                    height: 240
+                });
+
+            }, 120); // delay penting
 
         });
 
@@ -304,7 +317,6 @@ function downloadQR() {
 
 function goToMyOrders() {
 
-    // kembali ke halaman utama
     window.location.href =
         window.location.origin +
         window.location.pathname;
