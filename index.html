@@ -3533,16 +3533,21 @@ if (ctx3) {
 const openDetailParam =
     params.get("openDetail");
 
-// 🔥 hanya buka dashboard jika bukan dari QR
+// 🔥 ambil view terakhir
+const lastView =
+    localStorage.getItem("lastView") ||
+    "dashboard";
+
+// 🔥 jika dari QR → jangan pakai lastView
 if (!openDetailParam) {
 
     window.showView(
-        'dashboard',
-        'Dashboard'
+        lastView,
+        lastView.charAt(0).toUpperCase() +
+        lastView.slice(1)
     );
 
 }
-
     // 🔥 LOAD DATA (BIAR LANGSUNG KE-RENDER)
     listenToData();
 }
