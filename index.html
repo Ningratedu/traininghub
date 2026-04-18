@@ -2030,25 +2030,22 @@ function generatePublicQR(qrText){
 }
 		
 // 🔥 RESTORE SESSION SAAT REFRESH
+// 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
 
-    // ================= QR MODE CHECK =================
     const params = new URLSearchParams(window.location.search);
     const qrId = params.get("qr");
 
+    // ================= QR MODE =================
     if(qrId){
 
-        console.log("QR MODE AKTIF:", qrId);
+        console.log("QR MODE:", qrId);
 
-        // sembunyikan semua layout utama
-        const mainLayout =
-        document.querySelector('.flex.min-h-screen');
+        // 🔥 sembunyikan SEMUA view
+        document.querySelectorAll('.view')
+            .forEach(v => v.classList.add('hide'));
 
-        if(mainLayout){
-            mainLayout.style.display = "none";
-        }
-
-        // sembunyikan login
+        // 🔥 sembunyikan login
         const loginScreen =
         document.getElementById('login-screen');
 
@@ -2056,7 +2053,7 @@ window.addEventListener("DOMContentLoaded", () => {
             loginScreen.classList.add('hide');
         }
 
-        // tampilkan halaman QR
+        // 🔥 tampilkan QR PAGE
         const qrPage =
         document.getElementById('qr-page');
 
@@ -2064,12 +2061,11 @@ window.addEventListener("DOMContentLoaded", () => {
             qrPage.classList.remove('hide');
         }
 
-        // generate QR
+        // 🔥 generate QR
         setTimeout(()=>{
             generatePublicQR(qrId);
         },200);
 
-        // 🔥 STOP TOTAL SEMUA LOGIC LOGIN
         return;
     }
 
@@ -2078,7 +2074,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const loginScreen =
     document.getElementById('login-screen');
 
-    // 🔥 cek apakah habis logout
     const justLogout =
         localStorage.getItem("just_logged_out");
 
@@ -2093,7 +2088,6 @@ window.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // 🔥 cek session user
     const savedUser =
         localStorage.getItem("traininghub_user");
 
@@ -2120,6 +2114,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+		
 let bookingType = 'room';
 const ADMIN_PASS = "training2026";
 let deptChart = null;
