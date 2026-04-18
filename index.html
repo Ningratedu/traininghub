@@ -4911,7 +4911,7 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
     <!-- RIGHT SIDE BUTTON -->
 
-    ${(b.status === 'Approved' || b.status === 'Ongoing') ? `
+    ${canShowReminder(b.date, b.status) ? `
 
     <div class="flex-shrink-0">
 
@@ -4922,7 +4922,7 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
         rounded-lg hover:bg-amber-600 
         transition whitespace-nowrap">
 
-        📧 Reminder
+        🔔 Reminder
 
         </button>
 
@@ -4936,6 +4936,35 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
 }
 
+function canShowReminder(dateStr, status){
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const bookingDate =
+        new Date(dateStr);
+
+    bookingDate.setHours(0,0,0,0);
+
+    const diffDays =
+        (bookingDate - today) /
+        (1000*60*60*24);
+
+    const activeStatus =
+        status === 'Approved' ||
+        status === 'Ongoing';
+
+    const notFinished =
+        status !== 'Completed' &&
+        status !== 'Cancelled';
+
+    return (
+        activeStatus &&
+        notFinished &&
+        diffDays <= 1
+    );
+}		
+		
 // ================= STATUS UPDATE (FIXED SINGLE VERSION) =================
 window.updateBookingStatus = async (id, status) => {
     const ref = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
