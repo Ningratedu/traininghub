@@ -221,17 +221,31 @@ overflow-x: hidden;
 
         <div id="qr-public" class="mb-6 flex justify-center"></div>
 
-        <button onclick="downloadQR()" 
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold">
-            Download QR
-        </button>
+        <div class="flex flex-col gap-3">
+
+            <button onclick="downloadQR()" 
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold">
+                Download QR
+            </button>
+
+            <button onclick="goToMyOrders()" 
+                class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-5 py-3 rounded-xl text-sm font-bold">
+                Kembali ke Pesanan Saya
+            </button>
+
+        </div>
 
     </div>
 
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+
+/* ===============================
+   QR MODE DETECT (EARLY FIX DESKTOP)
+=============================== */
+
+(function () {
 
     const params = new URLSearchParams(window.location.search);
     const qrCode = params.get("qr");
@@ -240,39 +254,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
         console.log("QR MODE ACTIVE:", qrCode);
 
-        // tampilkan QR page
-        document.getElementById("qr-page").classList.remove("hide");
+        // tunggu semua elemen siap
+        window.addEventListener("load", function () {
 
-        // sembunyikan login
-        const loginScreen = document.getElementById("login-screen");
-        if (loginScreen) loginScreen.style.display = "none";
+            // tampilkan QR page
+            const qrPage = document.getElementById("qr-page");
+            if (qrPage) qrPage.classList.remove("hide");
 
-        // sembunyikan sidebar
-        const sidebar = document.getElementById("mobile-sidebar");
-        if (sidebar) sidebar.style.display = "none";
+            // hide semua layout utama
+            document.querySelectorAll(
+                "#login-screen, #mobile-sidebar, header, #content-area"
+            ).forEach(el => {
+                if (el) el.style.display = "none";
+            });
 
-        // sembunyikan header
-        const header = document.querySelector("header");
-        if (header) header.style.display = "none";
+            // generate QR
+            new QRCode(document.getElementById("qr-public"), {
+                text: qrCode,
+                width: 240,
+                height: 240
+            });
 
-        // sembunyikan content
-        const content = document.getElementById("content-area");
-        if (content) content.style.display = "none";
-
-        // sembunyikan tombol booking
-        const bookingBtn = document.querySelector('[onclick="openBooking()"]');
-        if (bookingBtn) bookingBtn.style.display = "none";
-
-        // generate QR
-        new QRCode(document.getElementById("qr-public"), {
-            text: qrCode,
-            width: 240,
-            height: 240
         });
 
     }
 
-});
+})();
+
+/* ===============================
+   DOWNLOAD QR
+=============================== */
 
 function downloadQR() {
 
@@ -286,6 +297,20 @@ function downloadQR() {
     link.click();
 
 }
+
+/* ===============================
+   BACK TO MY ORDERS
+=============================== */
+
+function goToMyOrders() {
+
+    // kembali ke halaman utama
+    window.location.href =
+        window.location.origin +
+        window.location.pathname;
+
+}
+
 </script>
 
     <!-- LOGIN SCREEN -->
