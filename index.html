@@ -244,15 +244,18 @@ overflow-x: hidden;
 <script>
 
 /* ===============================
-   QR MODE DETECT (STABLE RENDER FIX)
+   QR MODE DETECT (ONLY IF ?qr=)
 =============================== */
 
 (function () {
 
     const params = new URLSearchParams(window.location.search);
     const qrCode = params.get("qr");
+    const openDetailParam = params.get("openDetail");
 
-    if (qrCode) {
+    // HANYA jalankan QR mode jika ada ?qr
+    // dan TIDAK ada openDetail
+    if (qrCode && !openDetailParam) {
 
         console.log("QR MODE ACTIVE:", qrCode);
 
@@ -261,23 +264,22 @@ overflow-x: hidden;
             const qrPage = document.getElementById("qr-page");
             if (qrPage) qrPage.classList.remove("hide");
 
-            // hide layout
+            // hide layout utama
             document.querySelectorAll(
                 "#login-screen, #mobile-sidebar, header, #content-area"
             ).forEach(el => {
                 if (el) el.style.display = "none";
             });
 
-            /* ===============================
-               FIX QR STRETCH BUG
-            =============================== */
+            const qrContainer =
+                document.getElementById("qr-public");
 
-            const qrContainer = document.getElementById("qr-public");
+            if (!qrContainer) return;
 
-            // kosongkan dulu (anti double render)
+            // reset isi QR
             qrContainer.innerHTML = "";
 
-            // delay kecil supaya layout stabil
+            // delay supaya layout stabil
             setTimeout(() => {
 
                 new QRCode(qrContainer, {
@@ -286,7 +288,7 @@ overflow-x: hidden;
                     height: 240
                 });
 
-            }, 120); // delay penting
+            }, 120);
 
         });
 
@@ -294,35 +296,140 @@ overflow-x: hidden;
 
 })();
 
+
+
 /* ===============================
    DOWNLOAD QR
 =============================== */
 
 function downloadQR() {
 
-    const img = document.querySelector("#qr-public img");
+    const img =
+        document.querySelector("#qr-public img");
 
     if (!img) return;
 
-    const link = document.createElement("a");
+    const link =
+        document.createElement("a");
+
     link.href = img.src;
     link.download = "qr-serah-terima.png";
     link.click();
 
 }
 
+
+
 /* ===============================
-   BACK TO MY ORDERS
+   BACK → OPEN DETAIL FROM QR
 =============================== */
 
 function goToMyOrders() {
 
-    window.location.href =
+    const params =
+        new URLSearchParams(window.location.search);
+
+    const qrCode = params.get("qr");
+
+    if (!qrCode) {
+
+        window.location.replace(
+            window.location.origin +
+            window.location.pathname
+        );
+
+        return;
+
+    }
+
+    // ambil ID booking
+    const bookingId =
+        qrCode.replace("finish-booking-", "");
+
+    const baseURL =
         window.location.origin +
         window.location.pathname;
 
+    // redirect buka detail
+    window.location.replace(
+        baseURL +
+        "?openDetail=" +
+        bookingId
+    );
+
 }
 
+
+
+/* ===============================
+   AUTO OPEN DETAIL
+=============================== */
+
+(function () {
+
+    const params =
+        new URLSearchParams(window.location.search);
+
+    const bookingId =
+        params.get("openDetail");
+
+    if (!bookingId) return;
+
+    console.log(
+        "AUTO OPEN DETAIL:",
+        bookingId
+    );
+
+    window.addEventListener("load", () => {
+
+        const tryOpen = () => {
+
+            if (
+                typeof openDetail === "function" &&
+                window.localState &&
+                localState.bookings &&
+                localState.bookings.length
+            ) {
+
+                console.log(
+                    "OPENING DETAIL:",
+                    bookingId
+                );
+
+                openDetail(bookingId);
+
+                // bersihkan URL
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    window.location.pathname
+                );
+
+                return true;
+
+            }
+
+            return false;
+
+        };
+
+        if (tryOpen()) return;
+
+        const interval =
+            setInterval(() => {
+
+                if (tryOpen()) {
+
+                    clearInterval(interval);
+
+                }
+
+            }, 400);
+
+    });
+
+})();
+	
 </script>
 
     <!-- LOGIN SCREEN -->
