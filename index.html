@@ -1700,15 +1700,13 @@ window.sendReminder = (id) => {
 
     }
 
-    // ================= AMBIL EMAIL (SAMAKAN DENGAN sendStatusEmail) =================
+    // ================= AMBIL EMAIL =================
 
     let userEmail =
         b.email ||
         b.userEmail ||
         b.mail ||
         "";
-
-    // fallback ambil dari users
 
     if (!userEmail && localState.users) {
 
@@ -1747,7 +1745,7 @@ window.sendReminder = (id) => {
 
     }
 
-    // ================= AMBIL NAMA USER =================
+    // ================= AMBIL NAMA =================
 
     const userName =
         b.userName ||
@@ -1803,43 +1801,20 @@ window.sendReminder = (id) => {
         b.description ||
         "-";
 
-    // ================= FORMAT DETAIL (PER BARIS) =================
+    // ================= DETAIL =================
 
     let detailLines = [];
 
-    const validRoomId =
-        b.roomId &&
-        b.roomId !== null &&
-        b.roomId !== '' &&
-        b.roomId !== 'null';
-
-    if (
-        validRoomId &&
-        roomName &&
-        roomName !== '-' &&
-        roomName !== 'null'
-    ) {
-
-        detailLines.push(
-            `🏢 Ruangan : ${roomName}`
-        );
-
+    if (roomName && roomName !== "-") {
+        detailLines.push(`🏢 Ruangan : ${roomName}`);
     }
 
     if (agendaText && agendaText !== "-") {
-
-        detailLines.push(
-            `🎯 Agenda  : ${agendaText}`
-        );
-
+        detailLines.push(`🎯 Agenda  : ${agendaText}`);
     }
 
     if (b.tools && b.tools.length > 0) {
-
-        detailLines.push(
-            `🧰 Peralatan : ${toolsText}`
-        );
-
+        detailLines.push(`🧰 Peralatan : ${toolsText}`);
     }
 
     const detail =
@@ -1880,10 +1855,142 @@ Terima kasih atas kerjasamanya.
 
 Admin Ruang Training Rumah Ningrat`;
 
-    // ================= OPEN EMAIL =================
-
     window.location.href =
         `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+};
+
+
+
+// ================= SEND QR EMAIL =================
+
+window.sendQrEmail = (id) => {
+
+    const b =
+        localState.bookings
+        .find(x => x.id === id);
+
+    if (!b) {
+
+        alert("Booking tidak ditemukan!");
+        return;
+
+    }
+
+    // ================= AMBIL EMAIL (SAMA PERSIS) =================
+
+    let userEmail =
+        b.email ||
+        b.userEmail ||
+        b.mail ||
+        "";
+
+    if (!userEmail && localState.users) {
+
+        const user =
+            localState.users.find(u =>
+
+                String(u.id) === String(b.userId)
+
+                ||
+
+                (u.username &&
+                 b.userName &&
+                 u.username === b.userName)
+
+                ||
+
+                (u.name &&
+                 b.userName &&
+                 u.name === b.userName)
+
+            );
+
+        if (user && user.email) {
+
+            userEmail = user.email;
+
+        }
+
+    }
+
+    if (!userEmail) {
+
+        alert(
+            "Email pemesan tidak ditemukan.\nSilakan isi manual pada email."
+        );
+
+    }
+
+    // ================= AMBIL NAMA =================
+
+    const userName =
+        b.userName ||
+        b.name ||
+        b.username ||
+        "Peserta";
+
+    // ================= GENERATE QR =================
+
+    const qrWrapper = document.createElement("div");
+
+    new QRCode(qrWrapper, {
+        text: JSON.stringify({
+            bookingId: b.id,
+            type: "finish"
+        }),
+        width: 220,
+        height: 220
+    });
+
+    const img = qrWrapper.querySelector("img");
+
+    setTimeout(() => {
+
+        const qrBase64 = img?.src || "";
+
+        // ================= SUBJECT =================
+
+        const subject =
+            `QR Serah Terima Booking`;
+
+        // ================= BODY =================
+
+        const body =
+`Halo ${userName},
+
+Berikut adalah QR Code untuk proses serah terima (penyelesaian booking).
+
+Silakan buka link berikut untuk melihat dan download QR:
+${qrLink}
+
+Gunakan QR tersebut untuk menyelesaikan pesanan.
+
+Terima kasih.
+
+Admin Ruang Training Rumah Ningrat`;
+
+        // ================= OPEN EMAIL =================
+
+        window.location.href =
+            `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        // ================= OPEN QR (BIAR BISA DISAVE / SCREENSHOT) =================
+
+        if (qrBase64) {
+
+            const win = window.open();
+            win.document.write(`
+                <div style="text-align:center;font-family:sans-serif">
+                    <h3>QR Serah Terima</h3>
+                    <img src="${qrBase64}" style="width:300px"/>
+                    <p>Silakan kirim QR ini ke peserta</p>
+                </div>
+            `);
+
+        }
+
+    }, 300);
 
 };
 		
@@ -4912,25 +5019,39 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
 
     <!-- RIGHT SIDE BUTTON -->
+${canShowReminder(b.date, b.status) ? `
 
-    ${canShowReminder(b.date, b.status) ? `
+<div class="flex flex-col gap-1 flex-shrink-0">
 
-    <div class="flex-shrink-0">
+    <!-- REMINDER -->
+    <button
+    onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
+    class="px-3 py-1 text-[10px] font-bold 
+    bg-amber-500 text-white 
+    rounded-lg hover:bg-amber-600 
+    transition whitespace-nowrap">
+    🔔 Reminder
+    </button>
 
+    <!-- KIRIM QR -->
+    ${
+        b.finishedPhotoUrl || b.finishedAt
+        ? `
         <button
-        onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
+        onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
         class="px-3 py-1 text-[10px] font-bold 
-        bg-amber-500 text-white 
-        rounded-lg hover:bg-amber-600 
+        bg-indigo-600 text-white 
+        rounded-lg hover:bg-indigo-700 
         transition whitespace-nowrap">
-
-        🔔 Reminder
-
+        📩 Kirim QR
         </button>
+        `
+        : ``
+    }
 
-    </div>
+</div>
 
-    ` : ``}
+` : ``}
 
 </div>
 
