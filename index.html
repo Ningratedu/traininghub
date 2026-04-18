@@ -1953,7 +1953,7 @@ window.sendQrEmail = (id) => {
     // ================= LINK QR =================
 
     const qrLink =
-        `https://ningratedu.github.io/traininghub/?qr=${encodeURIComponent(b.id)}`;
+    `https://ningratedu.github.io/traininghub/?qr=finish-booking-${encodeURIComponent(b.id)}`;
 
     // ================= SUBJECT =================
 
@@ -2002,22 +2002,87 @@ Admin Ruang Training Rumah Ningrat`;
 window.addEventListener("DOMContentLoaded", () => {
 	
 	const params = new URLSearchParams(window.location.search);
-const qrId = params.get("qr");
+	const qrId = params.get("qr");
 
-if(qrId){
+	if(qrId){
 
-    // sembunyikan semua UI utama
-    document.querySelector('.flex.min-h-screen').style.display = "none";
-    document.getElementById('login-screen').classList.add('hide');
+		// 🔥 VALIDASI + PARSE ID
+		let bookingId = qrId;
 
-    // tampilkan halaman QR
-    document.getElementById('qr-page').classList.remove('hide');
+		if(qrId.startsWith("finish-booking-")){
+			bookingId = qrId.replace("finish-booking-", "");
+		}else{
+			document.body.innerHTML = "<h2>QR tidak valid</h2>";
+			return;
+		}
 
-    generatePublicQR(qrId);
+		// sembunyikan semua UI utama
+		const mainLayout = document.querySelector('.flex.min-h-screen');
+		if(mainLayout) mainLayout.style.display = "none";
 
-    return; // STOP semua logic lain
+		const login = document.getElementById('login-screen');
+		if(login) login.classList.add('hide');
+
+		// tampilkan halaman QR
+		const qrPage = document.getElementById('qr-page');
+		if(qrPage) qrPage.classList.remove('hide');
+
+		// 🔥 KIRIM ID YANG SUDAH BERSIH
+		generatePublicQR(bookingId);
+
+		return; // STOP semua logic lain
+	}
+
+});
+
+		async function generatePublicQR(id){
+
+    try{
+
+        console.log("LOAD BOOKING ID:", id);
+
+        // 🔥 AMBIL DATA DARI FIRESTORE
+        const ref = doc(db,'artifacts',appId,'public','data','bookings',id);
+        const snap = await getDoc(ref);
+
+        if(!snap.exists()){
+            document.getElementById('qr-page').innerHTML = "Booking tidak ditemukan";
+            return;
+        }
+
+        const b = { id: snap.id, ...snap.data() };
+
+        // 🔥 SIMPAN ID BUAT DOWNLOAD
+        window.currentQrId = b.id;
+
+        // 🔥 CEK CONTAINER
+        const el = document.getElementById("qr-public");
+
+        if(!el){
+            document.getElementById('qr-page').innerHTML = "Container QR tidak ditemukan";
+            return;
+        }
+
+        // 🔥 CLEAR DULU (BIAR GAK DOUBLE)
+        el.innerHTML = "";
+
+        // 🔥 GENERATE QR (SAMA DENGAN ADMIN)
+        new QRCode(el, {
+            text: `finish-booking-${b.id}`,
+            width: 200,
+            height: 200
+        });
+
+    }
+    catch(err){
+
+        console.error("Gagal generate QR:", err);
+        document.getElementById('qr-page').innerHTML = "Terjadi kesalahan";
+
+    }
+
 }
-
+		
     // 🔥 cek apakah habis logout
     const justLogout =
         localStorage.getItem("just_logged_out");
