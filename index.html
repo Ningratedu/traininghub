@@ -324,13 +324,15 @@ function downloadQR() {
    BACK → OPEN DETAIL FROM QR
 =============================== */
 
-function goToMyOrders() {
+window.goToMyOrders = function () {
 
     const params =
         new URLSearchParams(window.location.search);
 
-    const qrCode = params.get("qr");
+    const qrCode =
+        params.get("qr");
 
+    // kalau gak ada QR → balik normal
     if (!qrCode) {
 
         window.location.replace(
@@ -350,6 +352,11 @@ function goToMyOrders() {
         window.location.origin +
         window.location.pathname;
 
+    console.log(
+        "Redirect to openDetail:",
+        bookingId
+    );
+
     // redirect buka detail
     window.location.replace(
         baseURL +
@@ -357,7 +364,7 @@ function goToMyOrders() {
         bookingId
     );
 
-}
+};
 
 
 
@@ -382,10 +389,12 @@ function goToMyOrders() {
 
     window.addEventListener("load", () => {
 
+        let retryCount = 0;
+
         const tryOpen = () => {
 
             if (
-                typeof openDetail === "function" &&
+                typeof window.openDetail === "function" &&
                 window.localState &&
                 localState.bookings &&
                 localState.bookings.length
@@ -396,7 +405,7 @@ function goToMyOrders() {
                     bookingId
                 );
 
-                openDetail(bookingId);
+                window.openDetail(bookingId);
 
                 // bersihkan URL
                 window.history.replaceState(
@@ -413,12 +422,26 @@ function goToMyOrders() {
 
         };
 
+        // coba langsung
         if (tryOpen()) return;
 
+        // retry sampai max 10x
         const interval =
             setInterval(() => {
 
+                retryCount++;
+
                 if (tryOpen()) {
+
+                    clearInterval(interval);
+
+                }
+
+                if (retryCount > 10) {
+
+                    console.warn(
+                        "Gagal auto open detail (timeout)"
+                    );
 
                     clearInterval(interval);
 
