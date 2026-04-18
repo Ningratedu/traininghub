@@ -1700,15 +1700,15 @@ window.sendReminder = (id) => {
 
     }
 
-    // ================= EMAIL USER =================
+    // ================= AMBIL EMAIL (SAMAKAN DENGAN sendStatusEmail) =================
 
     let userEmail =
         b.email ||
         b.userEmail ||
+        b.mail ||
         "";
 
-    // Jika email tidak ada di booking,
-    // coba ambil dari data users
+    // fallback ambil dari users
 
     if (!userEmail && localState.users) {
 
@@ -1716,6 +1716,12 @@ window.sendReminder = (id) => {
             localState.users.find(u =>
 
                 String(u.id) === String(b.userId)
+
+                ||
+
+                (u.username &&
+                 b.userName &&
+                 u.username === b.userName)
 
                 ||
 
@@ -1733,7 +1739,6 @@ window.sendReminder = (id) => {
 
     }
 
-    // Jika masih kosong
     if (!userEmail) {
 
         alert(
@@ -1747,22 +1752,31 @@ window.sendReminder = (id) => {
     const userName =
         b.userName ||
         b.name ||
+        b.username ||
         "Peserta";
 
-    // ================= AMBIL NAMA RUANGAN =================
+    // ================= AMBIL ROOM =================
 
-    let roomName = "-";
+    let roomName =
+        b.roomName ||
+        "-";
 
-    const room =
+    if (
+        (!roomName || roomName === "-") &&
         localState.rooms
-        ?.find(r =>
-            String(r.id) ===
-            String(b.roomId)
-        );
+    ) {
 
-    if (room) {
+        const room =
+            localState.rooms.find(r =>
+                String(r.id) ===
+                String(b.roomId)
+            );
 
-        roomName = room.name;
+        if (room) {
+
+            roomName = room.name;
+
+        }
 
     }
 
@@ -1770,50 +1784,91 @@ window.sendReminder = (id) => {
 
     let toolsText = "-";
 
-    if (b.tools && b.tools.length) {
+    if (b.tools && b.tools.length > 0) {
 
         toolsText =
             b.tools
             .map(t => t.name)
-            .join(', ');
+            .join(", ");
 
     }
 
-    // ================= AMBIL AGENDA / TUJUAN =================
+    // ================= AMBIL AGENDA =================
 
     const agendaText =
         b.agenda ||
         b.goals ||
         b.goal ||
+        b.purpose ||
         b.description ||
         "-";
+
+    // ================= FORMAT DETAIL (SAMAKAN sendBookingEmail) =================
+
+    let detailParts = [];
+
+    const validRoomId =
+        b.roomId &&
+        b.roomId !== null &&
+        b.roomId !== '' &&
+        b.roomId !== 'null';
+
+    if (
+        validRoomId &&
+        roomName &&
+        roomName !== '-' &&
+        roomName !== 'null'
+    ) {
+
+        detailParts.push(
+            "🏢 Ruangan: " + roomName
+        );
+
+    }
+
+    if (agendaText && agendaText !== "-") {
+
+        detailParts.push(
+            "🎯 Agenda: " + agendaText
+        );
+
+    }
+
+    if (b.tools && b.tools.length > 0) {
+
+        detailParts.push(
+            "🧰 Peralatan: " + toolsText
+        );
+
+    }
+
+    const detail =
+        detailParts.join(" | ") ||
+        "Tidak ada detail";
 
     // ================= SUBJECT =================
 
     const subject =
         `Reminder Penggunaan Ruangan - ${roomName}`;
 
-    // ================= BODY (OUTLOOK SAFE) =================
+    // ================= BODY =================
 
     const body =
 `Halo ${userName},
 
 Ini adalah reminder penggunaan ruangan yang telah dijadwalkan.
 
-DETAIL PEMESANAN
+📅 Tanggal : ${b.date}
+⏰ Waktu   : ${b.start} - ${b.end}
 
-Tanggal : ${b.date}
-Waktu   : ${b.start} - ${b.end}
-
-Ruangan : ${roomName}
-Agenda  : ${agendaText}
-Peralatan : ${toolsText}
+${detail}
 
 Mohon hadir sesuai jadwal yang telah ditentukan.
 
-Setelah selesai penggunaan ruangan, harap melakukan:
-- Upload foto penggunaan ruangan
-- Scan QR Code Serah Terima dari admin Ruang Training
+Saat mulai penggunaan Ruangan/Alat, harap melakukan:
+
+📸 Upload foto penggunaan ruangan  
+📲 Scan QR Code Serah Terima dari admin Ruang Training  
 
 Terima kasih atas kerjasamanya.
 
