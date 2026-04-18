@@ -2031,38 +2031,52 @@ function generatePublicQR(qrText){
 		
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
-	
-	const params = new URLSearchParams(window.location.search);
-const qrId = params.get("qr");
 
-if(qrId){
+    // ================= QR MODE CHECK =================
+    const params = new URLSearchParams(window.location.search);
+    const qrId = params.get("qr");
 
-    // sembunyikan semua UI utama
-    const mainLayout =
-document.querySelector('.flex.min-h-screen');
+    if(qrId){
 
-if(mainLayout){
-mainLayout.style.display = "none";
-}
+        console.log("QR MODE AKTIF:", qrId);
+
+        // sembunyikan semua layout utama
+        const mainLayout =
+        document.querySelector('.flex.min-h-screen');
+
+        if(mainLayout){
+            mainLayout.style.display = "none";
+        }
+
+        // sembunyikan login
+        const loginScreen =
+        document.getElementById('login-screen');
+
+        if(loginScreen){
+            loginScreen.classList.add('hide');
+        }
+
+        // tampilkan halaman QR
+        const qrPage =
+        document.getElementById('qr-page');
+
+        if(qrPage){
+            qrPage.classList.remove('hide');
+        }
+
+        // generate QR
+        setTimeout(()=>{
+            generatePublicQR(qrId);
+        },200);
+
+        // 🔥 STOP TOTAL SEMUA LOGIC LOGIN
+        return;
+    }
+
+    // ================= NORMAL SESSION =================
+
     const loginScreen =
-document.getElementById('login-screen');
-
-if(loginScreen){
-loginScreen.classList.add('hide');
-}
-
-    // tampilkan halaman QR
-   const qrPage =
-document.getElementById('qr-page');
-
-if(qrPage){
-qrPage.classList.remove('hide');
-}
-
-    generatePublicQR(qrId);
-
-    return; // STOP semua logic lain
-}
+    document.getElementById('login-screen');
 
     // 🔥 cek apakah habis logout
     const justLogout =
@@ -2070,17 +2084,16 @@ qrPage.classList.remove('hide');
 
     if(justLogout){
 
-        // hapus flag logout
         localStorage.removeItem("just_logged_out");
 
-        // tampilkan login
-        document
-            .getElementById('login-screen')
-            .classList.remove('hide');
+        if(loginScreen){
+            loginScreen.classList.remove('hide');
+        }
 
-        return; // STOP auto login
+        return;
     }
 
+    // 🔥 cek session user
     const savedUser =
         localStorage.getItem("traininghub_user");
 
@@ -2089,19 +2102,20 @@ qrPage.classList.remove('hide');
         currentUser =
             JSON.parse(savedUser);
 
-        document
-            .getElementById('login-screen')
-            .classList.add('hide');
+        if(loginScreen){
+            loginScreen.classList.add('hide');
+        }
 
         setTimeout(()=>{
             initSession();
         },200);
 
-    } else {
+    } 
+    else {
 
-        document
-            .getElementById('login-screen')
-            .classList.remove('hide');
+        if(loginScreen){
+            loginScreen.classList.remove('hide');
+        }
 
     }
 
