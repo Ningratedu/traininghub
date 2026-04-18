@@ -473,35 +473,73 @@ overflow-x: hidden;
             </header>
 
             <div class="flex-1 overflow-y-auto p-4 md:p-8" id="content-area">
+
+    <!-- ================= VIEW DASHBOARD ================= -->
     <div id="view-dashboard" class="view">
         <div id="admin-dashboard-ui" class="hide">
 
-            <!-- 🔥 GRID UPDATE (jadi 10 kolom biar muat semua) -->
+            <!-- 🔥 GRID UPDATE -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
 
-<!-- TOTAL RUANGAN -->
-<div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showRoomStatsDetail()">
-    <div class="flex justify-between items-start">
-        <p class="text-slate-500 text-[9px] font-black uppercase">Total Ruangan</p>
-        <svg class="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 21h18M5 21V5h14v16M9 9h2m2 0h2m-6 4h2m2 0h2"/>
-        </svg>
-    </div>
-    <h3 class="text-xl font-black mt-1" id="stat-total-rooms">0</h3>
-    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
-</div>
+                <!-- TOTAL RUANGAN -->
+                <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showRoomStatsDetail()">
+                    <div class="flex justify-between items-start">
+                        <p class="text-slate-500 text-[9px] font-black uppercase">Total Ruangan</p>
+                        <svg class="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18M5 21V5h14v16M9 9h2m2 0h2m-6 4h2m2 0h2"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-total-rooms">0</h3>
+                    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+                </div>
 
-<!-- TOTAL ALAT -->
-<div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showToolStatsDetail()">
-    <div class="flex justify-between items-start">
-        <p class="text-slate-500 text-[9px] font-black uppercase">Total Alat</p>
-        <svg class="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14.7 6.3l3 3-8.4 8.4-3-3z"/>
-            <path d="M16 4l4 4"/>
-        </svg>
+                <!-- TOTAL ALAT -->
+                <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showToolStatsDetail()">
+                    <div class="flex justify-between items-start">
+                        <p class="text-slate-500 text-[9px] font-black uppercase">Total Alat</p>
+                        <svg class="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3l3 3-8.4 8.4-3-3z"/>
+                            <path d="M16 4l4 4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black mt-1" id="stat-total-tools">0</h3>
+                    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+                </div>
+
+            </div>
+
+        </div>
     </div>
-    <h3 class="text-xl font-black mt-1" id="stat-total-tools">0</h3>
-    <p class="text-[8px] text-slate-400 mt-2">Klik detail unit</p>
+
+    <!-- ================= VIEW QR (HALAMAN KHUSUS) ================= -->
+    <div id="view-qr" class="view hide flex flex-col items-center justify-center h-full p-6 bg-slate-100">
+
+        <div class="bg-white p-6 rounded-2xl shadow text-center w-full max-w-md">
+
+            <h2 class="text-xl font-bold mb-2">
+                QR Serah Terima
+            </h2>
+
+            <p id="qr-booking-info" class="text-sm text-slate-500 mb-4">
+                Memuat data...
+            </p>
+
+            <div id="qrcode" class="flex justify-center mb-4"></div>
+
+            <a id="download-qr"
+               class="block w-full mb-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition">
+               ⬇ Download QR
+            </a>
+
+            <button onclick="location.href='index.html'"
+                class="w-full px-4 py-2 bg-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-300 transition">
+                ⬅ Kembali
+            </button>
+
+        </div>
+
+    </div>
+
 </div>
 
 <!-- PESANAN RUANGAN -->
@@ -2008,6 +2046,75 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+
+		// ================= HANDLE QR LINK =================
+
+function handleQrFromUrl(){
+
+    const params = new URLSearchParams(window.location.search);
+    const qrId = params.get("qr");
+
+    if (!qrId) return;
+
+    // pastikan data sudah ada
+    if (!localState.bookings || localState.bookings.length === 0) {
+        console.warn("Booking belum ready, retry...");
+        setTimeout(handleQrFromUrl, 300);
+        return;
+    }
+
+    // hide semua view
+    document.querySelectorAll('.view')
+        .forEach(v => v.classList.add('hide'));
+
+    // tampilkan view QR
+    const qrView = document.getElementById("view-qr");
+    if (!qrView) return;
+
+    qrView.classList.remove("hide");
+
+    const qrContainer = document.getElementById("qrcode");
+    qrContainer.innerHTML = "";
+
+    // generate QR
+    new QRCode(qrContainer, {
+        text: JSON.stringify({
+            bookingId: qrId,
+            type: "finish"
+        }),
+        width: 220,
+        height: 220
+    });
+
+    // ambil data booking
+    const b = localState.bookings.find(x => String(x.id) === String(qrId));
+
+    const info = document.getElementById("qr-booking-info");
+
+    if (b) {
+        info.innerText =
+            `${b.userName || "-"} • ${b.date || "-"} • ${b.start || ""}-${b.end || ""}`;
+    } else {
+        info.innerText = "Data booking tidak ditemukan";
+    }
+
+    // tombol download
+    setTimeout(() => {
+
+        const img = qrContainer.querySelector("img");
+
+        if (img) {
+
+            const btn = document.getElementById("download-qr");
+            btn.href = img.src;
+            btn.download = `QR-${qrId}.png`;
+
+        }
+
+    }, 300);
+
+}
+		
 let bookingType = 'room';
 const ADMIN_PASS = "training2026";
 let deptChart = null;
