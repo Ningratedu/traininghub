@@ -1685,6 +1685,98 @@ const appId = "booking-ruang-training";
     });
 
 }
+		// ================= SEND REMINDER EMAIL =================
+
+window.sendReminder = (id) => {
+
+    const b =
+        localState.bookings
+        .find(x => x.id === id);
+
+    if(!b){
+
+        alert("Booking tidak ditemukan!");
+        return;
+
+    }
+
+    const userEmail =
+        b.email ||
+        b.userEmail;
+
+    if(!userEmail){
+
+        alert("Email pemesan tidak tersedia!");
+        return;
+
+    }
+
+    // ================= AMBIL NAMA USER =================
+
+    const userName =
+        b.userName ||
+        b.name ||
+        "-";
+
+    // ================= AMBIL NAMA RUANGAN =================
+
+    let roomName = "-";
+
+    const room =
+        localState.rooms
+        ?.find(r =>
+            String(r.id) ===
+            String(b.roomId)
+        );
+
+    if(room){
+
+        roomName = room.name;
+
+    }
+
+    // ================= AMBIL TOOLS =================
+
+    let toolsText = "-";
+
+    if(b.tools && b.tools.length){
+
+        toolsText =
+            b.tools
+            .map(t => t.name)
+            .join(', ');
+
+    }
+
+    // ================= SUBJECT =================
+
+    const subject =
+        `Reminder Penggunaan Ruangan`;
+
+    // ================= BODY =================
+
+    const body =
+`Halo ${userName},
+
+Ini adalah reminder penggunaan ruangan:
+
+📅 Tanggal : ${b.date}
+⏰ Waktu : ${b.start} - ${b.end}
+
+🏢 Ruangan : ${roomName}
+🧰 Alat : ${toolsText}
+
+Mohon hadir sesuai jadwal.
+
+Terima kasih.`;
+
+    // ================= OPEN EMAIL =================
+
+    window.location.href =
+        `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+};
+		
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
 
@@ -4621,22 +4713,38 @@ function renderJadwal() {
 
         return;
 
-    } 
+    }
 
     container.innerHTML = approved
 .sort((a, b) => new Date(a.date) - new Date(b.date))
 .map(b => `
-        <div onclick="window.openDetail('${b.id}')" class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex gap-4 cursor-pointer">
-            <div class="text-center min-w-[50px]">
-                <p class="text-xl font-black text-slate-900">${b.date.split('-')[2]}</p>
-                <p class="text-[8px] font-bold text-slate-400 uppercase">
-                    ${new Date(b.date).toLocaleString('id-ID', {month:'short'})}
-                </p>
-            </div>
-            <div class="min-w-0">
-                ${(() => {
 
-    // ambil nama ruangan dari roomId
+<div 
+onclick="window.openDetail('${b.id}')" 
+class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex justify-between items-start gap-4 cursor-pointer">
+
+    <!-- LEFT SIDE -->
+
+    <div class="flex gap-4 min-w-0">
+
+        <div class="text-center min-w-[50px]">
+
+            <p class="text-xl font-black text-slate-900">
+                ${b.date.split('-')[2]}
+            </p>
+
+            <p class="text-[8px] font-bold text-slate-400 uppercase">
+                ${new Date(b.date).toLocaleString('id-ID', {month:'short'})}
+            </p>
+
+        </div>
+
+        <div class="min-w-0">
+
+            ${(() => {
+
+    // ================= ROOM =================
+
     const room =
         localState.rooms.find(
             r => String(r.id) === String(b.roomId)
@@ -4645,13 +4753,15 @@ function renderJadwal() {
     const roomName =
         room ? room.name : '-';
 
-    // ambil daftar alat
+    // ================= TOOLS =================
+
     const toolsText =
         (b.tools || [])
         .map(t => t.name)
         .join(', ') || '-';
 
     return `
+
         <p class="font-bold text-sm truncate">
             ${b.goal}
         </p>
@@ -4673,18 +4783,49 @@ function renderJadwal() {
             ${b.start} - ${b.end}
         </p>
 
+        <p class="text-[10px] font-semibold ${
+            b.status === 'Pending' ? 'text-yellow-600' :
+            b.status === 'Approved' ? 'text-green-600' :
+            b.status === 'Ongoing' ? 'text-blue-600' :
+            'text-slate-500'
+        }">
+            ${b.status}
+        </p>
+
     `;
 
 })()}
-                <p class="text-[10px] font-semibold ${
-                    b.status === 'Pending' ? 'text-yellow-600' :
-                    b.status === 'Approved' ? 'text-green-600' :
-                    b.status === 'Ongoing' ? 'text-blue-600' :
-                    'text-slate-500'
-                }">${b.status}</p>
-            </div>
+
         </div>
-    `).join('');
+
+    </div>
+
+
+    <!-- RIGHT SIDE BUTTON -->
+
+    ${(b.status === 'Approved' || b.status === 'Ongoing') ? `
+
+    <div class="flex-shrink-0">
+
+        <button
+        onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-amber-500 text-white 
+        rounded-lg hover:bg-amber-600 
+        transition whitespace-nowrap">
+
+        📧 Reminder
+
+        </button>
+
+    </div>
+
+    ` : ``}
+
+</div>
+
+`).join('');
+
 }
 
 // ================= STATUS UPDATE (FIXED SINGLE VERSION) =================
