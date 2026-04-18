@@ -1877,7 +1877,7 @@ window.sendQrEmail = (id) => {
 
     }
 
-    // ================= AMBIL EMAIL (SAMA PERSIS) =================
+    // ================= AMBIL EMAIL =================
 
     let userEmail =
         b.email ||
@@ -1930,33 +1930,19 @@ window.sendQrEmail = (id) => {
         b.username ||
         "Peserta";
 
-    // ================= GENERATE QR =================
+    // ================= LINK QR =================
 
-    const qrWrapper = document.createElement("div");
+    const qrLink =
+        `https://ningratedu.github.io/traininghub/?qr=${encodeURIComponent(b.id)}`;
 
-    new QRCode(qrWrapper, {
-        text: JSON.stringify({
-            bookingId: b.id,
-            type: "finish"
-        }),
-        width: 220,
-        height: 220
-    });
+    // ================= SUBJECT =================
 
-    const img = qrWrapper.querySelector("img");
+    const subject =
+        `QR Serah Terima Booking`;
 
-    setTimeout(() => {
+    // ================= BODY =================
 
-        const qrBase64 = img?.src || "";
-
-        // ================= SUBJECT =================
-
-        const subject =
-            `QR Serah Terima Booking`;
-
-        // ================= BODY =================
-
-        const body =
+    const body =
 `Halo ${userName},
 
 Berikut adalah QR Code untuk proses serah terima (penyelesaian booking).
@@ -1970,27 +1956,10 @@ Terima kasih.
 
 Admin Ruang Training Rumah Ningrat`;
 
-        // ================= OPEN EMAIL =================
+    // ================= OPEN EMAIL =================
 
-        window.location.href =
-            `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-        // ================= OPEN QR (BIAR BISA DISAVE / SCREENSHOT) =================
-
-        if (qrBase64) {
-
-            const win = window.open();
-            win.document.write(`
-                <div style="text-align:center;font-family:sans-serif">
-                    <h3>QR Serah Terima</h3>
-                    <img src="${qrBase64}" style="width:300px"/>
-                    <p>Silakan kirim QR ini ke peserta</p>
-                </div>
-            `);
-
-        }
-
-    }, 300);
+    window.location.href =
+        `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
 };
 		
