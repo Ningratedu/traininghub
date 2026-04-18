@@ -5040,31 +5040,34 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
 
     <!-- RIGHT SIDE BUTTON -->
-${canShowReminder(b.date, b.status) ? `
+${
+    currentUser?.role === 'admin' &&
+    canShowReminder(b.date, b.status)
+    ? `
 
 <div class="flex flex-col gap-1 flex-shrink-0">
 
     <!-- REMINDER -->
     <button
-    onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
-    class="px-3 py-1 text-[10px] font-bold 
-    bg-amber-500 text-white 
-    rounded-lg hover:bg-amber-600 
-    transition whitespace-nowrap">
-    🔔 Reminder
+        onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-amber-500 text-white 
+        rounded-lg hover:bg-amber-600 
+        transition whitespace-nowrap">
+        🔔 Reminder
     </button>
 
     <!-- KIRIM QR -->
     ${
-        b.finishedPhotoUrl || b.finishedAt
+        (b.finishedPhotoUrl || b.finishedAt)
         ? `
         <button
-        onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold 
-        bg-indigo-600 text-white 
-        rounded-lg hover:bg-indigo-700 
-        transition whitespace-nowrap">
-        📩 Kirim QR
+            onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
+            class="px-3 py-1 text-[10px] font-bold 
+            bg-indigo-600 text-white 
+            rounded-lg hover:bg-indigo-700 
+            transition whitespace-nowrap">
+            📩 Kirim QR
         </button>
         `
         : ``
@@ -5072,13 +5075,13 @@ ${canShowReminder(b.date, b.status) ? `
 
 </div>
 
-` : ``}
+`
+    : ``
+}
 
 </div>
 
 `).join('');
-
-}
 
 function canShowReminder(dateStr, status){
 
