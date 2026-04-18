@@ -3792,8 +3792,11 @@ if(id){
         .forEach(v => v.classList.add('hide'));
 
     document
-        .getElementById('view-' + id)
-        .classList.remove('hide');
+    .getElementById('view-' + id)
+    .classList.remove('hide');
+
+// 🔥 simpan view terakhir
+localStorage.setItem("lastView", id);
 
     // Active menu highlight
     document.querySelectorAll('.nav-btn')
