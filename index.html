@@ -4910,13 +4910,11 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
     </div>
 
-
     <!-- RIGHT SIDE BUTTON -->
 
+<div class="flex flex-col gap-1 flex-shrink-0">
+
     ${canShowReminder(b.date, b.status) ? `
-
-    <div class="flex-shrink-0">
-
         <button
         onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
         class="px-3 py-1 text-[10px] font-bold 
@@ -4927,9 +4925,19 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
         🔔 Reminder
 
         </button>
+    ` : ``}
 
-    </div>
+    ${canSendSerahTerima(b) ? `
+        <button
+        onclick="event.stopPropagation(); window.sendSerahTerimaEmail('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-indigo-600 text-white 
+        rounded-lg hover:bg-indigo-700 
+        transition whitespace-nowrap">
 
+        📷 Kirim QR
+
+        </button>
     ` : ``}
 
 </div>
@@ -4966,6 +4974,9 @@ function canShowReminder(dateStr, status){
         diffDays <= 1
     );
 }		
+		function canSendSerahTerima(b){
+    return b.startPhoto && b.finishPhoto;
+		}
 		
 // ================= STATUS UPDATE (FIXED SINGLE VERSION) =================
 window.updateBookingStatus = async (id, status) => {
