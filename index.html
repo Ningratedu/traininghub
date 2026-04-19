@@ -1804,7 +1804,7 @@ const appId = "booking-ruang-training";
             user_name: user.username,
             date: booking.date,
             time: booking.start + " - " + booking.end,
-			goal: "TEST AGENDA MASUK",
+			goal: booking.goal || booking.goals || booking.agenda || "-",
             detail: detail
         }
     )
