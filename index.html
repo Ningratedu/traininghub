@@ -1751,6 +1751,18 @@ const appId = "booking-ruang-training";
 
     let detailParts = [];
 
+	// ================= GOAL / AGENDA =================
+
+const agendaText =
+    booking.goal ||
+    booking.goals ||
+    booking.agenda ||
+    "-";
+
+detailParts.push(
+    "Agenda: " + agendaText
+);		
+
     // ================= VALIDASI ROOM =================
 
     const validRoomId =
