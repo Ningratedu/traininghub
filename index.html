@@ -1751,18 +1751,6 @@ const appId = "booking-ruang-training";
 
     let detailParts = [];
 
-    // ================= GOAL / AGENDA =================
-
-    const agendaText =
-        booking.goal ||
-        booking.goals ||
-        booking.agenda ||
-        "-";
-
-    detailParts.push(
-        "Agenda: " + agendaText
-    );
-
     // ================= VALIDASI ROOM =================
 
     const validRoomId =
@@ -1802,6 +1790,14 @@ const appId = "booking-ruang-training";
         detailParts.join(" | ") ||
         "Tidak ada detail";
 
+    // ================= AGENDA (KHUSUS HEADER / SEND SAJA) =================
+
+    const agendaText =
+        booking.goal ||
+        booking.goals ||
+        booking.agenda ||
+        "-";
+
     // ================= DEBUG =================
 
     console.log("📧 Booking Email Detail:", detail);
@@ -1817,6 +1813,7 @@ const appId = "booking-ruang-training";
             user_name: user.username,
             date: booking.date,
             time: booking.start + " - " + booking.end,
+            goal: agendaText,
             detail: detail
         }
     )
