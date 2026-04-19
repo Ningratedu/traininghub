@@ -1751,17 +1751,17 @@ const appId = "booking-ruang-training";
 
     let detailParts = [];
 
-	// ================= GOAL / AGENDA =================
+    // ================= GOAL / AGENDA =================
 
-const agendaText =
-    booking.goal ||
-    booking.goals ||
-    booking.agenda ||
-    "-";
+    const agendaText =
+        booking.goal ||
+        booking.goals ||
+        booking.agenda ||
+        "-";
 
-detailParts.push(
-    "Agenda: " + agendaText
-);		
+    detailParts.push(
+        "Agenda: " + agendaText
+    );
 
     // ================= VALIDASI ROOM =================
 
@@ -1787,8 +1787,8 @@ detailParts.push(
 
         const tools =
             booking.tools
-            .map(t => t.name)
-            .join(", ");
+                .map(t => t.name)
+                .join(", ");
 
         detailParts.push(
             "Peralatan: " + tools
@@ -1806,6 +1806,7 @@ detailParts.push(
 
     console.log("📧 Booking Email Detail:", detail);
     console.log("📌 roomId:", booking.roomId);
+    console.log("📌 agenda:", agendaText);
 
     // ================= KIRIM EMAIL =================
 
@@ -1816,7 +1817,6 @@ detailParts.push(
             user_name: user.username,
             date: booking.date,
             time: booking.start + " - " + booking.end,
-			goal: booking.goal || booking.goals || booking.agenda || "-",
             detail: detail
         }
     )
