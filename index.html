@@ -2198,12 +2198,65 @@ window.sendQrEmail = (id) => {
     const subject =
         `QR Serah Terima Booking`;
 
+let detailLines = [];
+
+// ================= ROOM =================
+let roomName =
+    b.roomName ||
+    "-";
+
+const validRoomId =
+    b.roomId &&
+    b.roomId !== null &&
+    b.roomId !== '' &&
+    b.roomId !== 'null';
+
+if ((!roomName || roomName === "-") && validRoomId && localState.rooms) {
+
+    const room =
+        localState.rooms.find(r =>
+            String(r.id) === String(b.roomId)
+        );
+
+    if (room) {
+        roomName = room.name;
+    }
+}
+
+// ================= AGENDA =================
+const agendaText =
+    b.agenda ||
+    b.goals ||
+    b.goal ||
+    b.purpose ||
+    b.description ||
+    "-";
+
+// ================= TOOLS =================
+let toolsText =
+    (b.tools && b.tools.length > 0)
+    ? b.tools.map(t => t.name).join(", ")
+    : "-";
+
+// ================= DETAIL PUSH =================
+detailLines.push(`🏢 Ruangan : ${roomName}`);
+detailLines.push(`🎯 Agenda  : ${agendaText}`);
+detailLines.push(`🧰 Peralatan : ${toolsText}`);
+
+const detail = detailLines.join("\n");
+	
     // ================= BODY =================
 
     const body =
 `Halo ${userName},
 
 Berikut adalah QR Code untuk proses serah terima (penyelesaian booking).
+
+📌 DETAIL PESANAN:
+${detail}
+
+📅 Tanggal : ${b.date}
+⏰ Jam     : ${b.start} - ${b.end}
 
 Silakan buka link berikut untuk melihat dan download QR:
 ${qrLink}
