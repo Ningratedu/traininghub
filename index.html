@@ -1973,10 +1973,8 @@ window.sendReminder = (id) => {
         .find(x => x.id === id);
 
     if (!b) {
-
         alert("Booking tidak ditemukan!");
         return;
-
     }
 
     // ================= AMBIL EMAIL =================
@@ -2009,19 +2007,13 @@ window.sendReminder = (id) => {
             );
 
         if (user && user.email) {
-
             userEmail = user.email;
-
         }
-
     }
 
     if (!userEmail) {
-
-        alert(
-            "Email pemesan tidak ditemukan.\nSilakan isi manual pada email."
-        );
-
+        alert("Email pemesan tidak ditemukan.\nSilakan isi manual pada email.");
+        return;
     }
 
     // ================= AMBIL NAMA =================
@@ -2038,37 +2030,24 @@ window.sendReminder = (id) => {
         b.roomName ||
         "-";
 
-    if (
-        (!roomName || roomName === "-") &&
-        localState.rooms
-    ) {
+    if ((!roomName || roomName === "-") && localState.rooms) {
 
         const room =
             localState.rooms.find(r =>
-                String(r.id) ===
-                String(b.roomId)
+                String(r.id) === String(b.roomId)
             );
 
         if (room) {
-
             roomName = room.name;
-
         }
-
     }
 
     // ================= AMBIL TOOLS =================
 
-    let toolsText = "-";
-
-    if (b.tools && b.tools.length > 0) {
-
-        toolsText =
-            b.tools
-            .map(t => t.name)
-            .join(", ");
-
-    }
+    let toolsText =
+        (b.tools && b.tools.length > 0)
+        ? b.tools.map(t => t.name).join(", ")
+        : "-";
 
     // ================= AMBIL AGENDA =================
 
@@ -2084,21 +2063,17 @@ window.sendReminder = (id) => {
 
     let detailLines = [];
 
-    if (roomName && roomName !== "-") {
-        detailLines.push(`🏢 Ruangan : ${roomName}`);
-    }
+    // 🔥 ROOM SELALU TAMPIL
+    detailLines.push(`🏢 Ruangan : ${roomName}`);
 
-    if (agendaText && agendaText !== "-") {
-        detailLines.push(`🎯 Agenda  : ${agendaText}`);
-    }
+    // 🔥 AGENDA SELALU TAMPIL (FIXED: konsisten format & fallback aman)
+    detailLines.push(`🎯 Agenda  : ${agendaText}`);
 
-    if (b.tools && b.tools.length > 0) {
-        detailLines.push(`🧰 Peralatan : ${toolsText}`);
-    }
+    // 🔥 TOOLS SELALU TAMPIL
+    detailLines.push(`🧰 Peralatan : ${toolsText}`);
 
     const detail =
-        detailLines.join("\n") ||
-        "Tidak ada detail";
+        detailLines.join("\n");
 
     // ================= SUBJECT =================
 
