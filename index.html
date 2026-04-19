@@ -2026,21 +2026,25 @@ window.sendReminder = (id) => {
 
     // ================= AMBIL ROOM =================
 
-    let roomName =
-        b.roomName ||
-        "-";
+    let roomName = "-";
 
-    if ((!roomName || roomName === "-") && localState.rooms) {
+const validRoomId =
+    b.roomId &&
+    b.roomId !== null &&
+    b.roomId !== '' &&
+    b.roomId !== 'null';
 
-        const room =
-            localState.rooms.find(r =>
-                String(r.id) === String(b.roomId)
-            );
+if (validRoomId && localState.rooms) {
 
-        if (room) {
-            roomName = room.name;
-        }
+    const room =
+        localState.rooms.find(r =>
+            String(r.id) === String(b.roomId)
+        );
+
+    if (room) {
+        roomName = room.name;
     }
+}
 
     // ================= AMBIL TOOLS =================
 
