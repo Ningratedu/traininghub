@@ -5422,9 +5422,62 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
 
         <!-- RIGHT SIDE BUTTON -->
 ${
+(
+    currentUser &&
+    (
+        String(b.userId) === String(currentUser.uid)
+        ||
+        b.userName === currentUser.username
+    )
+)
+? `
+
+<!-- USER BUTTON -->
+<div class="flex flex-col gap-1 flex-shrink-0">
+
+    ${
+        b.status === 'Approved'
+        ? `
+        <button
+        onclick="event.stopPropagation(); window.openDetail('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-indigo-500 text-white 
+        rounded-lg hover:bg-indigo-600 transition">
+        ▶ Mulai
+        </button>
+
+        <button
+        onclick="event.stopPropagation(); window.cancelBooking('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-rose-500 text-white 
+        rounded-lg hover:bg-rose-600 transition">
+        ✖ Batal
+        </button>
+        `
+        : b.status === 'Ongoing'
+        ? `
+        <button
+        onclick="event.stopPropagation(); window.openDetail('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold 
+        bg-indigo-500 text-white 
+        rounded-lg hover:bg-indigo-600 transition">
+        ⏹ Akhiri
+        </button>
+        `
+        : ``
+    }
+
+</div>
+
+`
+: ``
+}
+
+${
     canShowReminder(b.date, b.status) && currentUser?.role === 'admin'
     ? `
 
+<!-- ADMIN BUTTON -->
 <div class="flex flex-col gap-1 flex-shrink-0">
 
     <!-- REMINDER -->
@@ -5456,7 +5509,7 @@ ${
 </div>
 
 `
-    : ``
+: ``
 }
 
 </div>
