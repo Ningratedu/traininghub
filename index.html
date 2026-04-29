@@ -6239,6 +6239,22 @@ function injectBookingTimes(b){
             <img src="${b.finishPhoto}" class="rounded-xl max-h-40 border shadow-sm"/>
         </div>` : ""}
 
+${b.finishedByAdmin ? `
+<div class="mt-3 bg-rose-50 border border-rose-200 p-3 rounded text-xs">
+
+<span class="font-bold text-rose-700">
+⚠ Diselesaikan oleh Admin
+</span>
+
+<br>
+
+<span class="italic text-rose-600">
+${b.note || 'Diselesaikan oleh Admin (Lewat waktu)'}
+</span>
+
+</div>
+` : ""}
+
     </div>`;
 }
 
