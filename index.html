@@ -5305,7 +5305,21 @@ catch(err){
 
 };
 
+// ================= CEK LEWAT WAKTU =================
 
+function isBookingExpired(b){
+
+    if(!b.date || !b.end) return false;
+
+    const now = new Date();
+
+    const endTime =
+        new Date(`${b.date}T${b.end}`);
+
+    return now > endTime;
+
+}
+		
 // ================= RENDER JADWAL =================
 
 function renderJadwal() {
@@ -5333,7 +5347,12 @@ function renderJadwal() {
         return;
 
     }
+const expired =
+    b.status === "Approved"
+    && isBookingExpired(b);
 
+const isAdmin =
+    currentUser?.role === "admin";
     container.innerHTML = approved
 .sort((a, b) => new Date(a.date) - new Date(b.date))
 .map(b => `
@@ -5489,6 +5508,18 @@ ${
     transition whitespace-nowrap">
     🔔 Reminder
     </button>
+
+	${expired && isAdmin ? `
+
+<button
+onclick="finishBookingByAdmin('${b.id}')"
+class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded text-xs font-bold ml-1">
+
+Akhiri (Admin)
+
+</button>
+
+` : ''}
 
     <!-- KIRIM QR -->
     ${
@@ -6110,6 +6141,58 @@ window.finishBooking = async (id) => {
         alert("❌ Upload gagal");
     }
 };
+
+	// ================= AKHIRI BY ADMIN =================
+
+window.finishBookingByAdmin = async (id) => {
+
+    if(!confirm("Selesaikan pesanan ini oleh Admin?"))
+        return;
+
+    try {
+
+        await updateDoc(
+            doc(
+                db,
+                'artifacts',
+                appId,
+                'public',
+                'data',
+                'bookings',
+                id
+            ),
+            {
+
+                status: 'Completed',
+
+                // AUTO FOTO
+                startPhoto: "AUTO_ADMIN",
+
+                finishPhoto: "AUTO_ADMIN",
+
+                // CATATAN
+                note:
+                    "Diselesaikan oleh Admin (Lewat waktu)",
+
+                finishedByAdmin: true,
+
+                finishedAt:
+                    serverTimestamp()
+
+            }
+        );
+
+        refreshUI();
+
+    }
+    catch(err){
+
+        console.error(err);
+        alert("Gagal menyelesaikan booking");
+
+    }
+
+};	
 
 // ================= TIME FORMAT =================
 function formatTime(ts){
