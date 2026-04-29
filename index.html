@@ -5347,15 +5347,19 @@ function renderJadwal() {
         return;
 
     }
+	
+    container.innerHTML = approved
+.sort((a, b) => new Date(a.date) - new Date(b.date))
+.map(b => {
+
 const expired =
     b.status === "Approved"
     && isBookingExpired(b);
 
 const isAdmin =
     currentUser?.role === "admin";
-    container.innerHTML = approved
-.sort((a, b) => new Date(a.date) - new Date(b.date))
-.map(b => `
+
+return `
 
 <div 
 onclick="window.openDetail('${b.id}')" 
