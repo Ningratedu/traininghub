@@ -3605,9 +3605,9 @@ if (!openDetailParam) {
                 
                 return `
     <div 
-        onclick="showAssetBookings('${item.id}','${type}', decodeURIComponent('${encodeURIComponent(item.name)}'))"
-        class="bg-white rounded-2xl shadow-sm border border-slate-100 flex overflow-hidden relative cursor-pointer hover:shadow-md transition ${isClosed ? 'opacity-60 grayscale' : ''}"
-    >
+    onclick='window.showAssetBookings("${item.id}","${type}","${item.name}")'
+    class="bg-white rounded-2xl shadow-sm border border-slate-100 flex overflow-hidden relative cursor-pointer hover:shadow-md transition ${isClosed ? 'opacity-60 grayscale' : ''}"
+>
 
         <!-- OVERLAY CLOSED -->
         ${isClosed ? `
