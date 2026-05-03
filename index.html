@@ -4590,26 +4590,27 @@ window.exportAllBookingsExcel = () => {
 
     const rows = data.map((b, index) => {
 
-        const room = localState.rooms.find(r => r.id == b.roomId);
-        const ket = getUsageStatus(b);
+    const room = localState.rooms.find(r => r.id == b.roomId);
+    const ket = getUsageStatus(b);
 
-        return {
-            No: index + 1,
-            Tanggal: b.date,
-            Waktu: `${b.start} - ${b.end}`,
-            Nama: b.userName,
-            Departemen: b.dept,
-            Agenda: b.goal || '-',
-            Ruangan: room ? room.name : '-',
-            Alat: (b.tools || []).map(t => t.name).join(', '),
-            Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
-            Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
-            Keterangan: ket.text,
-            Status: b.status
-        };
-    });
+    return {
+        No: index + 1,
+        Tanggal: b.date,
+        Waktu: `${b.start} - ${b.end}`,
+        Nama: b.userName,
+        Departemen: b.dept,
+        Agenda: b.goal || '-',
+        Ruangan: room ? room.name : '-',
+        Alat: (b.tools || []).map(t => t.name).join(', '),
+        Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
+        Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
+        Keterangan: ket.text,
+        Status: b.status
+    };
+});
 
-    console.log(rows);
+console.log(rows);
+
 };
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
