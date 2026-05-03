@@ -4394,38 +4394,21 @@ window.sortAllBookings = (field) => {
 };
 
 
-// ================= SAFE PARSE =================
-function safeParseDate(val){
+// ================= UNIVERSAL DATE PARSER =================
+function parseDateTime(dateStr, timeStr){
 
-    if(!val) return null;
-
-    // 🔥 coba parse normal dulu
-    const normal = new Date(val);
-    if(!isNaN(normal)) return normal;
+    if(!dateStr || !timeStr) return null;
 
     try{
+        const [day, month, year] = dateStr.split('/').map(Number);
 
-        // 🔥 bersihin string
-        val = val.trim();
+        let t = timeStr.includes(':') 
+            ? timeStr.split(':') 
+            : timeStr.split('.');
 
-        // 🔥 split tanggal & waktu
-        const parts = val.split(',');
-        if(parts.length < 2) return null;
-
-        const datePart = parts[0].trim();
-        const timePart = parts[1].trim();
-
-        // 🔥 parse tanggal
-        const [day, month, year] = datePart.split('/').map(Number);
-
-        // 🔥 parse waktu (handle ":" atau ".")
-        let timeArr = timePart.includes(':')
-            ? timePart.split(':')
-            : timePart.split('.');
-
-        const hour = Number(timeArr[0] || 0);
-        const minute = Number(timeArr[1] || 0);
-        const second = Number(timeArr[2] || 0);
+        const hour = Number(t[0] || 0);
+        const minute = Number(t[1] || 0);
+        const second = Number(t[2] || 0);
 
         return new Date(year, month - 1, day, hour, minute, second);
 
@@ -4435,9 +4418,33 @@ function safeParseDate(val){
 }
 
 
-// ================= KETERANGAN =================
+// ================= SAFE PARSE ACTUAL =================
+function safeParseDate(val){
+
+    if(!val) return null;
+
+    const normal = new Date(val);
+    if(!isNaN(normal)) return normal;
+
+    try{
+        const parts = val.split(',');
+        if(parts.length < 2) return null;
+
+        const datePart = parts[0].trim();
+        const timePart = parts[1].trim();
+
+        return parseDateTime(datePart, timePart);
+
+    }catch(e){
+        return null;
+    }
+}
+
+
+// ================= KETERANGAN FINAL =================
 function getUsageStatus(b){
 
+    // 🔥 PRIORITAS ADMIN
     if(b.finishedByAdmin){
         return {
             text: 'Late [diselesaikan admin]',
@@ -4445,13 +4452,14 @@ function getUsageStatus(b){
         };
     }
 
-    const plannedStart = new Date(`${b.date} ${b.start}`);
-    const plannedEnd   = new Date(`${b.date} ${b.end}`);
+    const plannedStart = parseDateTime(b.date, b.start);
+    const plannedEnd   = parseDateTime(b.date, b.end);
 
     const actualStart  = safeParseDate(b.startedAt);
     const actualEnd    = safeParseDate(b.finishedAt);
 
-    if(!actualStart || !actualEnd){
+    // 🔥 VALIDASI
+    if(!plannedStart || !plannedEnd || !actualStart || !actualEnd){
         return {
             text: '-',
             class: 'text-slate-400'
@@ -4518,8 +4526,8 @@ window.renderAllBookings = function() {
         });
     } else {
         data.sort((a, b) => {
-            const aTime = new Date(`${a.date} ${a.start}`);
-            const bTime = new Date(`${b.date} ${b.start}`);
+            const aTime = parseDateTime(a.date, a.start);
+            const bTime = parseDateTime(b.date, b.start);
             return aTime - bTime;
         });
     }
@@ -4590,25 +4598,6 @@ window.renderAllBookings = function() {
 window.exportAllBookingsExcel = () => {
 
     let data = getFilteredBookings();
-
-    const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
-
-    if(keyword){
-        data = data.filter(b => {
-
-            const room = localState.rooms.find(r => r.id == b.roomId);
-            const roomName = room ? room.name : '';
-
-            const tools = (b.tools || []).map(t => t.name).join(', ');
-
-            return (
-                (b.userName || '').toLowerCase().includes(keyword) ||
-                (b.dept || '').toLowerCase().includes(keyword) ||
-                (roomName || '').toLowerCase().includes(keyword) ||
-                (tools || '').toLowerCase().includes(keyword)
-            );
-        });
-    }
 
     const rows = data.map((b, index) => {
 
