@@ -5374,7 +5374,33 @@ function renderJadwal() {
 
 <div 
 onclick="window.openDetail('${b.id}')" 
-class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex justify-between items-start gap-4 cursor-pointer">
+class="relative bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex justify-between items-start gap-4 cursor-pointer">
+
+    ${(() => {
+
+        const statusColor =
+            b.status === 'Pending' ? 'bg-yellow-500' :
+            b.status === 'Approved' ? 'bg-green-600' :
+            b.status === 'Ongoing' ? 'bg-blue-600' :
+            b.status === 'Completed' ? 'bg-emerald-600 opacity-80' :
+            'bg-slate-500';
+
+        return `
+        <div class="absolute top-0 right-0 overflow-hidden w-24 h-24 pointer-events-none">
+
+            <div class="absolute top-2 -right-8 rotate-[45deg] ${statusColor}
+            text-white text-[9px] font-bold text-center w-32 py-1 shadow-md">
+
+                ${b.status}
+
+                <span class="absolute left-0 bottom-0 w-2 h-2 bg-black/20 rotate-45 -translate-x-1 translate-y-1"></span>
+
+            </div>
+
+        </div>
+        `;
+
+    })()}
 
     <!-- LEFT SIDE -->
 
@@ -5432,14 +5458,9 @@ class="bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm flex just
             ${b.start} - ${b.end}
         </p>
 
-        <p class="text-[10px] font-semibold ${
-            b.status === 'Pending' ? 'text-yellow-600' :
-            b.status === 'Approved' ? 'text-green-600' :
-            b.status === 'Ongoing' ? 'text-blue-600' :
-            'text-slate-500'
-        }">
-            ${b.status}
-        </p>
+        ${
+        /* STATUS LAMA DIHAPUS SESUAI PERMINTAAN (DIGANTI RIBBON) */
+        ``}
 
                 `;
 
@@ -5570,6 +5591,7 @@ isAdmin
 }).join('');
 
 }
+
 function canShowReminder(dateStr, status){
 
     const today = new Date();
