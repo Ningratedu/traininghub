@@ -4445,6 +4445,7 @@ window.sortAllBookings = (field) => {
 // 🔥 KETERANGAN + WARNA
 function getUsageStatus(b){
 
+    // 🔥 PRIORITAS ADMIN
     if(b.finishedByAdmin){
         return {
             text: 'Late [diselesaikan admin]',
@@ -4452,30 +4453,43 @@ function getUsageStatus(b){
         };
     }
 
-    if(!b.startedAt || !b.finishedAt){
+    // 🔥 PAKAI FORMAT YANG BENER (KRITIS)
+    const plannedStart = parseCustomDate(`${b.date}, ${b.start.replace(':', '.')}.00`);
+    const plannedEnd   = parseCustomDate(`${b.date}, ${b.end.replace(':', '.')}.00`);
+
+    const actualStart  = safeParseDate(b.startedAt);
+    const actualEnd    = safeParseDate(b.finishedAt);
+
+    // 🔥 VALIDASI DATA
+    if(!plannedStart || !plannedEnd || !actualStart || !actualEnd){
         return {
             text: '-',
             class: 'text-slate-400'
         };
     }
 
-    const plannedStart = new Date(`${b.date} ${b.start}`);
-    const plannedEnd   = new Date(`${b.date} ${b.end}`);
-
-    const actualStart  = safeParseDate(b.startedAt);
-	const actualEnd    = safeParseDate(b.finishedAt);
-
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
 
-    if(diffStart > 15){
+    const isLate = diffStart > 15;
+    const isOver = diffEnd > 15;
+
+    // 🔥 LOGIC FINAL SESUAI REQUEST LO
+    if(isLate && isOver){
+        return {
+            text: 'Late & Over',
+            class: 'bg-orange-100 text-orange-600'
+        };
+    }
+
+    if(isLate){
         return {
             text: 'Late',
             class: 'bg-red-100 text-red-600'
         };
     }
 
-    if(diffEnd > 15){
+    if(isOver){
         return {
             text: 'Over',
             class: 'bg-yellow-100 text-yellow-700'
