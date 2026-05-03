@@ -4393,66 +4393,56 @@ window.sortAllBookings = (field) => {
     renderAllBookings();
 };
 
+		function parseCustomDate(str){
 
-// ================= PARSE DATE AMAN =================
-function safeParseDate(val){
+    if(!str) return null;
+
+    // format: 29/4/2026, 15.53.19
+    const [datePart, timePart] = str.split(', ');
+
+    if(!datePart || !timePart) return null;
+
+    const [day, month, year] = datePart.split('/');
+    const [hour, minute, second] = timePart.split('.');
+
+    return new Date(
+        year,
+        month - 1,
+        day,
+        hour || 0,
+        minute || 0,
+        second || 0
+    );
+}
+		function safeParseDate(val){
 
     if(!val) return null;
 
+    // kalau sudah ISO / format normal → pakai langsung
     const normal = new Date(val);
     if(!isNaN(normal)) return normal;
 
+    // fallback format: 29/4/2026, 15.53.19
     try{
-        val = val.trim();
+        const [datePart, timePart] = val.split(', ');
 
-        const parts = val.split(',');
-        if(parts.length < 2) return null;
+        const [day, month, year] = datePart.split('/');
+        const [hour, minute, second] = timePart.split('.');
 
-        const datePart = parts[0].trim();
-        const timePart = parts[1].trim();
-
-        const [day, month, year] = datePart.split('/').map(Number);
-
-        let timeArr = timePart.includes(':')
-            ? timePart.split(':')
-            : timePart.split('.');
-
-        const hour = Number(timeArr[0] || 0);
-        const minute = Number(timeArr[1] || 0);
-        const second = Number(timeArr[2] || 0);
-
-        return new Date(year, month - 1, day, hour, minute, second);
-
+        return new Date(
+            year,
+            month - 1,
+            day,
+            hour || 0,
+            minute || 0,
+            second || 0
+        );
     }catch(e){
         return null;
     }
 }
-
-
-// ================= PARSE PLANNED (PENTING) =================
-function parsePlanned(dateStr, timeStr){
-
-    if(!dateStr || !timeStr) return null;
-
-    try{
-        const [day, month, year] = dateStr.split('/').map(Number);
-
-        let timeArr = timeStr.includes(':')
-            ? timeStr.split(':')
-            : timeStr.split('.');
-
-        const hour = Number(timeArr[0] || 0);
-        const minute = Number(timeArr[1] || 0);
-
-        return new Date(year, month - 1, day, hour, minute, 0);
-
-    }catch(e){
-        return null;
-    }
-}
-
-
-// ================= KETERANGAN (FIX FINAL) =================
+		
+// 🔥 KETERANGAN + WARNA
 function getUsageStatus(b){
 
     if(b.finishedByAdmin){
@@ -4462,41 +4452,30 @@ function getUsageStatus(b){
         };
     }
 
-    const plannedStart = parsePlanned(b.date, b.start);
-    const plannedEnd   = parsePlanned(b.date, b.end);
-
-    const actualStart  = safeParseDate(b.startedAt);
-    const actualEnd    = safeParseDate(b.finishedAt);
-
-    if(!actualStart || !actualEnd){
+    if(!b.startedAt || !b.finishedAt){
         return {
-            text: 'Ontime',
-            class: 'bg-green-100 text-green-600'
+            text: '-',
+            class: 'text-slate-400'
         };
     }
+
+    const plannedStart = new Date(`${b.date} ${b.start}`);
+    const plannedEnd   = new Date(`${b.date} ${b.end}`);
+
+    const actualStart  = safeParseDate(b.startedAt);
+	const actualEnd    = safeParseDate(b.finishedAt);
 
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
 
-    const isLate = diffStart > 15;
-    const isOver = diffEnd > 15;
-
-    // 🔥 PRIORITAS KOMBINASI
-    if(isLate && isOver){
-        return {
-            text: 'Late & Over',
-            class: 'bg-orange-100 text-orange-600'
-        };
-    }
-
-    if(isLate){
+    if(diffStart > 15){
         return {
             text: 'Late',
             class: 'bg-red-100 text-red-600'
         };
     }
 
-    if(isOver){
+    if(diffEnd > 15){
         return {
             text: 'Over',
             class: 'bg-yellow-100 text-yellow-700'
@@ -4509,13 +4488,11 @@ function getUsageStatus(b){
     };
 }
 
-
-// ================= RENDER =================
 window.renderAllBookings = function() {
 
     let data = getFilteredBookings();
 
-    // ================= SEARCH (JANGAN DIUBAH) =================
+    // ================= SEARCH =================
     const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
 
     if(keyword){
@@ -4546,21 +4523,16 @@ window.renderAllBookings = function() {
                 : v2.toString().localeCompare(v1.toString());
         });
     } else {
-        // 🔥 DEFAULT SORT → TANGGAL + JAM PESANAN
+        // 🔥 DEFAULT SORT
         data.sort((a, b) => {
-
-            const aTime = parsePlanned(a.date, a.start);
-            const bTime = parsePlanned(b.date, b.start);
-
-            if(!aTime && !bTime) return 0;
-            if(!aTime) return 1;
-            if(!bTime) return -1;
-
-            return aTime.getTime() - bTime.getTime();
+            const aTime = new Date(`${a.date} ${a.start}`);
+            const bTime = new Date(`${b.date} ${b.start}`);
+            return aTime - bTime;
         });
     }
 
     const tbody = document.getElementById('all-bookings-body');
+
     if(!tbody) return;
 
     if(data.length === 0){
@@ -4585,13 +4557,23 @@ window.renderAllBookings = function() {
         return `
         <tr class="hover:bg-slate-50">
 
-            <td class="px-3 py-2 text-center font-bold">${index + 1}</td>
+            <!-- NO -->
+            <td class="px-3 py-2 text-center font-bold">
+                ${index + 1}
+            </td>
+
             <td class="px-3 py-2">${b.date}</td>
+
             <td class="px-3 py-2">${b.start} - ${b.end}</td>
+
             <td class="px-3 py-2">${b.userName}</td>
+
             <td class="px-3 py-2">${b.dept}</td>
+
             <td class="px-3 py-2">${b.goal || '-'}</td>
+
             <td class="px-3 py-2">${roomName}</td>
+
             <td class="px-3 py-2">${tools}</td>
 
             <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
@@ -4603,28 +4585,35 @@ window.renderAllBookings = function() {
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.startPhoto ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` : '-'}
+                ${b.startPhoto 
+                    ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+                    : '-'}
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.finishPhoto ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` : '-'}
+                ${b.finishPhoto 
+                    ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+                    : '-'}
             </td>
 
+            <!-- 🔥 KETERANGAN BERWARNA -->
             <td class="px-3 py-2 text-center">
                 <span class="px-2 py-1 rounded text-xs font-bold ${ket.class}">
                     ${ket.text}
                 </span>
             </td>
 
-            <td class="px-3 py-2 text-center font-bold">${b.status}</td>
+            <td class="px-3 py-2 text-center font-bold">
+                ${b.status}
+            </td>
 
         </tr>
         `;
     }).join('');
-};
+}
 
 
-// ================= EXPORT =================
+// 🔥 EXPORT EXCEL (SUDAH SESUAI KETERANGAN BARU)
 window.exportAllBookingsExcel = () => {
 
     let data = getFilteredBookings();
@@ -4648,39 +4637,31 @@ window.exportAllBookingsExcel = () => {
         });
     }
 
-    // 🔥 PASTIKAN EXPORT JUGA URUT
-    data.sort((a, b) => {
-        const aTime = parsePlanned(a.date, a.start);
-        const bTime = parsePlanned(b.date, b.start);
-        if(!aTime || !bTime) return 0;
-        return aTime - bTime;
-    });
-
     const rows = data.map((b, index) => {
 
-        const room = localState.rooms.find(r => r.id == b.roomId);
-        const ket = getUsageStatus(b);
+    const room = localState.rooms.find(r => r.id == b.roomId);
+    const ket = getUsageStatus(b);
 
-        return {
-            No: index + 1,
-            Tanggal: b.date,
-            Waktu: `${b.start} - ${b.end}`,
-            Nama: b.userName,
-            Departemen: b.dept,
-            Agenda: b.goal || '-',
-            Ruangan: room ? room.name : '-',
-            Alat: (b.tools || []).map(t => t.name).join(', '),
-            Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
-            Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
-            Keterangan: ket.text,
-            Status: b.status
-        };
-    });
-
+    return {
+        No: index + 1,
+        Tanggal: b.date,
+        Waktu: `${b.start} - ${b.end}`,
+        Nama: b.userName,
+        Departemen: b.dept,
+        Agenda: b.goal || '-',
+        Ruangan: room ? room.name : '-',
+        Alat: (b.tools || []).map(t => t.name).join(', '),
+        Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
+        Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
+        Keterangan: ket.text,
+        Status: b.status
+    };
+});
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Semua Pesanan");
+
     XLSX.writeFile(workbook, "semua_pesanan.xlsx");
 };
         window.deleteBooking = async (id) => {
