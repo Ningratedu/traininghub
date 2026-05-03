@@ -5340,11 +5340,7 @@ function isBookingExpired(b){
 function renderJadwal() {
 
     const approved = getFilteredBookings()
-        .filter(b =>
-            ['Approved','Ongoing','Pending']
-            .includes(b.status) &&
-            b.status !== 'Cancelled'
-        )
+        .filter(b => b.status !== 'Cancelled')
         .sort((a,b) =>
             a.date.localeCompare(b.date)
         );
