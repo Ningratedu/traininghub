@@ -4558,18 +4558,19 @@ window.renderAllBookings = function() {
                 : v2.toString().localeCompare(v1.toString());
         });
     } else {
-        // 🔥 FIX SORT (AMAN FORMAT)
-        data.sort((a, b) => {
+    data.sort((a, b) => {
 
-            const aTime = parsePlanned(a.date, a.start);
-            const bTime = parsePlanned(b.date, b.start);
+        const aTime = parsePlanned(a.date, a.start);
+        const bTime = parsePlanned(b.date, b.start);
 
-            if(!aTime || !bTime) return 0;
+        // 🔥 HANDLE DATA NGACO BIAR GA MERUSAK URUTAN
+        if(!aTime && !bTime) return 0;
+        if(!aTime) return 1;   // taruh di bawah
+        if(!bTime) return -1;  // taruh di atas
 
-            return aTime - bTime;
-        });
-    }
-
+        return aTime.getTime() - bTime.getTime();
+    });
+}
     const tbody = document.getElementById('all-bookings-body');
 
     if(!tbody) return;
