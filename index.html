@@ -5379,17 +5379,18 @@ class="relative bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm 
     ${(() => {
 
     const statusColor =
-        b.status === 'Pending' ? 'bg-yellow-300 text-yellow-900' :
-        b.status === 'Approved' ? 'bg-green-400' :
-        b.status === 'Ongoing' ? 'bg-blue-400' :
-        b.status === 'Completed' ? 'bg-emerald-400 opacity-80' :
-        'bg-slate-400';
+        b.status === 'Pending' ? 'bg-yellow-400 text-yellow-900' :
+        b.status === 'Approved' ? 'bg-green-500 text-white' :
+        b.status === 'Ongoing' ? 'bg-blue-500 text-white' :
+        b.status === 'Completed' ? 'bg-sky-400 text-white opacity-90' :
+        'bg-slate-400 text-white';
 
     return `
     <div class="absolute top-0 left-0 z-10">
 
         <!-- RIBBON UTAMA -->
-        <div class="${statusColor} text-white text-[10px] font-bold px-3 py-1 rounded-br-xl shadow-md relative">
+        <div class="${statusColor} text-[8px] font-semibold px-2 py-[2px] 
+		rounded-tl-xl rounded-br-lg shadow-md relative">
 
             ${b.status}
 
