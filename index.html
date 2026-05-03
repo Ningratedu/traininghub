@@ -4462,8 +4462,8 @@ function getUsageStatus(b){
     const plannedStart = new Date(`${b.date} ${b.start}`);
     const plannedEnd   = new Date(`${b.date} ${b.end}`);
 
-    const actualStart  = parseCustomDate(b.startedAt);
-	const actualEnd    = parseCustomDate(b.finishedAt);
+    const actualStart  = safeParseDate(b.startedAt);
+	const actualEnd    = safeParseDate(b.finishedAt);
 
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
