@@ -6549,63 +6549,6 @@ window.submitChangePassword = async () => {
     }
 };
 
-window.showAssetBookings = (id, type, name) => {
-
-    if (typeof getFilteredBookings !== "function") return;
-    if (!window.localState || !localState.bookings) return;
-
-    let data = getFilteredBookings();
-
-    if(type === 'room'){
-        data = data.filter(b => b.roomId === id);
-    } else {
-        data = data.filter(b =>
-            (b.tools || []).some(t => t.id === id)
-        );
-    }
-
-    const title = document.getElementById('asset-modal-title');
-    if(title){
-        title.innerText =
-        `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
-    }
-
-    const tbody = document.getElementById('asset-booking-body');
-    if(!tbody) return;
-
-    if(data.length === 0){
-        tbody.innerHTML = `
-        <tr>
-            <td colspan="6" class="text-center py-6 text-slate-400">
-                Tidak ada pesanan
-            </td>
-        </tr>`;
-    } else {
-        tbody.innerHTML = data.map(b => `
-<tr>
-<td class="px-3 py-2">${b.date}</td>
-<td class="px-3 py-2">${b.start} - ${b.end}</td>
-<td class="px-3 py-2">${b.userName}</td>
-<td class="px-3 py-2">${b.dept}</td>
-<td class="px-3 py-2">${b.goal || '-'}</td>
-<td class="px-3 py-2 text-center font-semibold">${b.status}</td>
-</tr>
-`).join('');
-    }
-
-    const modal = document.getElementById('asset-booking-modal');
-    if(modal){
-        modal.classList.remove('hidden');
-    }
-};
-
-window.closeAssetModal = () => {
-    const modal = document.getElementById('asset-booking-modal');
-    if(modal){
-        modal.classList.add('hidden');
-    }
-};
-	
 </script>
 
 <!-- 🔥 MODAL RIWAYAT ASSET -->
@@ -6682,6 +6625,6 @@ window.closeAssetModal = () => {
     </div>
 
 </div>
-	
+
 </body>
 </html>
