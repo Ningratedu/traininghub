@@ -4394,28 +4394,7 @@ window.sortAllBookings = (field) => {
 };
 
 
-// ================= PARSE DATE =================
-function parseCustomDate(str){
-
-    if(!str) return null;
-
-    const [datePart, timePart] = str.split(', ');
-
-    if(!datePart || !timePart) return null;
-
-    const [day, month, year] = datePart.split('/');
-    const [hour, minute, second] = timePart.split('.');
-
-    return new Date(
-        year,
-        month - 1,
-        day,
-        hour || 0,
-        minute || 0,
-        second || 0
-    );
-}
-
+// ================= PARSE DATE AMAN =================
 function safeParseDate(val){
 
     if(!val) return null;
@@ -4424,27 +4403,33 @@ function safeParseDate(val){
     if(!isNaN(normal)) return normal;
 
     try{
-        const [datePart, timePart] = val.split(', ');
-        const [day, month, year] = datePart.split('/');
+        val = val.trim();
+
+        const parts = val.split(',');
+        if(parts.length < 2) return null;
+
+        const datePart = parts[0].trim();
+        const timePart = parts[1].trim();
+
+        const [day, month, year] = datePart.split('/').map(Number);
 
         let timeArr = timePart.includes(':')
             ? timePart.split(':')
             : timePart.split('.');
 
-        return new Date(
-            year,
-            month - 1,
-            day,
-            Number(timeArr[0] || 0),
-            Number(timeArr[1] || 0),
-            Number(timeArr[2] || 0)
-        );
+        const hour = Number(timeArr[0] || 0);
+        const minute = Number(timeArr[1] || 0);
+        const second = Number(timeArr[2] || 0);
+
+        return new Date(year, month - 1, day, hour, minute, second);
+
     }catch(e){
         return null;
     }
 }
 
-// 🔥 TAMBAHAN (FIX PARSE PLANNED)
+
+// ================= PARSE PLANNED (PENTING) =================
 function parsePlanned(dateStr, timeStr){
 
     if(!dateStr || !timeStr) return null;
@@ -4452,18 +4437,14 @@ function parsePlanned(dateStr, timeStr){
     try{
         const [day, month, year] = dateStr.split('/').map(Number);
 
-        let t = timeStr.includes(':')
+        let timeArr = timeStr.includes(':')
             ? timeStr.split(':')
             : timeStr.split('.');
 
-        return new Date(
-            year,
-            month - 1,
-            day,
-            Number(t[0] || 0),
-            Number(t[1] || 0),
-            Number(t[2] || 0)
-        );
+        const hour = Number(timeArr[0] || 0);
+        const minute = Number(timeArr[1] || 0);
+
+        return new Date(year, month - 1, day, hour, minute, 0);
 
     }catch(e){
         return null;
@@ -4471,11 +4452,11 @@ function parsePlanned(dateStr, timeStr){
 }
 
 
-// ================= KETERANGAN =================
+// ================= KETERANGAN (FIX FINAL) =================
 function getUsageStatus(b){
 
-    // 🔥 ADMIN FIX (BIAR GA SEMUA KEDETECT)
-    if(b.finishedByAdmin === true || b.finishedByAdmin === 'true'){
+    // 🔥 PRIORITAS ADMIN
+    if(b.finishedByAdmin){
         return {
             text: 'Late [diselesaikan admin]',
             class: 'bg-slate-200 text-slate-700'
@@ -4488,27 +4469,26 @@ function getUsageStatus(b){
     const actualStart  = safeParseDate(b.startedAt);
     const actualEnd    = safeParseDate(b.finishedAt);
 
-    if(!plannedStart || !plannedEnd || !actualStart || !actualEnd){
+    // 🔥 kalau belum ada data actual → jangan paksa "-"
+    if(!actualStart || !actualEnd){
         return {
-            text: '-',
-            class: 'text-slate-400'
+            text: 'Ontime',
+            class: 'bg-green-100 text-green-600'
         };
     }
 
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
 
-    const isLate = diffStart > 15;
-    const isOver = diffEnd > 15;
-
-    if(isLate){
+    // 🔥 LOGIC SESUAI RULE LO
+    if(diffStart > 15){
         return {
             text: 'Late',
             class: 'bg-red-100 text-red-600'
         };
     }
 
-    if(isOver){
+    if(diffEnd > 15){
         return {
             text: 'Over',
             class: 'bg-yellow-100 text-yellow-700'
@@ -4527,7 +4507,7 @@ window.renderAllBookings = function() {
 
     let data = getFilteredBookings();
 
-    // ================= SEARCH =================
+    // ================= SEARCH (JANGAN DIUBAH) =================
     const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
 
     if(keyword){
@@ -4558,21 +4538,21 @@ window.renderAllBookings = function() {
                 : v2.toString().localeCompare(v1.toString());
         });
     } else {
-    data.sort((a, b) => {
+        // 🔥 DEFAULT SORT → TANGGAL + JAM PESANAN
+        data.sort((a, b) => {
 
-        const aTime = parsePlanned(a.date, a.start);
-        const bTime = parsePlanned(b.date, b.start);
+            const aTime = parsePlanned(a.date, a.start);
+            const bTime = parsePlanned(b.date, b.start);
 
-        // 🔥 HANDLE DATA NGACO BIAR GA MERUSAK URUTAN
-        if(!aTime && !bTime) return 0;
-        if(!aTime) return 1;   // taruh di bawah
-        if(!bTime) return -1;  // taruh di atas
+            if(!aTime && !bTime) return 0;
+            if(!aTime) return 1;
+            if(!bTime) return -1;
 
-        return aTime.getTime() - bTime.getTime();
-    });
-}
+            return aTime.getTime() - bTime.getTime();
+        });
+    }
+
     const tbody = document.getElementById('all-bookings-body');
-
     if(!tbody) return;
 
     if(data.length === 0){
@@ -4597,22 +4577,13 @@ window.renderAllBookings = function() {
         return `
         <tr class="hover:bg-slate-50">
 
-            <td class="px-3 py-2 text-center font-bold">
-                ${index + 1}
-            </td>
-
+            <td class="px-3 py-2 text-center font-bold">${index + 1}</td>
             <td class="px-3 py-2">${b.date}</td>
-
             <td class="px-3 py-2">${b.start} - ${b.end}</td>
-
             <td class="px-3 py-2">${b.userName}</td>
-
             <td class="px-3 py-2">${b.dept}</td>
-
             <td class="px-3 py-2">${b.goal || '-'}</td>
-
             <td class="px-3 py-2">${roomName}</td>
-
             <td class="px-3 py-2">${tools}</td>
 
             <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
@@ -4624,15 +4595,11 @@ window.renderAllBookings = function() {
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.startPhoto 
-                    ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-                    : '-'}
+                ${b.startPhoto ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` : '-'}
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.finishPhoto 
-                    ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-                    : '-'}
+                ${b.finishPhoto ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` : '-'}
             </td>
 
             <td class="px-3 py-2 text-center">
@@ -4641,28 +4608,12 @@ window.renderAllBookings = function() {
                 </span>
             </td>
 
-            <td class="px-3 py-2 text-center font-bold">
-                ${b.status}
-            </td>
+            <td class="px-3 py-2 text-center font-bold">${b.status}</td>
 
         </tr>
         `;
     }).join('');
-}
-
-
-// ================= SEARCH REALTIME =================
-document.addEventListener('DOMContentLoaded', () => {
-
-    const input = document.getElementById('search-all-bookings');
-
-    if(input){
-        input.addEventListener('input', () => {
-            renderAllBookings();
-        });
-    }
-
-});
+};
 
 
 // ================= EXPORT =================
@@ -4688,6 +4639,14 @@ window.exportAllBookingsExcel = () => {
             );
         });
     }
+
+    // 🔥 PASTIKAN EXPORT JUGA URUT
+    data.sort((a, b) => {
+        const aTime = parsePlanned(a.date, a.start);
+        const bTime = parsePlanned(b.date, b.start);
+        if(!aTime || !bTime) return 0;
+        return aTime - bTime;
+    });
 
     const rows = data.map((b, index) => {
 
