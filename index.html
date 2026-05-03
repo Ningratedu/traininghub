@@ -4455,7 +4455,6 @@ function parsePlanned(dateStr, timeStr){
 // ================= KETERANGAN (FIX FINAL) =================
 function getUsageStatus(b){
 
-    // 🔥 PRIORITAS ADMIN
     if(b.finishedByAdmin){
         return {
             text: 'Late [diselesaikan admin]',
@@ -4469,7 +4468,6 @@ function getUsageStatus(b){
     const actualStart  = safeParseDate(b.startedAt);
     const actualEnd    = safeParseDate(b.finishedAt);
 
-    // 🔥 kalau belum ada data actual → jangan paksa "-"
     if(!actualStart || !actualEnd){
         return {
             text: 'Ontime',
@@ -4480,15 +4478,25 @@ function getUsageStatus(b){
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
 
-    // 🔥 LOGIC SESUAI RULE LO
-    if(diffStart > 15){
+    const isLate = diffStart > 15;
+    const isOver = diffEnd > 15;
+
+    // 🔥 PRIORITAS KOMBINASI
+    if(isLate && isOver){
+        return {
+            text: 'Late & Over',
+            class: 'bg-orange-100 text-orange-600'
+        };
+    }
+
+    if(isLate){
         return {
             text: 'Late',
             class: 'bg-red-100 text-red-600'
         };
     }
 
-    if(diffEnd > 15){
+    if(isOver){
         return {
             text: 'Over',
             class: 'bg-yellow-100 text-yellow-700'
