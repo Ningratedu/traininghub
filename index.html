@@ -4530,10 +4530,14 @@ window.renderAllBookings = function() {
         });
     } else {
         data.sort((a, b) => {
-            const aTime = parseDateTime(a.date, a.start);
-            const bTime = parseDateTime(b.date, b.start);
-            return aTime - bTime;
-        });
+
+    const aTime = parseDateTime(a.date, a.start);
+    const bTime = parseDateTime(b.date, b.start);
+
+    if(!aTime || !bTime) return 0;
+
+    return aTime - bTime;
+});
     }
 
     const tbody = document.getElementById('all-bookings-body');
