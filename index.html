@@ -4393,13 +4393,13 @@ window.sortAllBookings = (field) => {
     renderAllBookings();
 };
 
-		function parseCustomDate(str){
+
+// ================= PARSE CUSTOM =================
+function parseCustomDate(str){
 
     if(!str) return null;
 
-    // format: 29/4/2026, 15.53.19
     const [datePart, timePart] = str.split(', ');
-
     if(!datePart || !timePart) return null;
 
     const [day, month, year] = datePart.split('/');
@@ -4414,18 +4414,16 @@ window.sortAllBookings = (field) => {
         second || 0
     );
 }
-		function safeParseDate(val){
+
+function safeParseDate(val){
 
     if(!val) return null;
 
-    // kalau sudah ISO / format normal → pakai langsung
     const normal = new Date(val);
     if(!isNaN(normal)) return normal;
 
-    // fallback format: 29/4/2026, 15.53.19
     try{
         const [datePart, timePart] = val.split(', ');
-
         const [day, month, year] = datePart.split('/');
         const [hour, minute, second] = timePart.split('.');
 
@@ -4441,11 +4439,30 @@ window.sortAllBookings = (field) => {
         return null;
     }
 }
-		
-// 🔥 KETERANGAN + WARNA
+
+// 🔥 PARSE TANGGAL PESANAN (INI KUNCI UTAMA)
+function parsePlannedSafe(dateStr, timeStr){
+
+    if(!dateStr || !timeStr) return null;
+
+    try{
+        const [day, month, year] = dateStr.split('/').map(Number);
+
+        let timeClean = timeStr.replace('.', ':');
+        const [hour, minute] = timeClean.split(':').map(Number);
+
+        return new Date(year, month - 1, day, hour || 0, minute || 0, 0);
+
+    }catch(e){
+        return null;
+    }
+}
+
+
+// ================= KETERANGAN =================
 function getUsageStatus(b){
 
-    // 🔥 PRIORITAS ADMIN
+    // PRIORITAS ADMIN
     if(b.finishedByAdmin){
         return {
             text: 'Late [diselesaikan admin]',
@@ -4453,28 +4470,32 @@ function getUsageStatus(b){
         };
     }
 
-    // 🔥 PAKAI FORMAT YANG BENER (KRITIS)
-    const plannedStart = parseCustomDate(`${b.date}, ${b.start.replace(':', '.')}.00`);
-    const plannedEnd   = parseCustomDate(`${b.date}, ${b.end.replace(':', '.')}.00`);
+    const plannedStart = parsePlannedSafe(b.date, b.start);
+    const plannedEnd   = parsePlannedSafe(b.date, b.end);
 
     const actualStart  = safeParseDate(b.startedAt);
     const actualEnd    = safeParseDate(b.finishedAt);
 
-    // 🔥 VALIDASI DATA
-    if(!plannedStart || !plannedEnd || !actualStart || !actualEnd){
+    if(!plannedStart || !plannedEnd){
         return {
             text: '-',
             class: 'text-slate-400'
         };
     }
 
-    const diffStart = (actualStart - plannedStart) / 60000;
-    const diffEnd   = (actualEnd - plannedEnd) / 60000;
+    let isLate = false;
+    let isOver = false;
 
-    const isLate = diffStart > 15;
-    const isOver = diffEnd > 15;
+    if(actualStart){
+        const diffStart = (actualStart.getTime() - plannedStart.getTime()) / 60000;
+        if(diffStart > 15) isLate = true;
+    }
 
-    // 🔥 LOGIC FINAL SESUAI REQUEST LO
+    if(actualEnd){
+        const diffEnd = (actualEnd.getTime() - plannedEnd.getTime()) / 60000;
+        if(diffEnd > 15) isOver = true;
+    }
+
     if(isLate && isOver){
         return {
             text: 'Late & Over',
@@ -4502,11 +4523,13 @@ function getUsageStatus(b){
     };
 }
 
+
+// ================= RENDER =================
 window.renderAllBookings = function() {
 
     let data = getFilteredBookings();
 
-    // ================= SEARCH =================
+    // 🔍 SEARCH REALTIME
     const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
 
     if(keyword){
@@ -4537,16 +4560,22 @@ window.renderAllBookings = function() {
                 : v2.toString().localeCompare(v1.toString());
         });
     } else {
-        // 🔥 DEFAULT SORT
+
+        // 🔥 SORT BY TANGGAL + JAM PESANAN
         data.sort((a, b) => {
-            const aTime = new Date(`${a.date} ${a.start}`);
-            const bTime = new Date(`${b.date} ${b.start}`);
+
+            const aTime = parsePlannedSafe(a.date, a.start);
+            const bTime = parsePlannedSafe(b.date, b.start);
+
+            if(!aTime && !bTime) return 0;
+            if(!aTime) return 1;
+            if(!bTime) return -1;
+
             return aTime - bTime;
         });
     }
 
     const tbody = document.getElementById('all-bookings-body');
-
     if(!tbody) return;
 
     if(data.length === 0){
@@ -4571,7 +4600,6 @@ window.renderAllBookings = function() {
         return `
         <tr class="hover:bg-slate-50">
 
-            <!-- NO -->
             <td class="px-3 py-2 text-center font-bold">
                 ${index + 1}
             </td>
@@ -4610,7 +4638,6 @@ window.renderAllBookings = function() {
                     : '-'}
             </td>
 
-            <!-- 🔥 KETERANGAN BERWARNA -->
             <td class="px-3 py-2 text-center">
                 <span class="px-2 py-1 rounded text-xs font-bold ${ket.class}">
                     ${ket.text}
@@ -4627,7 +4654,7 @@ window.renderAllBookings = function() {
 }
 
 
-// 🔥 EXPORT EXCEL (SUDAH SESUAI KETERANGAN BARU)
+// ================= EXPORT =================
 window.exportAllBookingsExcel = () => {
 
     let data = getFilteredBookings();
@@ -4653,32 +4680,35 @@ window.exportAllBookingsExcel = () => {
 
     const rows = data.map((b, index) => {
 
-    const room = localState.rooms.find(r => r.id == b.roomId);
-    const ket = getUsageStatus(b);
+        const room = localState.rooms.find(r => r.id == b.roomId);
+        const ket = getUsageStatus(b);
 
-    return {
-        No: index + 1,
-        Tanggal: b.date,
-        Waktu: `${b.start} - ${b.end}`,
-        Nama: b.userName,
-        Departemen: b.dept,
-        Agenda: b.goal || '-',
-        Ruangan: room ? room.name : '-',
-        Alat: (b.tools || []).map(t => t.name).join(', '),
-        Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
-        Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
-        Keterangan: ket.text,
-        Status: b.status
-    };
-});
+        return {
+            No: index + 1,
+            Tanggal: b.date,
+            Waktu: `${b.start} - ${b.end}`,
+            Nama: b.userName,
+            Departemen: b.dept,
+            Agenda: b.goal || '-',
+            Ruangan: room ? room.name : '-',
+            Alat: (b.tools || []).map(t => t.name).join(', '),
+            Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
+            Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
+            Keterangan: ket.text,
+            Status: b.status
+        };
+    });
+
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Semua Pesanan");
-
     XLSX.writeFile(workbook, "semua_pesanan.xlsx");
 };
-		let searchTimeout;
+
+
+// ================= SEARCH REALTIME =================
+let searchTimeout;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -4691,7 +4721,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             searchTimeout = setTimeout(() => {
                 renderAllBookings();
-            }, 200); // delay 200ms
+            }, 200);
         });
     }
 
