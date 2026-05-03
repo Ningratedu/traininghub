@@ -4414,6 +4414,34 @@ window.sortAllBookings = (field) => {
         second || 0
     );
 }
+		function safeParseDate(val){
+
+    if(!val) return null;
+
+    // kalau sudah ISO / format normal → pakai langsung
+    const normal = new Date(val);
+    if(!isNaN(normal)) return normal;
+
+    // fallback format: 29/4/2026, 15.53.19
+    try{
+        const [datePart, timePart] = val.split(', ');
+
+        const [day, month, year] = datePart.split('/');
+        const [hour, minute, second] = timePart.split('.');
+
+        return new Date(
+            year,
+            month - 1,
+            day,
+            hour || 0,
+            minute || 0,
+            second || 0
+        );
+    }catch(e){
+        return null;
+    }
+}
+		
 // 🔥 KETERANGAN + WARNA
 function getUsageStatus(b){
 
