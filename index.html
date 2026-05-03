@@ -4393,6 +4393,27 @@ window.sortAllBookings = (field) => {
     renderAllBookings();
 };
 
+		function parseCustomDate(str){
+
+    if(!str) return null;
+
+    // format: 29/4/2026, 15.53.19
+    const [datePart, timePart] = str.split(', ');
+
+    if(!datePart || !timePart) return null;
+
+    const [day, month, year] = datePart.split('/');
+    const [hour, minute, second] = timePart.split('.');
+
+    return new Date(
+        year,
+        month - 1,
+        day,
+        hour || 0,
+        minute || 0,
+        second || 0
+    );
+}
 // 🔥 KETERANGAN + WARNA
 function getUsageStatus(b){
 
@@ -4413,8 +4434,8 @@ function getUsageStatus(b){
     const plannedStart = new Date(`${b.date} ${b.start}`);
     const plannedEnd   = new Date(`${b.date} ${b.end}`);
 
-    const actualStart  = new Date(b.startedAt);
-    const actualEnd    = new Date(b.finishedAt);
+    const actualStart  = parseCustomDate(b.startedAt);
+	const actualEnd    = parseCustomDate(b.finishedAt);
 
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
