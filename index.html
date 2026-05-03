@@ -1204,33 +1204,35 @@ window.downloadQR = function () {
         <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 sticky top-0 z-10">
             <tr>
 
-                <th onclick="sortAllBookings('date')" class="px-3 py-2 min-w-[120px] cursor-pointer text-left">Tanggal</th>
+    <th class="px-3 py-2 w-[60px] text-center">No</th>
 
-                <th onclick="sortAllBookings('start')" class="px-3 py-2 min-w-[140px] cursor-pointer text-left">Waktu</th>
+    <th onclick="sortAllBookings('date')" class="px-3 py-2 min-w-[120px] cursor-pointer text-left">Tanggal</th>
 
-                <th onclick="sortAllBookings('userName')" class="px-3 py-2 min-w-[160px] cursor-pointer text-left">Nama</th>
+    <th onclick="sortAllBookings('start')" class="px-3 py-2 min-w-[140px] cursor-pointer text-left">Waktu</th>
 
-                <th onclick="sortAllBookings('dept')" class="px-3 py-2 min-w-[140px] cursor-pointer text-left">Departemen</th>
+    <th onclick="sortAllBookings('userName')" class="px-3 py-2 min-w-[160px] cursor-pointer text-left">Nama</th>
 
-				<th onclick="sortAllBookings('goals')" class="px-3 py-2 min-w-[220px] cursor-pointer text-left">Agenda</th>
+    <th onclick="sortAllBookings('dept')" class="px-3 py-2 min-w-[140px] cursor-pointer text-left">Departemen</th>
 
-                <th onclick="sortAllBookings('roomId')" class="px-3 py-2 min-w-[180px] cursor-pointer text-left">Ruangan</th>
+    <th onclick="sortAllBookings('goals')" class="px-3 py-2 min-w-[220px] cursor-pointer text-left">Agenda</th>
 
-                <th onclick="sortAllBookings('tools')" class="px-3 py-2 min-w-[220px] cursor-pointer text-left">Alat</th>
+    <th onclick="sortAllBookings('roomId')" class="px-3 py-2 min-w-[180px] cursor-pointer text-left">Ruangan</th>
 
-                <th onclick="sortAllBookings('startedAt')" class="px-3 py-2 min-w-[100px] cursor-pointer text-center">Mulai</th>
+    <th onclick="sortAllBookings('tools')" class="px-3 py-2 min-w-[220px] cursor-pointer text-left">Alat</th>
 
-                <th onclick="sortAllBookings('finishedAt')" class="px-3 py-2 min-w-[100px] cursor-pointer text-center">Selesai</th>
+    <th onclick="sortAllBookings('startedAt')" class="px-3 py-2 min-w-[100px] cursor-pointer text-center">Mulai</th>
 
-                <th class="px-3 py-2 min-w-[120px] text-center">Foto Awal</th>
+    <th onclick="sortAllBookings('finishedAt')" class="px-3 py-2 min-w-[100px] cursor-pointer text-center">Selesai</th>
 
-                <th class="px-3 py-2 min-w-[120px] text-center">Foto Akhir</th>
+    <th class="px-3 py-2 min-w-[120px] text-center">Foto Awal</th>
 
-                <th onclick="sortAllBookings('usage')" class="px-3 py-2 min-w-[140px] cursor-pointer text-center">Penggunaan</th>
+    <th class="px-3 py-2 min-w-[120px] text-center">Foto Akhir</th>
 
-                <th onclick="sortAllBookings('status')" class="px-3 py-2 min-w-[140px] cursor-pointer text-center">Status</th>
+    <th class="px-3 py-2 min-w-[140px] text-center">Keterangan</th>
 
-            </tr>
+    <th onclick="sortAllBookings('status')" class="px-3 py-2 min-w-[140px] cursor-pointer text-center">Status</th>
+
+</tr>
         </thead>
 
         <tbody id="all-bookings-body" class="divide-y"></tbody>
@@ -4391,9 +4393,22 @@ window.sortAllBookings = (field) => {
     renderAllBookings();
 };
 
-		function getUsageStatus(b){
+// 🔥 KETERANGAN + WARNA
+function getUsageStatus(b){
 
-    if(!b.startedAt || !b.finishedAt) return '-';
+    if(b.finishedByAdmin){
+        return {
+            text: 'Late [diselesaikan admin]',
+            class: 'bg-slate-200 text-slate-700'
+        };
+    }
+
+    if(!b.startedAt || !b.finishedAt){
+        return {
+            text: '-',
+            class: 'text-slate-400'
+        };
+    }
 
     const plannedStart = new Date(`${b.date} ${b.start}`);
     const plannedEnd   = new Date(`${b.date} ${b.end}`);
@@ -4404,50 +4419,66 @@ window.sortAllBookings = (field) => {
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
 
-    const isLate = diffStart > 30;
-    const isOver = diffEnd > 30;
+    if(diffStart > 15){
+        return {
+            text: 'Late',
+            class: 'bg-red-100 text-red-600'
+        };
+    }
 
-    if(isLate && isOver) return 'Late+Over';
-    if(isLate && !isOver) return 'Late+Ontime';
-    if(!isLate && isOver) return 'Over';
-    if(!isLate && !isOver) return 'Ontime';
+    if(diffEnd > 15){
+        return {
+            text: 'Over',
+            class: 'bg-yellow-100 text-yellow-700'
+        };
+    }
 
-    return '-';
+    return {
+        text: 'Ontime',
+        class: 'bg-green-100 text-green-600'
+    };
 }
-		
+
 window.renderAllBookings = function() {
 
     let data = getFilteredBookings();
 
-    // SEARCH
+    // ================= SEARCH =================
     const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
 
     if(keyword){
-    data = data.filter(b => {
+        data = data.filter(b => {
 
-        const room = localState.rooms.find(r => r.id == b.roomId);
-        const roomName = room ? room.name : '';
+            const room = localState.rooms.find(r => r.id == b.roomId);
+            const roomName = room ? room.name : '';
 
-        const tools = (b.tools || []).map(t => t.name).join(', ');
+            const tools = (b.tools || []).map(t => t.name).join(', ');
 
-        return (
-            (b.userName || '').toLowerCase().includes(keyword) ||
-            (b.dept || '').toLowerCase().includes(keyword) ||
-            (roomName || '').toLowerCase().includes(keyword) ||
-            (tools || '').toLowerCase().includes(keyword) ||
-            (b.status || '').toLowerCase().includes(keyword)
-        );
-    });
-}
+            return (
+                (b.userName || '').toLowerCase().includes(keyword) ||
+                (b.dept || '').toLowerCase().includes(keyword) ||
+                (roomName || '').toLowerCase().includes(keyword) ||
+                (tools || '').toLowerCase().includes(keyword) ||
+                (b.status || '').toLowerCase().includes(keyword)
+            );
+        });
+    }
 
-    // SORT
+    // ================= SORT =================
     if(sortField){
         data.sort((a,b)=>{
             let v1 = a[sortField] || '';
             let v2 = b[sortField] || '';
             return sortAsc 
-                ? v1.localeCompare(v2) 
-                : v2.localeCompare(v1);
+                ? v1.toString().localeCompare(v2.toString()) 
+                : v2.toString().localeCompare(v1.toString());
+        });
+    } else {
+        // 🔥 DEFAULT SORT
+        data.sort((a, b) => {
+            const aTime = new Date(`${a.date} ${a.start}`);
+            const bTime = new Date(`${b.date} ${b.start}`);
+            return aTime - bTime;
         });
     }
 
@@ -4458,169 +4489,83 @@ window.renderAllBookings = function() {
     if(data.length === 0){
         tbody.innerHTML = `
             <tr>
-                <td colspan="12" class="text-center py-6 text-slate-400">
+                <td colspan="13" class="text-center py-6 text-slate-400">
                     Tidak ada data
                 </td>
             </tr>`;
         return;
     }
 
-    tbody.innerHTML = data.map(b => {
+    tbody.innerHTML = data.map((b, index) => {
 
         const room = localState.rooms.find(r => r.id == b.roomId);
         const roomName = room ? room.name : '-';
 
         const tools = (b.tools || []).map(t => t.name).join(', ') || '-';
 
+        const ket = getUsageStatus(b);
+
         return `
         <tr class="hover:bg-slate-50">
 
+            <!-- NO -->
+            <td class="px-3 py-2 text-center font-bold">
+                ${index + 1}
+            </td>
+
             <td class="px-3 py-2">${b.date}</td>
+
             <td class="px-3 py-2">${b.start} - ${b.end}</td>
+
             <td class="px-3 py-2">${b.userName}</td>
+
             <td class="px-3 py-2">${b.dept}</td>
-			<td class="px-3 py-2">${b.goal}</td>
+
+            <td class="px-3 py-2">${b.goal || '-'}</td>
+
             <td class="px-3 py-2">${roomName}</td>
+
             <td class="px-3 py-2">${tools}</td>
+
             <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
-    ${b.startedAt ? formatTime(b.startedAt) : '-'}
-</td>
+                ${b.startedAt ? formatTime(b.startedAt) : '-'}
+            </td>
 
-<td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
-    ${b.finishedAt ? formatTime(b.finishedAt) : '-'}
-</td>
+            <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
+                ${b.finishedAt ? formatTime(b.finishedAt) : '-'}
+            </td>
 
-<td class="px-3 py-2 text-center">
-    ${b.startPhoto 
-        ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-        : '-'}
-</td>
+            <td class="px-3 py-2 text-center">
+                ${b.startPhoto 
+                    ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+                    : '-'}
+            </td>
 
-<td class="px-3 py-2 text-center">
-    ${b.finishPhoto 
-        ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-        : '-'}
-</td>
+            <td class="px-3 py-2 text-center">
+                ${b.finishPhoto 
+                    ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+                    : '-'}
+            </td>
 
- <td class="px-3 py-2 text-center font-semibold">
-        ${getUsageStatus(b)}
-    </td>
+            <!-- 🔥 KETERANGAN BERWARNA -->
+            <td class="px-3 py-2 text-center">
+                <span class="px-2 py-1 rounded text-xs font-bold ${ket.class}">
+                    ${ket.text}
+                </span>
+            </td>
 
-    <td class="px-3 py-2 text-center font-bold">
-        ${b.status}
-    </td>
+            <td class="px-3 py-2 text-center font-bold">
+                ${b.status}
+            </td>
 
-</tr>
-`;
+        </tr>
+        `;
     }).join('');
 }
 
-		// 🔥 TAMPILKAN MODAL RIWAYAT RUANGAN / ALAT
-window.showAssetBookings = (id, type, name) => {
 
-    let data = getFilteredBookings();
-
-    // FILTER DATA
-    if(type === 'room'){
-
-        data = data.filter(b =>
-            b.roomId === id
-        );
-
-    }
-    else{
-
-        data = data.filter(b =>
-            (b.tools || [])
-            .some(t => t.id === id)
-        );
-
-    }
-
-    // UBAH JUDUL
-    const title =
-        document.getElementById('asset-modal-title');
-
-    if(title){
-
-        title.innerText =
-        `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
-
-    }
-
-    // ISI TABEL
-    const tbody =
-        document.getElementById('asset-booking-body');
-
-    if(!tbody) return;
-
-    if(data.length === 0){
-
-        tbody.innerHTML = `
-        <tr>
-            <td colspan="6"
-                class="text-center py-6 text-slate-400">
-                Tidak ada pesanan
-            </td>
-        </tr>`;
-
-    }
-    else{
-
-        tbody.innerHTML =
-        data.map(b => {
-
-            return `
-<tr>
-
-<td class="px-3 py-2">
-${b.date}
-</td>
-
-<td class="px-3 py-2">
-${b.start} - ${b.end}
-</td>
-
-<td class="px-3 py-2">
-${b.userName}
-</td>
-
-<td class="px-3 py-2">
-${b.dept}
-</td>
-
-<td class="px-3 py-2">
-${b.goal || '-'}
-</td>
-
-<td class="px-3 py-2 text-center font-semibold">
-${b.status}
-</td>
-
-</tr>
-`;
-
-        }).join('');
-
-    }
-
-    // TAMPILKAN MODAL
-    document
-        .getElementById('asset-booking-modal')
-        .classList
-        .remove('hidden');
-
-};
-		window.closeAssetModal = () => {
-
-    document
-        .getElementById('asset-booking-modal')
-        .classList
-        .add('hidden');
-
-};
-		
-		window.exportAllBookingsExcel = () => {
+// 🔥 EXPORT EXCEL (SUDAH SESUAI KETERANGAN BARU)
+window.exportAllBookingsExcel = () => {
 
     let data = getFilteredBookings();
 
@@ -4643,24 +4588,29 @@ ${b.status}
         });
     }
 
-    const rows = data.map(b => {
+    const rows = data.map((b, index) => {
 
         const room = localState.rooms.find(r => r.id == b.roomId);
+        const ket = getUsageStatus(b);
 
         return {
+            No: index + 1,
             Tanggal: b.date,
             Waktu: `${b.start} - ${b.end}`,
             Nama: b.userName,
             Departemen: b.dept,
+            Agenda: b.goal || '-',
             Ruangan: room ? room.name : '-',
             Alat: (b.tools || []).map(t => t.name).join(', '),
             Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
             Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
-            Penggunaan: getUsageStatus(b),
+            Keterangan: ket.text,
             Status: b.status
         };
     });
 
+    console.log(rows); // lanjutin export lo
+};
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
 
