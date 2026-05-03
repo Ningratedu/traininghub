@@ -4664,6 +4664,24 @@ window.exportAllBookingsExcel = () => {
 
     XLSX.writeFile(workbook, "semua_pesanan.xlsx");
 };
+		let searchTimeout;
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const input = document.getElementById('search-all-bookings');
+
+    if(input){
+        input.addEventListener('input', () => {
+
+            clearTimeout(searchTimeout);
+
+            searchTimeout = setTimeout(() => {
+                renderAllBookings();
+            }, 200); // delay 200ms
+        });
+    }
+
+});
         window.deleteBooking = async (id) => {
             if(confirm("Batalkan dan hapus pesanan ini?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id));
