@@ -4447,8 +4447,8 @@ function parseActual(val){
 // ================= KETERANGAN FINAL =================
 function getUsageStatus(b){
 
-    // 1️⃣ PRIORITAS ADMIN
-    if(b.finishedByAdmin){
+    // 🔥 FIX: hanya true boolean yang dianggap admin
+    if(b.finishedByAdmin === true){
         return {
             text: 'Late [diselesaikan admin]',
             class: 'bg-slate-200 text-slate-700'
@@ -4461,6 +4461,7 @@ function getUsageStatus(b){
     const actualStart  = parseActual(b.startedAt);
     const actualEnd    = parseActual(b.finishedAt);
 
+    // 🔥 VALIDASI
     if(!plannedStart || !plannedEnd || !actualStart || !actualEnd){
         return {
             text: '-',
@@ -4471,7 +4472,7 @@ function getUsageStatus(b){
     const diffStart = (actualStart - plannedStart) / 60000;
     const diffEnd   = (actualEnd - plannedEnd) / 60000;
 
-    // 2️⃣ LATE
+    // 🔥 RULE LO (URUTAN PENTING)
     if(diffStart > 15){
         return {
             text: 'Late',
@@ -4479,7 +4480,6 @@ function getUsageStatus(b){
         };
     }
 
-    // 3️⃣ OVER
     if(diffEnd > 15){
         return {
             text: 'Over',
@@ -4487,7 +4487,6 @@ function getUsageStatus(b){
         };
     }
 
-    // 4️⃣ ONTIME
     return {
         text: 'Ontime',
         class: 'bg-green-100 text-green-600'
