@@ -6548,7 +6548,110 @@ window.submitChangePassword = async () => {
         }
     }
 };
+// 🔥 TAMPILKAN MODAL RIWAYAT RUANGAN / ALAT
+window.showAssetBookings = (id, type, name) => {
 
+    let data = getFilteredBookings();
+
+    // FILTER DATA
+    if(type === 'room'){
+
+        data = data.filter(b =>
+            b.roomId === id
+        );
+
+    }
+    else{
+
+        data = data.filter(b =>
+            (b.tools || [])
+            .some(t => t.id === id)
+        );
+
+    }
+
+    // UBAH JUDUL
+    const title =
+        document.getElementById('asset-modal-title');
+
+    if(title){
+
+        title.innerText =
+        `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
+
+    }
+
+    // ISI TABEL
+    const tbody =
+        document.getElementById('asset-booking-body');
+
+    if(!tbody) return;
+
+    if(data.length === 0){
+
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="6"
+                class="text-center py-6 text-slate-400">
+                Tidak ada pesanan
+            </td>
+        </tr>`;
+
+    }
+    else{
+
+        tbody.innerHTML =
+        data.map(b => {
+
+            return `
+<tr>
+
+<td class="px-3 py-2">
+${b.date}
+</td>
+
+<td class="px-3 py-2">
+${b.start} - ${b.end}
+</td>
+
+<td class="px-3 py-2">
+${b.userName}
+</td>
+
+<td class="px-3 py-2">
+${b.dept}
+</td>
+
+<td class="px-3 py-2">
+${b.goal || '-'}
+</td>
+
+<td class="px-3 py-2 text-center font-semibold">
+${b.status}
+</td>
+
+</tr>
+`;
+
+        }).join('');
+
+    }
+
+    // TAMPILKAN MODAL
+    document
+        .getElementById('asset-booking-modal')
+        .classList
+        .remove('hidden');
+
+};
+		window.closeAssetModal = () => {
+
+    document
+        .getElementById('asset-booking-modal')
+        .classList
+        .add('hidden');
+
+};
 </script>
 
 <!-- 🔥 MODAL RIWAYAT ASSET -->
