@@ -4560,6 +4560,20 @@ window.renderAllBookings = function() {
     room?.image ||
     'https://via.placeholder.com/50';
 
+		const toolsWithImage = (b.tools || []).map(t => {
+
+    const masterTool =
+        localState.tools.find(x => x.id == t.id);
+
+    return {
+        ...t,
+        image:
+            t.image ||
+            masterTool?.image ||
+            'https://via.placeholder.com/40'
+    };
+
+});
         const tools = (b.tools || []).map(t => t.name).join(', ') || '-';
 
         const ket = getUsageStatus(b);
@@ -4603,7 +4617,7 @@ window.renderAllBookings = function() {
 
 <div class="flex flex-col gap-1">
 
-${(b.tools || []).map(t => `
+${toolsWithImage.map(t => `
 <div class="flex items-center gap-2">
 
     <img
