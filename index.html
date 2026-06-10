@@ -6486,7 +6486,12 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
             const t = localState.tools.find(x => x.id === c.value);
 
-            return t ? { id: t.id, name: t.name } : null;
+            return t ? {
+    id: t.id,
+    name: t.name,
+    image: t.image || '',
+    pos: t.pos || ''
+} : null;
 
         }).filter(Boolean);
 
