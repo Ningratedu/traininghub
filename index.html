@@ -4557,8 +4557,7 @@ window.renderAllBookings = function() {
         const room = localState.rooms.find(r => r.id == b.roomId);
         const roomName = room ? room.name : '-';
 		const roomImage =
-    room?.image ||
-    'https://via.placeholder.com/50';
+    room?.image || '';
 
 		const toolsWithImage = (b.tools || []).map(t => {
 
@@ -4568,9 +4567,9 @@ window.renderAllBookings = function() {
     return {
         ...t,
         image:
-            t.image ||
-            masterTool?.image ||
-            'https://via.placeholder.com/40'
+    t.image ||
+    masterTool?.image ||
+    ''
     };
 
 });
