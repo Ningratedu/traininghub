@@ -5089,12 +5089,42 @@ setTimeout(() => {
                                         <span class="text-xs font-bold text-slate-700">Ruangan: ${room?.name || 'N/A'}</span>
                                     </label>
                                 ` : ''}
-                                ${(b.tools || []).map(t => `
-                                    <label class="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 cursor-pointer">
-                                        <input type="checkbox" checked class="approval-tool-check-${b.id} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" data-tool-id="${t.id}" data-tool-name="${t.name}">
-                                        <span class="text-xs font-bold text-slate-700">Alat: ${t.name}</span>
-                                    </label>
-                                `).join('')}
+                                ${(b.tools || []).map(t => {
+
+const masterTool =
+    localState.tools.find(x => x.id == t.id);
+
+const image =
+    t.image ||
+    masterTool?.image ||
+    'https://via.placeholder.com/40';
+
+return `
+
+<label class="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 cursor-pointer">
+
+    <input
+        type="checkbox"
+        checked
+        class="approval-tool-check-${b.id} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+        data-tool-id="${t.id}"
+        data-tool-name="${t.name}"
+    >
+
+    <img
+        src="${image}"
+        class="w-10 h-10 rounded object-cover border"
+    >
+
+    <span class="text-xs font-bold text-slate-700">
+        ${t.name}
+    </span>
+
+</label>
+
+`;
+
+}).join('')}
                             </div>
                         </div>
 
