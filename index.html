@@ -5919,6 +5919,20 @@ window.openDetail = (id) => {
         b.roomId
         ? localState.rooms.find(r => r.id == b.roomId)
         : null;
+	const toolsWithImage = (b.tools || []).map(t => {
+
+    const masterTool =
+        localState.tools.find(x => x.id == t.id);
+
+    return {
+        ...t,
+        image:
+            t.image ||
+            masterTool?.image ||
+            'https://via.placeholder.com/60'
+    };
+
+});
 
     const container =
         document.getElementById('detail-content');
@@ -6028,7 +6042,7 @@ Alat Digunakan
 
 ${
 (b.tools || []).length
-? b.tools.map(t => `
+? toolsWithImage.map(t => `
 <div class="flex items-center gap-2 bg-emerald-50 p-2 rounded-lg">
 
     <img
