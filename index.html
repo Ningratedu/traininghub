@@ -4123,24 +4123,30 @@ if (isToolBentrok) {
         currentSelectedToolIds.includes(t.id);
 
     return `
-<label class="bg-slate-50 hover:border-indigo-300 cursor-pointer px-3 py-2 rounded-lg border flex flex-col min-w-[100px]">
+<label class="bg-slate-50 hover:border-indigo-300 cursor-pointer p-2 rounded-lg border flex items-center gap-3 min-w-[240px]">
 
-    <input 
-        type="checkbox" 
-        name="tools" 
-        value="${t.id}" 
+    <input
+        type="checkbox"
+        name="tools"
+        value="${t.id}"
         ${isChecked ? 'checked' : ''}
         ${isToolBentrok ? 'disabled' : ''}
-        class="mb-1"
     >
 
-    <span class="text-[10px] font-bold truncate">
-        ${t.name}
-    </span>
+    <img
+        src="${t.image || 'https://via.placeholder.com/60'}"
+        class="w-14 h-14 rounded-lg object-cover border"
+    >
 
-    <span class="text-[8px] text-indigo-500">
-        ${t.pos || ''}
-    </span>
+    <div class="flex-1">
+        <div class="text-[11px] font-bold">
+            ${t.name}
+        </div>
+
+        <div class="text-[9px] text-indigo-500">
+            ${t.pos || '-'}
+        </div>
+    </div>
 
 </label>
 `;
@@ -4550,6 +4556,9 @@ window.renderAllBookings = function() {
 
         const room = localState.rooms.find(r => r.id == b.roomId);
         const roomName = room ? room.name : '-';
+		const roomImage =
+    room?.image ||
+    'https://via.placeholder.com/50';
 
         const tools = (b.tools || []).map(t => t.name).join(', ') || '-';
 
@@ -4573,9 +4582,45 @@ window.renderAllBookings = function() {
 
             <td class="px-3 py-2 font-bold italic text-slate-800">${b.goal || '-'}</td>
 
-            <td class="px-3 py-2">${roomName}</td>
+            <td class="px-3 py-2">
 
-            <td class="px-3 py-2">${tools}</td>
+    <div class="flex items-center gap-2">
+
+        <img
+            src="${roomImage}"
+            class="w-10 h-10 rounded object-cover border"
+        >
+
+        <span>
+            ${roomName}
+        </span>
+
+    </div>
+
+</td>
+
+            <td class="px-3 py-2">
+
+<div class="flex flex-col gap-1">
+
+${(b.tools || []).map(t => `
+<div class="flex items-center gap-2">
+
+    <img
+        src="${t.image || 'https://via.placeholder.com/40'}"
+        class="w-8 h-8 rounded object-cover border"
+    >
+
+    <span class="text-xs">
+        ${t.name}
+    </span>
+
+</div>
+`).join('')}
+
+</div>
+
+</td>
 
             <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
                 ${b.startedAt ? formatTime(b.startedAt) : '-'}
@@ -5867,9 +5912,25 @@ Status : <span class="font-bold italic">${b.status}</span>
 </div>
 
 ${room ? `
-<div class="col-span-2 bg-slate-100 p-2 rounded">
-<span class="text-xs text-slate-500">Ruangan :</span>
-<div class="font-bold italic inline">${room.name}</div>
+<div class="col-span-2 bg-slate-100 p-3 rounded">
+
+    <span class="text-xs text-slate-500">
+        Ruangan :
+    </span>
+
+    <div class="flex items-center gap-3 mt-2">
+
+        <img
+            src="${room.image || 'https://via.placeholder.com/80'}"
+            class="w-16 h-16 rounded-lg object-cover border"
+        >
+
+        <div class="font-bold italic">
+            ${room.name}
+        </div>
+
+    </div>
+
 </div>
 ` : ''}
 
@@ -5924,9 +5985,18 @@ Alat Digunakan
 ${
 (b.tools || []).length
 ? b.tools.map(t => `
-<span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-bold">
-✔ ${t.name}
-</span>
+<div class="flex items-center gap-2 bg-emerald-50 p-2 rounded-lg">
+
+    <img
+        src="${t.image || 'https://via.placeholder.com/60'}"
+        class="w-10 h-10 rounded object-cover border"
+    >
+
+    <span class="text-[10px] font-bold text-emerald-700">
+        ${t.name}
+    </span>
+
+</div>
 `).join('')
 : `<span class="text-slate-400 text-xs italic">Tidak ada alat</span>`
 }
