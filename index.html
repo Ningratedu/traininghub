@@ -4524,6 +4524,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!startDateStr) return [];
             const endStr = endDateStr && endDateStr >= startDateStr ? endDateStr : startDateStr;
 
+            // 🔥 FIX BUG H-1: JANGAN PAKAI toISOString() (selalu UTC).
+            // Di timezone WIB (UTC+7), jam 00:00 lokal = jam 17:00 UTC HARI SEBELUMNYA,
+            // jadi toISOString().slice(0,10) selalu mundur 1 hari dari tanggal yang
+            // sebenarnya dipilih user (H-1 ikut kepesan, hari terakhir malah hilang).
+            // Solusinya: ambil komponen tanggal LOKAL (getFullYear/getMonth/getDate),
+            // bukan konversi ke UTC.
+            const toLocalYMD = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+
             const dates = [];
             let cur = new Date(startDateStr + 'T00:00:00');
             const last = new Date(endStr + 'T00:00:00');
@@ -4531,7 +4544,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 🔥 BATAS AMAN biar gak infinite loop kalau ada data aneh
             let guard = 0;
             while (cur <= last && guard < 366) {
-                dates.push(cur.toISOString().slice(0, 10));
+                dates.push(toLocalYMD(cur));
                 cur.setDate(cur.getDate() + 1);
                 guard++;
             }
