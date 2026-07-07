@@ -1631,6 +1631,90 @@ window.downloadQR = function () {
 
 
 
+<!-- 🔥 MODAL PERINGATAN ATURAN PEMESANAN (tampil sebelum form booking dibuka) -->
+<div id="modal-booking-warning" class="fixed inset-0 z-[110] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden">
+
+        <!-- HEADER -->
+        <div class="p-6 border-b border-slate-100 flex items-center gap-3 bg-amber-50">
+            <div class="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
+                <i class="fas fa-triangle-exclamation text-amber-500 text-lg"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-800 leading-tight">
+                    Perhatian Sebelum Memesan
+                </h3>
+                <p class="text-[11px] text-slate-500 font-medium">
+                    Baca ketentuan peminjaman ruangan & peralatan berikut
+                </p>
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="p-6 max-h-[60vh] overflow-y-auto">
+
+            <ul class="space-y-3 text-[13px] text-slate-700 leading-relaxed">
+                <li class="flex gap-2">
+                    <i class="fas fa-circle-check text-indigo-500 mt-0.5 shrink-0"></i>
+                    <span>Isi data pemesanan (tanggal, jam mulai & selesai, ruangan dan/atau peralatan) dengan <b>benar dan lengkap</b>.</span>
+                </li>
+                <li class="flex gap-2">
+                    <i class="fas fa-circle-check text-indigo-500 mt-0.5 shrink-0"></i>
+                    <span>Pemesanan disarankan dilakukan <b>minimal H-1</b> sebelum kegiatan agar dapat diverifikasi oleh admin.</span>
+                </li>
+                <li class="flex gap-2">
+                    <i class="fas fa-circle-check text-indigo-500 mt-0.5 shrink-0"></i>
+                    <span>Gunakan ruangan dan/atau peralatan <b>sesuai jadwal</b> yang telah disetujui, serta wajib upload foto bukti kondisi saat mulai dan selesai penggunaan.</span>
+                </li>
+
+                <li class="flex gap-2 bg-rose-50 border border-rose-200 rounded-xl p-3 -mx-1">
+                    <i class="fas fa-circle-exclamation text-rose-500 mt-0.5 shrink-0"></i>
+                    <span>
+                        <b class="text-rose-600">Poin Penting:</b>
+                        Peminjam <b>wajib merawat</b> dan <b>mengembalikan ruangan/peralatan tepat waktu</b> sesuai jadwal pemesanan, dalam kondisi baik seperti semula.
+                        Apabila terjadi <b>kerusakan atau kehilangan</b>, maka menjadi <b>tanggung jawab peminjam</b> untuk memperbaiki dan/atau mengganti,
+                        <b>paling lambat 2x24 jam</b> sejak waktu selesai penggunaan.
+                    </span>
+                </li>
+
+                <li class="flex gap-2">
+                    <i class="fas fa-circle-check text-indigo-500 mt-0.5 shrink-0"></i>
+                    <span>Dilarang meninggalkan sampah dan merusak fasilitas ruangan/peralatan yang digunakan.</span>
+                </li>
+                <li class="flex gap-2">
+                    <i class="fas fa-circle-check text-indigo-500 mt-0.5 shrink-0"></i>
+                    <span>Segera laporkan ke <b>Admin Training</b> apabila terjadi kendala teknis atau kerusakan selama penggunaan.</span>
+                </li>
+            </ul>
+
+            <label class="flex items-start gap-2 mt-5 cursor-pointer select-none">
+                <input type="checkbox" id="booking-warning-agree"
+                    onchange="document.getElementById('booking-warning-continue').disabled = !this.checked;"
+                    class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                <span class="text-[12px] font-semibold text-slate-600">
+                    Saya sudah membaca dan menyetujui ketentuan peminjaman di atas.
+                </span>
+            </label>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="p-5 border-t border-slate-100 flex gap-3 justify-end bg-slate-50/50">
+            <button onclick="closeModal('modal-booking-warning')"
+                class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700">
+                Batal
+            </button>
+            <button id="booking-warning-continue" onclick="window.proceedToBookingForm()" disabled
+                class="px-5 py-2.5 text-sm font-bold rounded-xl bg-indigo-600 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-700 transition">
+                Lanjutkan ke Form Pemesanan
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
 <!-- MODAL FORM BOOKING -->
 <div id="modal-booking" class="fixed inset-0 z-[100] hide modal-overlay flex items-center justify-center p-4">
     
@@ -4164,7 +4248,28 @@ if(window.innerWidth < 768){
             renderAvailableAssets(type === 'rooms' ? 'room' : 'tool');
         };
 
+        // 🔥 Klik "+ Buat Pesanan" -> tampilkan popup peringatan aturan dulu
         window.openBooking = () => {
+
+    // Reset checkbox & tombol lanjut tiap kali dibuka
+    const agreeBox = document.getElementById('booking-warning-agree');
+    const continueBtn = document.getElementById('booking-warning-continue');
+    if (agreeBox) agreeBox.checked = false;
+    if (continueBtn) continueBtn.disabled = true;
+
+    document
+        .getElementById('modal-booking-warning')
+        .classList.remove('hide');
+
+};
+
+        // 🔥 Setelah user setuju ketentuan -> baru buka form pemesanan yang sebenarnya
+        window.proceedToBookingForm = () => {
+
+    // Tutup popup peringatan
+    document
+        .getElementById('modal-booking-warning')
+        .classList.add('hide');
 
     // Reset form dulu
     document.getElementById('form-booking').reset();
