@@ -974,6 +974,16 @@ window.downloadQR = function () {
     </div>
 
     <div id="dash-tools-content" class="hide">
+        <div class="relative mb-5">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input
+                type="text"
+                id="tool-search-input"
+                oninput="window.filterAvailableTools(this.value)"
+                placeholder="Cari peralatan berdasarkan nama atau lokasi..."
+                class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+        </div>
         <div id="available-tools-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 </div>
@@ -1327,6 +1337,16 @@ window.downloadQR = function () {
                 <h4 class="text-white font-bold italic">Ruangan</h4>
                 <button onclick="window.openMasterModal('room')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">+Tambah</button>
             </div>
+            <div class="relative mb-3">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input
+                    type="text"
+                    id="master-room-search-input"
+                    oninput="window.filterMasterData('room', this.value)"
+                    placeholder="Cari ruangan..."
+                    class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
+            </div>
             <div id="master-room-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
         </div>
 
@@ -1334,6 +1354,16 @@ window.downloadQR = function () {
             <div class="flex justify-between items-center mb-4">
                 <h4 class="text-white font-bold italic">Alat & Lokasi</h4>
                 <button onclick="window.openMasterModal('tool')" class="text-xs bg-slate-900 text-white px-3 py-1 rounded-lg">+Tambah</button>
+            </div>
+            <div class="relative mb-3">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input
+                    type="text"
+                    id="master-tool-search-input"
+                    oninput="window.filterMasterData('tool', this.value)"
+                    placeholder="Cari alat berdasarkan nama atau lokasi..."
+                    class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
             </div>
             <div id="master-tool-list" class="bg-white rounded-2xl border border-slate-100 overflow-hidden"></div>
         </div>
@@ -2255,6 +2285,26 @@ const appId = "booking-ruang-training";
             ? booking.adminNote
             : 'Tidak ada catatan';
 
+    // ================= PERIODE (SUPPORT MULTI-HARI) =================
+    // Booking multi-hari disimpan sebagai beberapa dokumen (1 per tanggal) dengan
+    // groupId yang sama. Supaya user tahu status ini berlaku untuk booking sampai
+    // tanggal berapa, kita cari semua tanggal lain dengan groupId yang sama.
+
+    let periode = booking.date;
+
+    if (booking.groupId && window.localState?.bookings) {
+
+        const groupDates = localState.bookings
+            .filter(x => x.groupId === booking.groupId)
+            .map(x => x.date)
+            .sort();
+
+        if (groupDates.length > 1) {
+            periode = `${groupDates[0]} s/d ${groupDates[groupDates.length - 1]} (${groupDates.length} hari)`;
+        }
+
+    }
+
     // ================= DEBUG =================
 
     console.log("📧 Kirim email ke:", email);
@@ -2263,6 +2313,7 @@ const appId = "booking-ruang-training";
     console.log("📌 Detail:", detail);
     console.log("📝 Catatan User:", noteUser);
     console.log("📝 Catatan Admin:", noteAdmin);
+    console.log("📅 Periode:", periode);
 
     // ================= VALIDASI EMAIL =================
 
@@ -2284,6 +2335,7 @@ const appId = "booking-ruang-training";
             user_name: userName,
             status: booking.status,
             date: booking.date,
+            periode: periode,
             time: booking.start + " - " + booking.end,
             detail: detail,
             note_user: noteUser,
@@ -3971,9 +4023,25 @@ if (!openDetailParam) {
     listenToData();
 }
         function renderAvailableAssets(type) {
-            const list = type === 'room' ? localState.rooms : localState.tools;
+            let list = type === 'room' ? localState.rooms : localState.tools;
             const container = document.getElementById(type === 'room' ? 'available-rooms-list' : 'available-tools-list');
-            
+
+            // 🔥 FILTER SEARCH (khusus tab Peralatan Tersedia)
+            if (type === 'tool' && window.toolSearchQuery) {
+                const q = window.toolSearchQuery.trim().toLowerCase();
+                if (q) {
+                    list = list.filter(item =>
+                        (item.name || '').toLowerCase().includes(q) ||
+                        (item.pos || '').toLowerCase().includes(q)
+                    );
+                }
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 italic">Tidak ada ${type === 'room' ? 'ruangan' : 'peralatan'} yang cocok</div>`;
+                return;
+            }
+
             container.innerHTML = list.map(item => {
                 const bookingsInRange = getFilteredBookings().filter(b => (b.roomId === item.id || (b.tools && b.tools.some(t => t.id === item.id))) && (b.status === 'Approved' || b.status === 'Ongoing'));
                 const isOccupied = bookingsInRange.length > 0;
@@ -4292,6 +4360,20 @@ if(window.innerWidth < 768){
             document.getElementById('dash-rooms-content').classList.toggle('hide', type !== 'rooms');
             document.getElementById('dash-tools-content').classList.toggle('hide', type !== 'tools');
             renderAvailableAssets(type === 'rooms' ? 'room' : 'tool');
+        };
+
+        // 🔥 SEARCH PERALATAN TERSEDIA (role user)
+        window.toolSearchQuery = '';
+        window.filterAvailableTools = (value) => {
+            window.toolSearchQuery = value;
+            renderAvailableAssets('tool');
+        };
+
+        // 🔥 SEARCH DATABASE ASET (role admin)
+        window.masterSearchQuery = { room: '', tool: '' };
+        window.filterMasterData = (type, value) => {
+            window.masterSearchQuery[type] = value;
+            renderMaster();
         };
 
         // 🔥 Klik "+ Buat Pesanan" DARI POPUP RIWAYAT RUANGAN/ALAT
@@ -5592,16 +5674,46 @@ setTimeout(() => {
         function renderApproval() {
             const pending = getFilteredBookings().filter(b => b.status === 'Pending');
             const container = document.getElementById('approval-list');
-            if(pending.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada antrean persetujuan</div>`;
-            else container.innerHTML = pending.map(b => {
+
+            // 🔥 GROUP PEMESANAN MULTI-HARI JADI 1 KARTU
+            // Booking multi-hari disimpan sebagai beberapa dokumen (1 per tanggal) dengan
+            // groupId yang sama. Supaya admin tidak perlu approve satu-satu per hari,
+            // kita kelompokkan berdasarkan groupId (fallback ke id kalau tidak ada groupId
+            // / booking 1 hari saja) dan tampilkan sebagai 1 kartu approval.
+            const groupsMap = new Map();
+            pending.forEach(b => {
+                const key = b.groupId || b.id;
+                if (!groupsMap.has(key)) groupsMap.set(key, []);
+                groupsMap.get(key).push(b);
+            });
+
+            const groups = Array.from(groupsMap.entries()).map(([key, items]) => {
+                items.sort((a, c) => new Date(`${a.date}T${a.start}`) - new Date(`${c.date}T${c.start}`));
+                return { key, items };
+            }).sort((a, b) => new Date(`${a.items[0].date}T${a.items[0].start}`) - new Date(`${b.items[0].date}T${b.items[0].start}`));
+
+            // Simpan mapping key -> daftar id booking, dipakai saat approve/reject
+            window.approvalGroups = {};
+            groups.forEach(g => { window.approvalGroups[g.key] = g.items.map(x => x.id); });
+
+            if(groups.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada antrean persetujuan</div>`;
+            else container.innerHTML = groups.map(({ key, items }) => {
+                const b = items[0]; // representatif: ruangan/alat sama untuk tiap hari dalam 1 grup
                 const room = b.roomId ? localState.rooms.find(r => r.id === b.roomId) : null;
+
+                const isMultiDay = items.length > 1;
+                const dateLabel = isMultiDay
+                    ? `${items[0].date} s/d ${items[items.length - 1].date} (${items.length} hari)`
+                    : `${b.date} [${b.start}-${b.end}]`;
+
                 return `
                     <div class="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-5">
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 mb-2 inline-block">${b.type === 'room' ? 'Ruangan & Alat' : 'Hanya Alat'}</span>
+                                ${isMultiDay ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-600 mb-2 ml-1 inline-block"><i class="fas fa-calendar-week mr-1"></i>${items.length} Hari</span>` : ''}
                                 <h4 class="font-bold text-slate-900 text-lg">${b.goal}</h4>
-                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">${b.userName} (${b.dept}) • ${b.date} [${b.start}-${b.end}]</p>
+                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">${b.userName} (${b.dept}) • ${dateLabel}</p>
                             </div>
                         </div>
 
@@ -5610,7 +5722,7 @@ setTimeout(() => {
                             <div class="space-y-2">
                                 ${b.roomId ? `
                                     <label class="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 cursor-pointer">
-                                        <input type="checkbox" checked class="approval-room-check-${b.id} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" data-room-id="${b.roomId}">
+                                        <input type="checkbox" checked class="approval-room-check-${key} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" data-room-id="${b.roomId}">
                                         <span class="text-xs font-bold text-slate-700">Ruangan: ${room?.name || 'N/A'}</span>
                                     </label>
                                 ` : ''}
@@ -5631,7 +5743,7 @@ return `
     <input
         type="checkbox"
         checked
-        class="approval-tool-check-${b.id} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+        class="approval-tool-check-${key} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
         data-tool-id="${t.id}"
         data-tool-name="${t.name}"
     >
@@ -5655,12 +5767,12 @@ return `
 
                         <div>
                             <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Catatan Admin</label>
-                            <textarea id="admin-note-${b.id}" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Alasan penolakan sebagian atau seluruh item..."></textarea>
+                            <textarea id="admin-note-${key}" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Alasan penolakan sebagian atau seluruh item..."></textarea>
                         </div>
 
                         <div class="flex gap-3">
-                            <button onclick="window.updateBookingStatusWithNote('${b.id}', 'Rejected')" class="flex-1 py-3 border border-rose-100 text-rose-500 rounded-2xl text-xs font-black hover:bg-rose-50 transition-colors">Tolak Semua</button>
-                            <button id="btn-approve-${b.id}" onclick="window.processPartialApproval('${b.id}')" class="flex-1 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black transition-all">Setujui</button>
+                            <button onclick="window.updateBookingStatusWithNote('${key}', 'Rejected')" class="flex-1 py-3 border border-rose-100 text-rose-500 rounded-2xl text-xs font-black hover:bg-rose-50 transition-colors">Tolak Semua</button>
+                            <button id="btn-approve-${key}" onclick="window.processPartialApproval('${key}')" class="flex-1 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black transition-all">Setujui</button>
                         </div>
                     </div>
                 `;
@@ -5677,20 +5789,41 @@ function renderMaster(){
 
     if(!roomContainer || !toolContainer) return;
 
+    // ================= FILTER SEARCH (Database Aset - role admin) =================
+
+    const roomQuery =
+        (window.masterSearchQuery?.room || '').trim().toLowerCase();
+
+    const toolQuery =
+        (window.masterSearchQuery?.tool || '').trim().toLowerCase();
+
+    const filteredRooms =
+        roomQuery
+        ? localState.rooms.filter(r => (r.name || '').toLowerCase().includes(roomQuery))
+        : localState.rooms;
+
+    const filteredTools =
+        toolQuery
+        ? localState.tools.filter(t =>
+            (t.name || '').toLowerCase().includes(toolQuery) ||
+            (t.pos || '').toLowerCase().includes(toolQuery)
+          )
+        : localState.tools;
+
     // ================= ROOM =================
 
-    if(localState.rooms.length === 0){
+    if(filteredRooms.length === 0){
 
         roomContainer.innerHTML =
         `<div class="p-4 text-xs text-slate-400 italic">
-            Belum ada data ruangan
+            ${roomQuery ? 'Ruangan tidak ditemukan' : 'Belum ada data ruangan'}
         </div>`;
 
     }
     else{
 
         roomContainer.innerHTML =
-        localState.rooms.map(r => `
+        filteredRooms.map(r => `
 
 <div class="relative p-4 border-b flex items-center gap-4 hover:bg-slate-50 transition group">
 
@@ -5746,18 +5879,18 @@ function renderMaster(){
 
     // ================= TOOL =================
 
-    if(localState.tools.length === 0){
+    if(filteredTools.length === 0){
 
         toolContainer.innerHTML =
         `<div class="p-4 text-xs text-slate-400 italic">
-            Belum ada data alat
+            ${toolQuery ? 'Alat tidak ditemukan' : 'Belum ada data alat'}
         </div>`;
 
     }
     else{
 
         toolContainer.innerHTML =
-        localState.tools.map(t => `
+        filteredTools.map(t => `
 
 <div class="relative p-4 border-b flex items-center gap-4 hover:bg-slate-50 transition group">
 
@@ -5810,23 +5943,30 @@ function renderMaster(){
     }
 
 }
-        window.processPartialApproval = async (id) => {
+        window.processPartialApproval = async (key) => {
 
     try {
 
+        // 🔥 SATU KEY BISA MEWAKILI BEBERAPA DOKUMEN BOOKING (pemesanan multi-hari).
+        // Kalau tidak ditemukan di approvalGroups (mis. render lama), fallback anggap
+        // key adalah id booking tunggal.
+        const ids =
+            (window.approvalGroups && window.approvalGroups[key]) ||
+            [key];
+
         const b =
             localState.bookings
-            .find(x => x.id === id);
+            .find(x => x.id === ids[0]);
 
         const roomCheck =
-            document.querySelector(`.approval-room-check-${id}`);
+            document.querySelector(`.approval-room-check-${key}`);
 
         const toolChecks =
-            document.querySelectorAll(`.approval-tool-check-${id}`);
+            document.querySelectorAll(`.approval-tool-check-${key}`);
 
         const note =
             document
-            .getElementById(`admin-note-${id}`)
+            .getElementById(`admin-note-${key}`)
             ?.value.trim() || '';
 
         const isRoomApproved =
@@ -5859,32 +5999,34 @@ function renderMaster(){
 
         }
 
-        // ================= UPDATE FIRESTORE =================
+        // ================= UPDATE FIRESTORE (SEMUA HARI DALAM GRUP) =================
 
-        console.log("📌 Approve booking:", id);
+        console.log("📌 Approve booking group:", key, "→", ids);
 
-        await updateDoc(
-            doc(db,'artifacts',appId,'public','data','bookings',id),
-            {
-                status: 'Approved',
-                adminNote: note,
-                roomId:
-                    isRoomApproved
-                    ? b.roomId
-                    : null,
-                tools: approvedTools,
-                type:
-                    isRoomApproved
-                    ? 'room'
-                    : 'tool',
-                approvedAt:
-                    serverTimestamp()
-            }
-        );
+        await Promise.all(ids.map(id =>
+            updateDoc(
+                doc(db,'artifacts',appId,'public','data','bookings',id),
+                {
+                    status: 'Approved',
+                    adminNote: note,
+                    roomId:
+                        isRoomApproved
+                        ? b.roomId
+                        : null,
+                    tools: approvedTools,
+                    type:
+                        isRoomApproved
+                        ? 'room'
+                        : 'tool',
+                    approvedAt:
+                        serverTimestamp()
+                }
+            )
+        ));
 
-        console.log("✅ Status Approved tersimpan");
+        console.log("✅ Status Approved tersimpan untuk", ids.length, "hari");
 
-        // ================= KIRIM EMAIL APPROVE =================
+        // ================= KIRIM EMAIL APPROVE (CUKUP 1x UNTUK SELURUH GRUP) =================
 
 if(b){
 
@@ -5895,6 +6037,17 @@ if(b){
     if(userEmail){
 
         console.log("📧 Kirim email approve ke:", userEmail);
+
+        const groupDates =
+            ids
+            .map(id => localState.bookings.find(x => x.id === id)?.date)
+            .filter(Boolean)
+            .sort();
+
+        const dateRangeText =
+            groupDates.length > 1
+            ? `${groupDates[0]} s/d ${groupDates[groupDates.length - 1]}`
+            : groupDates[0];
 
         sendStatusEmail(
             {
@@ -5908,7 +6061,9 @@ if(b){
                 roomId:
                     isRoomApproved
                     ? b.roomId
-                    : null
+                    : null,
+
+                dateRangeText
             },
             userEmail
         );
@@ -5940,17 +6095,22 @@ if(b){
 
 // ================= REJECT BOOKING =================
 
-window.updateBookingStatusWithNote = async (id, status) => {
+window.updateBookingStatusWithNote = async (key, status) => {
 
     try {
 
+        // 🔥 SATU KEY BISA MEWAKILI BEBERAPA DOKUMEN BOOKING (pemesanan multi-hari)
+        const ids =
+            (window.approvalGroups && window.approvalGroups[key]) ||
+            [key];
+
         const b =
             localState.bookings
-            .find(x => x.id === id);
+            .find(x => x.id === ids[0]);
 
         if(!b){
 
-            console.warn("⚠️ Booking tidak ditemukan:", id);
+            console.warn("⚠️ Booking tidak ditemukan:", key);
             return;
 
         }
@@ -5959,7 +6119,7 @@ window.updateBookingStatusWithNote = async (id, status) => {
 
         const note =
             document
-            .getElementById(`admin-note-${id}`)
+            .getElementById(`admin-note-${key}`)
             ?.value.trim() || '';
 
         // ================= VALIDASI =================
@@ -5974,20 +6134,22 @@ window.updateBookingStatusWithNote = async (id, status) => {
 
         }
 
-        console.log("📌 Reject booking:", id);
+        console.log("📌 Reject booking group:", key, "→", ids);
 
-        // ================= UPDATE FIRESTORE =================
+        // ================= UPDATE FIRESTORE (SEMUA HARI DALAM GRUP) =================
 
-        await updateDoc(
-            doc(db,'artifacts',appId,'public','data','bookings',id),
-            {
-                status: 'Rejected',
-                adminNote: note,
-                rejectedAt: serverTimestamp()
-            }
-        );
+        await Promise.all(ids.map(id =>
+            updateDoc(
+                doc(db,'artifacts',appId,'public','data','bookings',id),
+                {
+                    status: 'Rejected',
+                    adminNote: note,
+                    rejectedAt: serverTimestamp()
+                }
+            )
+        ));
 
-        console.log("✅ Status Rejected tersimpan");
+        console.log("✅ Status Rejected tersimpan untuk", ids.length, "hari");
 
         // ================= KIRIM EMAIL REJECT =================
 
