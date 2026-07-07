@@ -6541,7 +6541,17 @@ window.onPhotoAttachmentSelected = (inputId, btnId) => {
     if (!input || !btn) return;
 
     if (input.files && input.files.length > 0) {
-        btn.innerText = "Upload Sekarang";
+        // 🔥 Foto sudah dipilih → aktifkan tombol & ubah tampilan jadi jelas "siap upload"
+        btn.disabled = false;
+        btn.innerText = "⬆️ Upload Foto Sekarang";
+        btn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+        btn.classList.add('bg-indigo-600', 'text-white');
+    } else {
+        // 🔥 Foto dibatalkan / belum dipilih → kembalikan tombol ke kondisi nonaktif
+        btn.disabled = true;
+        btn.innerText = btnId.includes('start') ? 'Pilih Foto Bukti Mulai Dulu' : 'Pilih Foto Bukti Selesai Dulu';
+        btn.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+        btn.classList.remove('bg-indigo-600', 'text-white');
     }
 };
 
@@ -6834,6 +6844,10 @@ Edit
 
             footer.innerHTML = `
 
+<p class="text-[11px] text-slate-500 mb-2">
+📸 Unggah foto kondisi ruangan/alat <b>sebelum</b> mulai digunakan sebagai bukti serah terima dari Admin Training.
+</p>
+
 <input type="file"
 id="start-photo-${b.id}"
 accept="image/*"
@@ -6847,8 +6861,9 @@ class="w-full text-xs mb-2" />
 
 <button id="btn-start-${b.id}"
 onclick="window.startBooking('${b.id}')"
-class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
-Start Upload Foto Mulai
+disabled
+class="w-full bg-slate-300 text-slate-500 py-3 rounded-2xl font-bold text-xs cursor-not-allowed transition-colors">
+Pilih Foto Bukti Mulai Dulu
 </button>
 
 `;
@@ -6864,6 +6879,10 @@ Start Upload Foto Mulai
 
 ${!b.finishPhoto ? `
 
+<p class="text-[11px] text-slate-500 mb-2">
+📸 Unggah foto kondisi ruangan/alat <b>setelah selesai</b> digunakan, sebagai bukti sebelum diserahterimakan kembali ke Admin Training.
+</p>
+
 <input type="file"
 id="finish-photo-${b.id}"
 accept="image/*"
@@ -6877,14 +6896,22 @@ class="w-full text-xs mb-2" />
 
 <button id="btn-finish-${b.id}"
 onclick="window.finishBooking('${b.id}')"
-class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs">
-Start Upload Foto Selesai
+disabled
+class="w-full bg-slate-300 text-slate-500 py-3 rounded-2xl font-bold text-xs cursor-not-allowed transition-colors">
+Pilih Foto Bukti Selesai Dulu
 </button>
 
 ` : `
 
 <div class="text-green-600 text-xs font-bold text-center mb-2">
 ✅ Foto akhir sudah diupload
+</div>
+
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+    <p class="text-[11px] text-amber-700 leading-relaxed">
+        <i class="fas fa-circle-info mr-1"></i>
+        Apabila ruangan/alat <b>sudah diserahterimakan ke Admin Training</b>, mintalah QR Code untuk penyelesaian pesanan ini, lalu scan QR tersebut di bawah ini.
+    </p>
 </div>
 
 <div class="flex flex-col gap-2 mt-2">
