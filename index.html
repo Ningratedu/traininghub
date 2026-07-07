@@ -2102,6 +2102,18 @@ const appId = "booking-ruang-training";
             ? booking.adminNote
             : 'Belum ada catatan admin (pesanan baru)';
 
+    // ================= PERIODE (SUPPORT MULTI-HARI) =================
+    // Booking multi-hari disimpan sebagai beberapa dokumen (1 per tanggal) tapi
+    // notif email tetap dikirim SEKALI SAJA. Supaya admin tahu booking ini
+    // sebenarnya berlangsung sampai tanggal berapa, kita rangkum jadi 1 info periode.
+
+    const dayCount = booking.dayCount || 1;
+
+    const periode =
+        dayCount > 1 && booking.dateRangeText
+            ? `${booking.dateRangeText} (${dayCount} hari)`
+            : booking.date;
+
     // ================= DEBUG =================
 
     console.log("📧 Booking Email Detail:", detail);
@@ -2109,6 +2121,7 @@ const appId = "booking-ruang-training";
     console.log("📌 agenda:", agendaText);
     console.log("📝 Catatan User:", noteUser);
     console.log("📝 Catatan Admin:", noteAdmin);
+    console.log("📅 Periode:", periode);
 
     // ================= KIRIM EMAIL =================
 
@@ -2118,6 +2131,7 @@ const appId = "booking-ruang-training";
         {
             user_name: user.username,
             date: booking.date,
+            periode: periode,
             time: booking.start + " - " + booking.end,
             goal: agendaText,
             detail: detail,
