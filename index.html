@@ -2090,11 +2090,25 @@ const appId = "booking-ruang-training";
         booking.agenda ||
         "-";
 
+    // ================= CATATAN USER & ADMIN =================
+
+    const noteUser =
+        booking.notes && booking.notes.trim()
+            ? booking.notes
+            : 'Tidak ada catatan';
+
+    const noteAdmin =
+        booking.adminNote && booking.adminNote.trim()
+            ? booking.adminNote
+            : 'Belum ada catatan admin (pesanan baru)';
+
     // ================= DEBUG =================
 
     console.log("📧 Booking Email Detail:", detail);
     console.log("📌 roomId:", booking.roomId);
     console.log("📌 agenda:", agendaText);
+    console.log("📝 Catatan User:", noteUser);
+    console.log("📝 Catatan Admin:", noteAdmin);
 
     // ================= KIRIM EMAIL =================
 
@@ -2106,7 +2120,9 @@ const appId = "booking-ruang-training";
             date: booking.date,
             time: booking.start + " - " + booking.end,
             goal: agendaText,
-            detail: detail
+            detail: detail,
+            note_user: noteUser,
+            note_admin: noteAdmin
         }
     )
     .then(() => {
@@ -2213,12 +2229,26 @@ const appId = "booking-ruang-training";
     const detail =
         detailParts.join(' | ') || '-';
 
+    // ================= CATATAN USER & ADMIN =================
+
+    const noteUser =
+        booking.notes && booking.notes.trim()
+            ? booking.notes
+            : 'Tidak ada catatan';
+
+    const noteAdmin =
+        booking.adminNote && booking.adminNote.trim()
+            ? booking.adminNote
+            : 'Tidak ada catatan';
+
     // ================= DEBUG =================
 
     console.log("📧 Kirim email ke:", email);
     console.log("📌 roomId:", booking.roomId);
     console.log("📌 validRoomId:", validRoomId);
     console.log("📌 Detail:", detail);
+    console.log("📝 Catatan User:", noteUser);
+    console.log("📝 Catatan Admin:", noteAdmin);
 
     // ================= VALIDASI EMAIL =================
 
@@ -2241,7 +2271,9 @@ const appId = "booking-ruang-training";
             status: booking.status,
             date: booking.date,
             time: booking.start + " - " + booking.end,
-            detail: detail
+            detail: detail,
+            note_user: noteUser,
+            note_admin: noteAdmin
         }
     )
     .then(() => {
