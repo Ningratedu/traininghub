@@ -1801,18 +1801,22 @@ window.downloadQR = function () {
 
 
 
-            <!-- PILIH RUANGAN -->
+            <!-- PILIH RUANGAN (BISA LEBIH DARI 1, MIS. PARTISI DIBUKA) -->
             <div id="booking-room-field" class="col-span-2 sm:col-span-1">
 
-                <label class="text-[10px] font-bold uppercase text-slate-400">
-                    Pilih Ruangan
+                <label class="text-[10px] font-bold uppercase text-slate-400 flex items-center justify-between gap-2">
+                    <span>Pilih Ruangan</span>
+                    <span class="normal-case font-semibold text-indigo-500">Bisa pilih lebih dari 1</span>
                 </label>
 
-                <select 
-                    id="book-room" 
-                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"
-                    onchange="window.validateToolSelection()"
-                ></select>
+                <div 
+                    id="book-room-selection" 
+                    class="w-full bg-slate-100 rounded-xl px-3 py-2 text-sm flex flex-col gap-1 max-h-40 overflow-y-auto"
+                ></div>
+
+                <p class="text-[10px] text-slate-400 mt-1">
+                    Centang lebih dari 1 ruangan jika partisi ruangan akan dibuka/digabung untuk 1 kegiatan yang sama.
+                </p>
 
             </div>
 
@@ -4272,6 +4276,39 @@ if(id){
 
 });
 		
+        // 🔥 RENDER CHECKBOX LIST RUANGAN (GANTI DROPDOWN LAMA supaya bisa pilih > 1 ruangan,
+        // misal saat partisi antar ruangan dibuka & dipakai jadi 1 acara bersama)
+        window.renderRoomCheckboxes = (selectedIds = []) => {
+            const container = document.getElementById('book-room-selection');
+            if (!container || !window.localState || !localState.rooms) return;
+
+            container.innerHTML = localState.rooms
+                .filter(r => r.status === 'Open')
+                .map(r => `
+                    <label class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            name="book-rooms" 
+                            value="${r.id}"
+                            onchange="window.validateToolSelection()"
+                            ${selectedIds.includes(r.id) ? 'checked' : ''}
+                        >
+                        <span class="text-sm">${r.name}</span>
+                    </label>
+                `).join('');
+
+            if (localState.rooms.filter(r => r.status === 'Open').length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-400 italic px-1">Tidak ada ruangan tersedia</span>`;
+            }
+        };
+
+        // 🔥 AMBIL SEMUA ID RUANGAN YANG SEDANG DICEKLIS DI FORM PESANAN
+        window.getSelectedRoomIds = () => {
+            return Array.from(
+                document.querySelectorAll('#book-room-selection input[name="book-rooms"]:checked')
+            ).map(cb => cb.value);
+        };
+
         window.toggleBookingType = (type) => {
             bookingType = type;
             const btnRoom = document.getElementById('btn-type-room');
@@ -4424,14 +4461,8 @@ if(window.innerWidth < 768){
 
 
 
-    // Load Room List
-    const select = document.getElementById('book-room');
-
-    select.innerHTML =
-        localState.rooms
-        .filter(r => r.status === 'Open')
-        .map(r => `<option value="${r.id}">${r.name}</option>`)
-        .join('');
+    // Load Room List (checkbox, bisa pilih lebih dari 1 ruangan)
+    window.renderRoomCheckboxes([]);
 
 
 
@@ -4461,8 +4492,8 @@ if(window.innerWidth < 768){
 
         if (prefillType === 'room') {
 
-            // Pilih ruangan yang sesuai di dropdown
-            select.value = prefillId;
+            // Ceklis ruangan yang sesuai
+            window.renderRoomCheckboxes([prefillId]);
 
             // Render ulang supaya validasi bentrok pakai ruangan yang benar
             window.validateToolSelection();
@@ -4583,7 +4614,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateList = window.getBookingDateRange(date, dateEndRaw);
             const start = document.getElementById('book-start').value;
             const end = document.getElementById('book-end').value;
-            const roomId = document.getElementById('book-room').value;
+            const roomIds = window.getSelectedRoomIds();
             const editId = document.getElementById('edit-booking-id').value;
             const errorMsg = document.getElementById('booking-error-msg');
             const submitBtn = document.getElementById('btn-submit-booking');
@@ -4625,11 +4656,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
             
             let roomBentrok = false;
-            if (bookingType === 'room' && roomId) {
+            if (bookingType === 'room' && roomIds.length > 0) {
                 roomBentrok = localState.bookings.some(b => 
                     b.id !== editId &&
                     dateList.includes(b.date) && 
-                    b.roomId === roomId &&
+                    roomIds.includes(b.roomId) &&
                     (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing') &&
                     isOverlapping(start, end, b.start, b.end)
                 );
@@ -5498,18 +5529,13 @@ window.editBooking = (bookingId) => {
 
     // =========================
     // LOAD ROOM LIST ULANG
+    // 🔥 Catatan: mode EDIT tetap 1 booking = 1 ruangan (perilaku lama).
+    // Pilih 2+ ruangan sekaligus hanya berlaku saat BUAT pesanan baru.
     // =========================
 
-    const select =
-        document.getElementById('book-room');
-
-    select.innerHTML =
-        localState.rooms
-        .filter(r => r.status === 'Open')
-        .map(r =>
-            `<option value="${r.id}">${r.name}</option>`
-        )
-        .join('');
+    window.renderRoomCheckboxes(
+        booking.roomId ? [booking.roomId] : []
+    );
 
 
 
@@ -5562,13 +5588,6 @@ window.editBooking = (bookingId) => {
     // =========================
     // ISI FORM
     // =========================
-
-    document.getElementById(
-        "book-room"
-    ).value =
-        booking.roomId || "";
-
-
 
     document.getElementById(
         "book-goal"
@@ -7281,8 +7300,10 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         const dateEndRaw = document.getElementById('book-date-end')?.value || '';
         const start = document.getElementById('book-start').value;
         const end = document.getElementById('book-end').value;
-        const roomId = document.getElementById('book-room').value;
         const editId = document.getElementById('edit-booking-id').value;
+
+        // 🔥 RUANGAN YANG DICEKLIS (BISA LEBIH DARI 1 UNTUK PESANAN BARU)
+        const roomIds = window.getSelectedRoomIds();
 
         // 🔥 MULTI-HARI: daftar semua tanggal dalam rentang (untuk booking baru)
         const dateList = editId
@@ -7302,32 +7323,56 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
         }).filter(Boolean);
 
-        // 🔥 AMBIL DATA TAMBAHAN (WAJIB)
-const roomName = document
-    .getElementById('book-room')
-    ?.selectedOptions[0]?.text || "";
+        // 🔥 VALIDASI: mode Ruangan wajib pilih minimal 1 ruangan
+        if (bookingType === 'room' && roomIds.length === 0) {
+            alert("Silakan pilih minimal 1 ruangan.");
+            return;
+        }
 
-const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
+        // 🔥 UNTUK EDIT: tetap 1 ruangan saja (perilaku lama, 1 dokumen = 1 ruangan).
+        // Kalau user malah menceklis lebih dari 1 saat edit, ambil yang pertama saja.
+        const editRoomId = bookingType === 'room' ? (roomIds[0] || null) : null;
 
-// 🔥 CEK ULANG BENTROK UNTUK SEMUA TANGGAL SEBELUM DISIMPAN (JAGA-JAGA DARI RACE CONDITION)
-const activeStatuses = ['Pending', 'Approved', 'Ongoing'];
+        // 🔥 UNTUK BOOKING BARU: target ruangan = SEMUA yang dicentang (>1 = pesan sekaligus,
+        // masing-masing tetap dibuat sebagai pesanan/grup terpisah biar approval & histori tetap rapi).
+        // Kalau mode "Hanya Alat", tidak ada ruangan sama sekali (satu target dengan roomId null).
+        const roomTargets = bookingType === 'room'
+            ? roomIds
+            : [null];
 
-if (bookingType === 'room' && roomId) {
+        const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
 
-    const roomBentrok = localState.bookings.some(b =>
-        b.id !== editId &&
-        dateList.includes(b.date) &&
-        b.roomId === roomId &&
-        activeStatuses.includes(b.status) &&
-        isOverlapping(start, end, b.start, b.end)
-    );
+        // 🔥 CEK ULANG BENTROK UNTUK SEMUA TANGGAL SEBELUM DISIMPAN (JAGA-JAGA DARI RACE CONDITION)
+        const activeStatuses = ['Pending', 'Approved', 'Ongoing'];
 
-    if (roomBentrok) {
-        alert("❌ Gagal menyimpan: ruangan sudah dipesan di salah satu tanggal yang dipilih. Silakan cek kembali.");
-        return;
-    }
+        if (bookingType === 'room') {
 
-}
+            const targetsToCheck = editId ? [editRoomId].filter(Boolean) : roomTargets;
+            const bentrokRoomNames = [];
+
+            for (const rId of targetsToCheck) {
+
+                const roomBentrok = localState.bookings.some(b =>
+                    b.id !== editId &&
+                    dateList.includes(b.date) &&
+                    b.roomId === rId &&
+                    activeStatuses.includes(b.status) &&
+                    isOverlapping(start, end, b.start, b.end)
+                );
+
+                if (roomBentrok) {
+                    const rName = localState.rooms.find(r => r.id === rId)?.name || rId;
+                    bentrokRoomNames.push(rName);
+                }
+
+            }
+
+            if (bentrokRoomNames.length > 0) {
+                alert(`❌ Gagal menyimpan: ruangan "${bentrokRoomNames.join(', ')}" sudah dipesan di salah satu tanggal yang dipilih. Silakan cek kembali.`);
+                return;
+            }
+
+        }
 
 for (const t of selectedTools) {
 
@@ -7346,13 +7391,9 @@ for (const t of selectedTools) {
 
 }
 
-// 🔥 BUILD BOOKING DATA DASAR (TANPA TANGGAL, DITAMBAHKAN PER-HARI DI BAWAH)
-const baseBookingData = {
+// 🔥 DATA DASAR YANG SAMA UNTUK SEMUA RUANGAN/TARGET (belum termasuk roomId/roomName/tanggal)
+const commonBookingData = {
     type: bookingType,
-    roomId: bookingType === 'room' ? roomId : null,
-
-    // 🔥 TAMBAHAN (FIX EMAIL DETAIL)
-    roomName: roomName,
     toolsText: (selectedTools || []).map(t => t.name).join(", "),
 
     userName: currentUser.username,
@@ -7370,8 +7411,17 @@ const baseBookingData = {
 
 if (editId) {
 
-    // 🔥 EDIT: tetap 1 booking, 1 tanggal (perilaku lama, tidak berubah)
-    const bookingData = { ...baseBookingData, date };
+    // 🔥 EDIT: tetap 1 booking, 1 tanggal, 1 ruangan (perilaku lama, tidak berubah)
+    const roomName = editRoomId
+        ? (localState.rooms.find(r => r.id === editRoomId)?.name || "")
+        : "";
+
+    const bookingData = {
+        ...commonBookingData,
+        roomId: editRoomId,
+        roomName,
+        date,
+    };
 
     await updateDoc(
         doc(db,'artifacts',appId,'public','data','bookings',editId),
@@ -7380,44 +7430,69 @@ if (editId) {
 
 } else {
 
-    // 🔥 BOOKING BARU: bisa multi-hari — 1 dokumen per tanggal,
-    // semuanya ditandai dengan groupId yang sama supaya tetap dianggap "1 pesanan"
-    const groupId = (crypto.randomUUID ? crypto.randomUUID() : ('grp-' + Date.now() + '-' + Math.random().toString(16).slice(2)));
+    // 🔥 BOOKING BARU: loop per ruangan yang dipilih (1 ruangan = 1 "pesanan"/grup sendiri).
+    // Kalau pilih 2 ruangan sekaligus (mis. partisi dibuka), maka dibuat 2 pesanan terpisah
+    // dengan tanggal & jam yang identik, supaya masing-masing tetap bisa di-approve/ditolak
+    // secara independen oleh admin seperti pesanan ruangan biasa.
     const dayCount = dateList.length;
 
-    for (let i = 0; i < dateList.length; i++) {
+    for (const rId of roomTargets) {
 
-        const bookingData = {
-            ...baseBookingData,
-            date: dateList[i],
-            groupId,
-            dayIndex: i + 1,
-            dayCount,
-            status: 'Pending',
-            startedAt: null,
-            finishedAt: null,
-            startPhoto: null,
-            finishPhoto: null,
-            createdAt: serverTimestamp(),
+        const roomName = rId
+            ? (localState.rooms.find(r => r.id === rId)?.name || "")
+            : "";
+
+        const baseBookingData = {
+            ...commonBookingData,
+            roomId: rId,
+            roomName,
         };
 
-        await addDoc(
-            collection(db,'artifacts',appId,'public','data','bookings'),
-            bookingData
-        );
+        // 🔥 semuanya (per tanggal) ditandai dengan groupId yang sama supaya tetap dianggap "1 pesanan"
+        const groupId = (crypto.randomUUID ? crypto.randomUUID() : ('grp-' + Date.now() + '-' + Math.random().toString(16).slice(2) + '-' + (rId || 'tool')));
 
-        // 🔥 kirim email hanya sekali untuk keseluruhan pesanan (pakai data hari pertama)
-        if (i === 0) {
-            sendBookingEmail({ ...bookingData, dateRangeText: dayCount > 1 ? `${dateList[0]} s/d ${dateList[dayCount-1]}` : dateList[0] }, currentUser);
+        for (let i = 0; i < dateList.length; i++) {
+
+            const bookingData = {
+                ...baseBookingData,
+                date: dateList[i],
+                groupId,
+                dayIndex: i + 1,
+                dayCount,
+                status: 'Pending',
+                startedAt: null,
+                finishedAt: null,
+                startPhoto: null,
+                finishPhoto: null,
+                createdAt: serverTimestamp(),
+            };
+
+            await addDoc(
+                collection(db,'artifacts',appId,'public','data','bookings'),
+                bookingData
+            );
+
+            // 🔥 kirim email hanya sekali per ruangan untuk keseluruhan pesanan (pakai data hari pertama)
+            if (i === 0) {
+                sendBookingEmail({ ...bookingData, dateRangeText: dayCount > 1 ? `${dateList[0]} s/d ${dateList[dayCount-1]}` : dateList[0] }, currentUser);
+            }
+
         }
 
     }
 
-    alert(
-        dayCount > 1
-            ? `✅ Pesanan ${dayCount} hari berhasil disimpan (${dateList[0]} s/d ${dateList[dayCount-1]})`
-            : "✅ Pesanan berhasil disimpan"
-    );
+    const roomCount = roomTargets.filter(Boolean).length;
+
+    let successMsg = "✅ Pesanan berhasil disimpan";
+    if (dayCount > 1 && roomCount > 1) {
+        successMsg = `✅ Pesanan ${roomCount} ruangan x ${dayCount} hari berhasil disimpan (${dateList[0]} s/d ${dateList[dayCount-1]})`;
+    } else if (roomCount > 1) {
+        successMsg = `✅ Pesanan untuk ${roomCount} ruangan sekaligus berhasil disimpan`;
+    } else if (dayCount > 1) {
+        successMsg = `✅ Pesanan ${dayCount} hari berhasil disimpan (${dateList[0]} s/d ${dateList[dayCount-1]})`;
+    }
+
+    alert(successMsg);
 
 }
 
