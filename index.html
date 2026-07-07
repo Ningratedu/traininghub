@@ -115,19 +115,24 @@ body {
 #mobile-sidebar .sidebar-footer-actions button {
     width: auto;
     display: inline-flex;
+    align-items: center;
     background: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     border: none;
     box-shadow: none;
-    padding: 2px 0;
-    border-radius: 0;
+    padding: 4px 2px;
+    border-radius: 6px;
     transform: none;
+    color: #94a3b8 !important; /* slate-400: fix supaya gak jadi navy gelap & ketutup bg gelap */
+    font-weight: 600 !important;
+    cursor: pointer;
 }
 
 #mobile-sidebar .sidebar-footer-actions button:hover {
-    background: none;
+    background: rgba(255,255,255,0.08);
     transform: none;
+    color: #ffffff !important;
 }
 
 /* Divider */
@@ -707,7 +712,7 @@ window.downloadQR = function () {
                     <i class="fas fa-key"></i> Ganti Password
                 </button>
 
-                <button onclick="logout()" class="mt-1 text-[11px] leading-tight text-slate-400 hover:text-white flex items-center gap-1">
+                <button onclick="window.logout()" class="mt-1 text-[11px] leading-tight text-slate-400 hover:text-white flex items-center gap-1">
                     <i class="fas fa-sign-out-alt"></i> Keluar
                 </button>
 
