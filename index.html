@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -1579,20 +1578,44 @@ window.downloadQR = function () {
 
 
 
-            <!-- TANGGAL -->
-            <div class="col-span-2 sm:col-span-1">
+            <!-- TANGGAL (MENDUKUNG MULTI HARI) -->
+            <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
 
-                <label class="text-[10px] font-bold uppercase text-slate-400">
-                    Tanggal
-                </label>
+                <div class="flex flex-col">
 
-                <input 
-                    type="date" 
-                    id="book-date" 
-                    required 
-                    class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm"
-                    onchange="window.validateToolSelection()"
-                >
+                    <label class="text-[10px] font-bold uppercase text-slate-400">
+                        Tanggal Mulai
+                    </label>
+
+                    <input 
+                        type="date" 
+                        id="book-date" 
+                        required 
+                        class="bg-slate-100 border-none rounded-xl px-2 py-3 text-sm"
+                        onchange="window.handleBookStartDateChange()"
+                    >
+
+                </div>
+
+                <div class="flex flex-col">
+
+                    <label class="text-[10px] font-bold uppercase text-slate-400">
+                        Tanggal Selesai
+                    </label>
+
+                    <input 
+                        type="date" 
+                        id="book-date-end" 
+                        required 
+                        class="bg-slate-100 border-none rounded-xl px-2 py-3 text-sm"
+                        onchange="window.handleBookEndDateChange()"
+                    >
+
+                </div>
+
+                <p class="col-span-2 text-[10px] text-slate-400 -mt-1">
+                    Untuk pesanan 1 hari, isi tanggal mulai & selesai sama. Untuk pesanan beberapa hari, isi tanggal selesai lebih akhir — sistem akan mengecek bentrok di setiap harinya.
+                </p>
 
             </div>
 
@@ -2415,7 +2438,56 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 		
 let bookingType = 'room';
-const ADMIN_PASS = "training2026";
+
+// ================= ADMIN BOOTSTRAP (TIDAK HARDCODE LAGI) =================
+// Akun admin sekarang adalah dokumen biasa di koleksi Firestore "users",
+// SAMA PERSIS seperti akun user lain (bukan lagi dicek dari konstanta di source code).
+// Konfigurasi di bawah ini HANYA dipakai SATU KALI untuk membuat akun admin
+// pertama kalinya, kalau di database belum ada akun dengan role "admin".
+// Setelah akun admin ini dibuat, silakan langsung login dan GANTI PASSWORD-nya
+// lewat menu "Ganti Password" — mulai saat itu password admin tersimpan &
+// diverifikasi dari Firestore, bukan dari source code ini lagi.
+const DEFAULT_ADMIN_SEED = {
+    username: 'admin',
+    password: 'training2026'
+};
+let adminBootstrapChecked = false;
+
+async function ensureAdminAccountExists() {
+
+    if (adminBootstrapChecked) return;
+    adminBootstrapChecked = true;
+
+    const adminExists =
+        (localState.users || []).some(u => u.role === 'admin');
+
+    if (adminExists) return;
+
+    try {
+        await addDoc(
+            collection(db, 'artifacts', appId, 'public', 'data', 'users'),
+            {
+                username: DEFAULT_ADMIN_SEED.username,
+                password: DEFAULT_ADMIN_SEED.password,
+                role: 'admin',
+                dept: 'Manajemen',
+                email: '',
+                mustChangePassword: true,
+                createdAt: serverTimestamp()
+            }
+        );
+
+        console.warn(
+            "🔐 Akun admin default dibuat di Firestore (username: " +
+            DEFAULT_ADMIN_SEED.username +
+            "). Segera login dan GANTI PASSWORD default ini!"
+        );
+
+    } catch (err) {
+        console.error("Gagal membuat akun admin default:", err);
+    }
+}
+
 let deptChart = null;
 let statusChart = null;
 let trendChart = null;
@@ -3431,27 +3503,8 @@ if (ctx3) {
             e.preventDefault();
             const u = document.getElementById('login-username').value;
             const p = document.getElementById('login-password').value;
-	            if(u === 'admin' && p === ADMIN_PASS) {
-
-    currentUser = { 
-        role: 'admin',
-        username: 'Administrator',
-        uid: 'admin-123'
-    };
-
-    // 🔥 simpan session ADMIN
-    localStorage.setItem(
-        "traininghub_user",
-        JSON.stringify(currentUser)
-    );
-
-    document
-        .getElementById('login-screen')
-        .classList.add('hide');
-
-    initSession();
-
-} else {
+            // 🔥 SEMUA ROLE (termasuk admin) dicek dari Firestore, TIDAK ada lagi akun hardcode di source code
+            {
 
     const found =
         localState.users.find(            x =>
@@ -3496,6 +3549,15 @@ if (ctx3) {
         .classList.add('hide');
 
     initSession();
+
+    // 🔒 Kalau akun ini masih pakai password bawaan (mis. admin default),
+    // wajib ganti password dulu sebelum lanjut pakai aplikasi.
+    if (found.mustChangePassword) {
+        setTimeout(() => {
+            alert("Ini akun dengan password default. Demi keamanan, silakan ganti password Anda sekarang.");
+            window.openChangePassword();
+        }, 300);
+    }
 }
 
     else {
@@ -3936,6 +3998,13 @@ if(window.innerWidth < 768){
     // Kosongkan edit ID
     document.getElementById('edit-booking-id').value = "";
 
+    // 🔥 MULTI-HARI: aktifkan kembali field tanggal selesai (bisa jadi ke-disable saat edit sebelumnya)
+    const dateEndEl = document.getElementById('book-date-end');
+    if (dateEndEl) {
+        dateEndEl.disabled = false;
+        dateEndEl.value = "";
+    }
+
 
 
     // Load Room List
@@ -3992,8 +4061,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 		
+        // 🔥 UTIL: bikin list semua tanggal (YYYY-MM-DD) dari start s/d end (inklusif)
+        window.getBookingDateRange = (startDateStr, endDateStr) => {
+            if (!startDateStr) return [];
+            const endStr = endDateStr && endDateStr >= startDateStr ? endDateStr : startDateStr;
+
+            const dates = [];
+            let cur = new Date(startDateStr + 'T00:00:00');
+            const last = new Date(endStr + 'T00:00:00');
+
+            // 🔥 BATAS AMAN biar gak infinite loop kalau ada data aneh
+            let guard = 0;
+            while (cur <= last && guard < 366) {
+                dates.push(cur.toISOString().slice(0, 10));
+                cur.setDate(cur.getDate() + 1);
+                guard++;
+            }
+
+            return dates;
+        };
+
+        // 🔥 Saat tanggal mulai diubah, auto-samakan tanggal selesai kalau belum diisi / jadi tidak valid
+        window.handleBookStartDateChange = () => {
+            const startEl = document.getElementById('book-date');
+            const endEl = document.getElementById('book-date-end');
+
+            if (!endEl.value || endEl.value < startEl.value) {
+                endEl.value = startEl.value;
+            }
+
+            window.validateToolSelection();
+        };
+
+        // 🔥 Saat tanggal selesai diubah, jangan sampai lebih awal dari tanggal mulai
+        window.handleBookEndDateChange = () => {
+            const startEl = document.getElementById('book-date');
+            const endEl = document.getElementById('book-date-end');
+
+            if (startEl.value && endEl.value < startEl.value) {
+                alert("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+                endEl.value = startEl.value;
+            }
+
+            window.validateToolSelection();
+        };
+
         window.validateToolSelection = () => {
             const date = document.getElementById('book-date').value;
+            const dateEndRaw = document.getElementById('book-date-end')?.value || '';
+            const dateList = window.getBookingDateRange(date, dateEndRaw);
             const start = document.getElementById('book-start').value;
             const end = document.getElementById('book-end').value;
             const roomId = document.getElementById('book-room').value;
@@ -4041,7 +4157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (bookingType === 'room' && roomId) {
                 roomBentrok = localState.bookings.some(b => 
                     b.id !== editId &&
-                    b.date === date && 
+                    dateList.includes(b.date) && 
                     b.roomId === roomId &&
                     (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing') &&
                     isOverlapping(start, end, b.start, b.end)
@@ -4061,7 +4177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('tool-selection');
             const activeBookingsForTools = localState.bookings.filter(b => 
                 b.id !== editId &&
-                b.date === date && 
+                dateList.includes(b.date) && 
                 (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing')
             );
 
@@ -4209,6 +4325,10 @@ const listenToData = () => {
                         id: doc.id,
                         ...doc.data()
                     }));
+
+                if (coll === 'users') {
+                    ensureAdminAccountExists();
+                }
 
                 refreshUI();
 
@@ -4983,6 +5103,15 @@ window.editBooking = (bookingId) => {
         "book-date"
     ).value =
         booking.date || "";
+
+
+
+    // 🔥 EDIT hanya untuk 1 hari (data yang sudah tersimpan): kunci tanggal selesai = tanggal yang sama
+    const editDateEndEl = document.getElementById("book-date-end");
+    if (editDateEndEl) {
+        editDateEndEl.value = booking.date || "";
+        editDateEndEl.disabled = true;
+    }
 
 
 
@@ -5840,6 +5969,17 @@ window.updateBookingStatus = async (id, status) => {
     window.closeModal('modal-detail');
 };
 
+// ================= UBAH LABEL TOMBOL SAAT FOTO SUDAH DIPILIH =================
+window.onPhotoAttachmentSelected = (inputId, btnId) => {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (!input || !btn) return;
+
+    if (input.files && input.files.length > 0) {
+        btn.innerText = "Upload Sekarang";
+    }
+};
+
 // ================= IMAGE COMPRESS =================
 async function compressImage(file, maxWidth = 1280, quality = 0.7){
     return new Promise((resolve) => {
@@ -6129,6 +6269,7 @@ Edit
 <input type="file"
 id="start-photo-${b.id}"
 accept="image/*"
+onchange="window.onPhotoAttachmentSelected('start-photo-${b.id}','btn-start-${b.id}')"
 class="w-full text-xs mb-2" />
 
 <div class="w-full bg-slate-200 rounded h-2 mb-1 overflow-hidden">
@@ -6158,6 +6299,7 @@ ${!b.finishPhoto ? `
 <input type="file"
 id="finish-photo-${b.id}"
 accept="image/*"
+onchange="window.onPhotoAttachmentSelected('finish-photo-${b.id}','btn-finish-${b.id}')"
 class="w-full text-xs mb-2" />
 
 <div class="w-full bg-slate-200 rounded h-2 mb-1 overflow-hidden">
@@ -6541,10 +6683,16 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
     try {
 
         const date = document.getElementById('book-date').value;
+        const dateEndRaw = document.getElementById('book-date-end')?.value || '';
         const start = document.getElementById('book-start').value;
         const end = document.getElementById('book-end').value;
         const roomId = document.getElementById('book-room').value;
         const editId = document.getElementById('edit-booking-id').value;
+
+        // 🔥 MULTI-HARI: daftar semua tanggal dalam rentang (untuk booking baru)
+        const dateList = editId
+            ? [date]
+            : window.getBookingDateRange(date, dateEndRaw);
 
         const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(c => {
 
@@ -6564,8 +6712,47 @@ const roomName = document
     .getElementById('book-room')
     ?.selectedOptions[0]?.text || "";
 
-// 🔥 BUILD BOOKING DATA
-const bookingData = {
+const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
+
+// 🔥 CEK ULANG BENTROK UNTUK SEMUA TANGGAL SEBELUM DISIMPAN (JAGA-JAGA DARI RACE CONDITION)
+const activeStatuses = ['Pending', 'Approved', 'Ongoing'];
+
+if (bookingType === 'room' && roomId) {
+
+    const roomBentrok = localState.bookings.some(b =>
+        b.id !== editId &&
+        dateList.includes(b.date) &&
+        b.roomId === roomId &&
+        activeStatuses.includes(b.status) &&
+        isOverlapping(start, end, b.start, b.end)
+    );
+
+    if (roomBentrok) {
+        alert("❌ Gagal menyimpan: ruangan sudah dipesan di salah satu tanggal yang dipilih. Silakan cek kembali.");
+        return;
+    }
+
+}
+
+for (const t of selectedTools) {
+
+    const toolBentrok = localState.bookings.some(b =>
+        b.id !== editId &&
+        dateList.includes(b.date) &&
+        activeStatuses.includes(b.status) &&
+        (b.tools || []).some(bt => bt.id === t.id) &&
+        isOverlapping(start, end, b.start, b.end)
+    );
+
+    if (toolBentrok) {
+        alert(`❌ Gagal menyimpan: alat "${t.name}" sudah dipesan di salah satu tanggal yang dipilih. Silakan cek kembali.`);
+        return;
+    }
+
+}
+
+// 🔥 BUILD BOOKING DATA DASAR (TANPA TANGGAL, DITAMBAHKAN PER-HARI DI BAWAH)
+const baseBookingData = {
     type: bookingType,
     roomId: bookingType === 'room' ? roomId : null,
 
@@ -6581,26 +6768,15 @@ const bookingData = {
     department: currentUser.dept || 'Umum',
     goal: document.getElementById('book-goal').value,
     notes: document.getElementById('book-notes').value,
-    date,
     start,
     end,
     tools: selectedTools,
-    status: 'Pending',
-    startedAt: null,
-    finishedAt: null,
-    startPhoto: null,
-    finishPhoto: null,
-    createdAt: serverTimestamp(),
 };
 
 if (editId) {
 
-    delete bookingData.createdAt;
-    delete bookingData.status;
-    delete bookingData.startedAt;
-    delete bookingData.finishedAt;
-    delete bookingData.startPhoto;
-    delete bookingData.finishPhoto;
+    // 🔥 EDIT: tetap 1 booking, 1 tanggal (perilaku lama, tidak berubah)
+    const bookingData = { ...baseBookingData, date };
 
     await updateDoc(
         doc(db,'artifacts',appId,'public','data','bookings',editId),
@@ -6609,15 +6785,44 @@ if (editId) {
 
 } else {
 
-    await addDoc(
-        collection(db,'artifacts',appId,'public','data','bookings'),
-        bookingData
+    // 🔥 BOOKING BARU: bisa multi-hari — 1 dokumen per tanggal,
+    // semuanya ditandai dengan groupId yang sama supaya tetap dianggap "1 pesanan"
+    const groupId = (crypto.randomUUID ? crypto.randomUUID() : ('grp-' + Date.now() + '-' + Math.random().toString(16).slice(2)));
+    const dayCount = dateList.length;
+
+    for (let i = 0; i < dateList.length; i++) {
+
+        const bookingData = {
+            ...baseBookingData,
+            date: dateList[i],
+            groupId,
+            dayIndex: i + 1,
+            dayCount,
+            status: 'Pending',
+            startedAt: null,
+            finishedAt: null,
+            startPhoto: null,
+            finishPhoto: null,
+            createdAt: serverTimestamp(),
+        };
+
+        await addDoc(
+            collection(db,'artifacts',appId,'public','data','bookings'),
+            bookingData
+        );
+
+        // 🔥 kirim email hanya sekali untuk keseluruhan pesanan (pakai data hari pertama)
+        if (i === 0) {
+            sendBookingEmail({ ...bookingData, dateRangeText: dayCount > 1 ? `${dateList[0]} s/d ${dateList[dayCount-1]}` : dateList[0] }, currentUser);
+        }
+
+    }
+
+    alert(
+        dayCount > 1
+            ? `✅ Pesanan ${dayCount} hari berhasil disimpan (${dateList[0]} s/d ${dateList[dayCount-1]})`
+            : "✅ Pesanan berhasil disimpan"
     );
-
-    // 🔥 TAMBAHAN INI
-    sendBookingEmail(bookingData, currentUser);
-
-    alert("✅ Pesanan berhasil disimpan");
 
 }
 
@@ -6745,31 +6950,29 @@ window.submitChangePassword = async () => {
     }
 
     try {
-        const authUser = auth.currentUser;
-
-        if (!authUser) {
-            alert("User tidak login di Firebase Auth");
-            return;
-        }
-
-        // 🔥 1. UPDATE FIREBASE AUTH (INI YANG REAL PASSWORD SYSTEM)
-        await updatePassword(authUser, newPass);
-
-        // 🔥 2. UPDATE FIRESTORE (optional untuk data display)
+        // 🔥 1. UPDATE KE FIRESTORE — ini penyimpanan yang benar-benar
+        // dipakai aplikasi untuk verifikasi login (lihat form-login di atas),
+        // jadi perubahan di sini yang akan benar-benar berlaku saat login berikutnya.
         await updateDoc(
             doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid),
-            { password: newPass }
+            {
+                password: newPass,
+                mustChangePassword: false
+            }
         );
 
-        // 🔥 3. UPDATE LOCAL STORAGE
+        // 🔥 2. UPDATE LOCAL STORAGE (SESSION AKTIF)
         user.password = newPass;
+        user.mustChangePassword = false;
         localStorage.setItem("traininghub_user", JSON.stringify(user));
+        currentUser = user;
 
-        // 🔥 4. UPDATE LOCAL STATE
+        // 🔥 3. UPDATE LOCAL STATE (SUPAYA LANGSUNG SINKRON DI MEMORI)
         if (window.localState?.users) {
             const idx = localState.users.findIndex(u => u.id === user.uid);
             if (idx !== -1) {
                 localState.users[idx].password = newPass;
+                localState.users[idx].mustChangePassword = false;
             }
         }
 
@@ -6783,12 +6986,7 @@ window.submitChangePassword = async () => {
 
     } catch (err) {
         console.error("Change password error:", err);
-
-        if (err.code === "auth/requires-recent-login") {
-            alert("Silakan login ulang sebelum mengganti password");
-        } else {
-            alert("Gagal update password: " + err.message);
-        }
+        alert("Gagal update password: " + err.message);
     }
 };
 // 🔥 TAMPILKAN MODAL RIWAYAT RUANGAN / ALAT
