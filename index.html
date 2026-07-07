@@ -762,7 +762,7 @@ window.downloadQR = function () {
 		
                 <div id="header-actions">
                     <div id="header-actions">
-    <button onclick="openBooking()" 
+    <button onclick="window.assetPrefill = null; openBooking();" 
         class="fixed right-4 top-1/2 -translate-y-1/2 bg-indigo-600/60 hover:bg-indigo-600 text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 z-[999] backdrop-blur-sm hover:scale-110 transition-all duration-200">
         
         <i class="fas fa-plus"></i>
@@ -4280,6 +4280,13 @@ if(window.innerWidth < 768){
             renderAvailableAssets(type === 'rooms' ? 'room' : 'tool');
         };
 
+        // 🔥 Klik "+ Buat Pesanan" DARI POPUP RIWAYAT RUANGAN/ALAT
+        // -> simpan ruangan/alat yang lagi dibuka, lalu tampilkan popup peringatan seperti biasa
+        window.openBookingFromAsset = (id, type) => {
+    window.assetPrefill = { id, type };
+    window.openBooking();
+};
+
         // 🔥 Klik "+ Buat Pesanan" -> tampilkan popup peringatan aturan dulu
         window.openBooking = () => {
 
@@ -4345,6 +4352,47 @@ if(window.innerWidth < 768){
 
     // Validasi Tool
     window.validateToolSelection();
+
+
+
+    // 🔥 PREFILL RUANGAN/ALAT JIKA DIBUKA DARI POPUP RIWAYAT RUANGAN/ALAT
+    if (window.assetPrefill) {
+
+        const { id: prefillId, type: prefillType } = window.assetPrefill;
+
+        // Pindah ke mode yang sesuai (ruangan / alat)
+        window.toggleBookingType(prefillType);
+
+        if (prefillType === 'room') {
+
+            // Pilih ruangan yang sesuai di dropdown
+            select.value = prefillId;
+
+            // Render ulang supaya validasi bentrok pakai ruangan yang benar
+            window.validateToolSelection();
+
+        } else {
+
+            // Render ulang list alat (kosong dulu), lalu ceklis alat yang sesuai
+            window.validateToolSelection();
+
+            const prefillCheckbox = document.querySelector(
+                `#tool-selection input[name="tools"][value="${prefillId}"]`
+            );
+
+            if (prefillCheckbox) {
+                prefillCheckbox.checked = true;
+            }
+
+            // Render ulang supaya alat yang dipilih pindah ke atas & ke-highlight
+            window.validateToolSelection();
+
+        }
+
+        // Prefill cuma berlaku sekali per pembukaan form
+        window.assetPrefill = null;
+
+    }
 
 
 
@@ -5114,6 +5162,15 @@ ${toolsWithImage.map(t => `
 
 		// 🔥 TAMPILKAN MODAL RIWAYAT RUANGAN / ALAT
 window.showAssetBookings = (id, type, name) => {
+
+    // 🔥 SIMPAN ASSET INI SUPAYA TOMBOL "+ Buat Pesanan" TAU HARUS PREFILL APA
+    const assetBookBtn = document.getElementById('asset-modal-book-btn');
+    if (assetBookBtn) {
+        assetBookBtn.setAttribute(
+            'onclick',
+            `closeAssetModal(); window.openBookingFromAsset('${id}','${type}');`
+        );
+    }
 
     let data = getFilteredBookings();
 
@@ -7343,6 +7400,15 @@ window.submitChangePassword = async () => {
 // 🔥 TAMPILKAN MODAL RIWAYAT RUANGAN / ALAT
 window.showAssetBookings = (id, type, name) => {
 
+    // 🔥 SIMPAN ASSET INI SUPAYA TOMBOL "+ Buat Pesanan" TAU HARUS PREFILL APA
+    const assetBookBtn = document.getElementById('asset-modal-book-btn');
+    if (assetBookBtn) {
+        assetBookBtn.setAttribute(
+            'onclick',
+            `closeAssetModal(); window.openBookingFromAsset('${id}','${type}');`
+        );
+    }
+
     let data = getFilteredBookings();
 
     // FILTER DATA
@@ -7500,7 +7566,7 @@ ${b.status}
 
         <!-- 🔥 TOMBOL BUAT PESANAN (fungsi sama persis dengan tombol + Buat Pesanan utama) -->
         <div class="flex justify-end mt-5 pt-4 border-t border-slate-100">
-            <button onclick="closeAssetModal(); openBooking();"
+            <button id="asset-modal-book-btn" onclick="closeAssetModal(); openBooking();"
                 class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition">
                 <i class="fas fa-plus"></i>
                 Buat Pesanan
