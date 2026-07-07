@@ -5102,6 +5102,11 @@ window.showAssetBookings = (id, type, name) => {
 
     }
 
+    // 🔥 URUTKAN DARI TANGGAL & JAM PALING AWAL KE PALING AKHIR
+    data = data.slice().sort((a, b) =>
+        new Date(`${a.date}T${a.start}`) - new Date(`${b.date}T${b.start}`)
+    );
+
     // UBAH JUDUL
     const title =
         document.getElementById('asset-modal-title');
@@ -7325,6 +7330,11 @@ window.showAssetBookings = (id, type, name) => {
 
     }
 
+    // 🔥 URUTKAN DARI TANGGAL & JAM PALING AWAL KE PALING AKHIR
+    data = data.slice().sort((a, b) =>
+        new Date(`${a.date}T${a.start}`) - new Date(`${b.date}T${b.start}`)
+    );
+
     // UBAH JUDUL
     const title =
         document.getElementById('asset-modal-title');
@@ -7454,6 +7464,15 @@ ${b.status}
 
             </table>
 
+        </div>
+
+        <!-- 🔥 TOMBOL BUAT PESANAN (fungsi sama persis dengan tombol + Buat Pesanan utama) -->
+        <div class="flex justify-end mt-5 pt-4 border-t border-slate-100">
+            <button onclick="closeAssetModal(); openBooking();"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition">
+                <i class="fas fa-plus"></i>
+                Buat Pesanan
+            </button>
         </div>
 
     </div>
