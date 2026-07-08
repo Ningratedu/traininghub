@@ -659,6 +659,13 @@ window.downloadQR = function () {
         <span>Pesanan Saya</span>
     </button>
 
+    <button onclick="showView('statistik-saya', 'Statistik Saya')" 
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    data-view="statistik-saya">
+        <i class="fas fa-chart-pie w-5"></i>
+        <span>Statistik Saya</span>
+    </button>
+
     <button onclick="showView('statistik', 'Statistik All')" 
     class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
     data-view="statistik">
@@ -915,6 +922,19 @@ window.downloadQR = function () {
     </div>
     <h3 class="text-xl font-black mt-1" id="stat-cancelled-pct">0%</h3>
     <p class="text-[9px] font-bold text-slate-400 mt-2" id="stat-cancelled-ratio">0/0</p>
+</div>
+
+<!-- PELANGGARAN (BELUM SELESAI) -->
+<div class="stat-card card-pop p-4 border-t-4 border-rose-600" onclick="window.showView('pelanggaran', 'Pelanggaran Peminjaman')">
+    <div class="flex justify-between items-start">
+        <p class="text-rose-600 text-[9px] font-black uppercase">Pelanggaran Aktif</p>
+        <svg class="w-5 h-5 min-w-[20px] min-h-[20px] flex-shrink-0 text-rose-600" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 20h20L12 2z"/>
+            <path d="M12 9v4M12 17h.01"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-black mt-1" id="stat-violation-active-count">0</h3>
+    <p class="text-[8px] text-slate-400 mt-2" id="stat-violation-active-ratio">0 total • klik untuk kelola & selesaikan</p>
 </div>
 				
 </div>
@@ -1284,6 +1304,111 @@ window.downloadQR = function () {
     <div id="my-booking-list" class="space-y-4"></div>
 </div>
 
+<!-- ================= 🔥 VIEW: STATISTIK SAYA (KHUSUS USER) ================= -->
+<div id="view-statistik-saya" class="view hide">
+
+    <!-- SUMMARY CARDS -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+
+        <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showMyStatTable('all')">
+            <p class="text-slate-500 text-[9px] font-black uppercase">Total Pesanan Saya</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-total">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat semua</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-amber-500" onclick="window.showMyStatTable('Pending')">
+            <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-pending">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2" id="mystat-pending-pct">0%</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-indigo-500" onclick="window.showMyStatTable('Approved')">
+            <p class="text-indigo-500 text-[9px] font-black uppercase">Approved</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-approved">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2" id="mystat-approved-pct">0%</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-cyan-500" onclick="window.showMyStatTable('Ongoing')">
+            <p class="text-cyan-500 text-[9px] font-black uppercase">Ongoing</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-ongoing">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2" id="mystat-ongoing-pct">0%</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-green-500" onclick="window.showMyStatTable('Completed')">
+            <p class="text-green-500 text-[9px] font-black uppercase">Completed</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-completed">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2" id="mystat-completed-pct">0%</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-rose-500" onclick="window.showMyStatTable('Rejected')">
+            <p class="text-rose-500 text-[9px] font-black uppercase">Rejected</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-rejected">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2" id="mystat-rejected-pct">0%</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-slate-400" onclick="window.showMyStatTable('Cancelled')">
+            <p class="text-slate-500 text-[9px] font-black uppercase">Cancelled</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-cancelled">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2" id="mystat-cancelled-pct">0%</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-amber-400" onclick="window.showMyStatTable('rated')">
+            <p class="text-amber-500 text-[9px] font-black uppercase">Sudah Saya Rating</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-rated">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat detail</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-rose-600" onclick="window.showMyViolations()">
+            <p class="text-rose-600 text-[9px] font-black uppercase">Pelanggaran Saya</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-violation-active">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2">Belum terselesaikan</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-emerald-600" onclick="window.showMyViolations('Selesai')">
+            <p class="text-emerald-600 text-[9px] font-black uppercase">Pelanggaran Selesai</p>
+            <h3 class="text-xl font-black mt-1" id="mystat-violation-done">0</h3>
+            <p class="text-[8px] text-slate-400 mt-2">Sudah ditindaklanjuti</p>
+        </div>
+
+    </div>
+
+    <!-- CHARTS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
+                <i class="fas fa-chart-line text-indigo-500"></i>
+                Trend Pesanan Saya
+            </h4>
+            <div class="h-[280px]">
+                <canvas id="trendChartMine"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
+                <i class="fas fa-chart-pie text-indigo-500"></i>
+                Status Pesanan Saya
+            </h4>
+            <div class="h-[280px]">
+                <canvas id="statusChartMine"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-2">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
+                <i class="fas fa-chart-bar text-indigo-500"></i>
+                Ruangan / Alat yang Sering Saya Pinjam
+            </h4>
+            <div class="h-[280px]">
+                <canvas id="assetChartMine"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
 <!-- 🔥 TAMBAHAN STATISTIK -->
 <div id="view-statistik" class="view hide">
 
@@ -1481,6 +1606,43 @@ window.downloadQR = function () {
             <p class="text-[10px] font-bold text-slate-400 uppercase">User Berulang (≥2x)</p>
             <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-berulang">0</p>
         </div>
+
+    </div>
+
+    <!-- ================= 🔥 MONITORING & REMINDER PENYELESAIAN (ADMIN) ================= -->
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 mb-6">
+
+        <h4 class="font-black text-sm text-slate-700 mb-4 flex items-center gap-2">
+            <i class="fas fa-bell text-amber-500"></i>
+            Monitoring & Reminder Penyelesaian Pelanggaran
+        </h4>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+
+            <div class="rounded-2xl bg-rose-50 border border-rose-100 p-3">
+                <p class="text-[9px] font-bold uppercase text-rose-500">Belum Ditindaklanjuti</p>
+                <p class="text-xl font-black text-rose-600" id="monitor-stat-baru">0</p>
+            </div>
+
+            <div class="rounded-2xl bg-indigo-50 border border-indigo-100 p-3">
+                <p class="text-[9px] font-bold uppercase text-indigo-500">Menunggu Penyelesaian</p>
+                <p class="text-xl font-black text-indigo-600" id="monitor-stat-diperingatkan">0</p>
+            </div>
+
+            <div class="rounded-2xl bg-amber-50 border border-amber-100 p-3">
+                <p class="text-[9px] font-bold uppercase text-amber-500">Lewat 7 Hari Belum Selesai</p>
+                <p class="text-xl font-black text-amber-600" id="monitor-stat-overdue">0</p>
+            </div>
+
+            <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-3">
+                <p class="text-[9px] font-bold uppercase text-emerald-500">Sudah Selesai</p>
+                <p class="text-xl font-black text-emerald-600" id="monitor-stat-selesai">0</p>
+            </div>
+
+        </div>
+
+        <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Perlu Tindak Lanjut / Reminder</p>
+        <div id="monitor-reminder-list" class="space-y-2 max-h-[280px] overflow-y-auto"></div>
 
     </div>
 
@@ -3018,6 +3180,9 @@ let trendChart = null;
 let deptChartUser = null;
 let statusChartUser = null;
 let trendChartUser = null;
+let trendChartMine = null;
+let statusChartMine = null;
+let assetChartMine = null;
 let html5QrCode = null;
 
 let localState = {
@@ -3238,6 +3403,14 @@ function renderAdminDashboard() {
     setStat('ongoing', ongoing.length);
     setStat('completed', completed.length);
 
+    // ⚠ CARD PELANGGARAN AKTIF
+    const allViolations = localState.violations || [];
+    const activeViolations = allViolations.filter(v => v.status !== 'Selesai');
+    const violCountEl = document.getElementById('stat-violation-active-count');
+    const violRatioEl = document.getElementById('stat-violation-active-ratio');
+    if (violCountEl) violCountEl.innerText = activeViolations.length;
+    if (violRatioEl) violRatioEl.innerText = `${activeViolations.length} / ${allViolations.length} total • klik untuk kelola & selesaikan`;
+
     updateChart(filtered);
 }
 
@@ -3312,6 +3485,256 @@ window.showStatTable = (category) => {
     }
     document.getElementById('modal-stat-table').classList.remove('hide');
 };
+
+// ================= 🔥 STATISTIK SAYA (USER) ================= //
+function getMyBookings() {
+    if (!currentUser) return [];
+    return (localState.bookings || []).filter(b => b.userUid === currentUser.uid);
+}
+
+window.showMyStatTable = (category) => {
+    const mine = getMyBookings();
+    let list = [];
+    let title = "Detail Pesanan Saya";
+
+    if (category === 'all') {
+        list = mine.slice();
+        title = "Semua Pesanan Saya";
+    } else if (category === 'rated') {
+        list = mine.filter(b => window.hasUserRatedBooking && window.hasUserRatedBooking(b.id));
+        title = "Pesanan Saya yang Sudah Dirating";
+    } else {
+        list = mine.filter(b => (b.status || '').toLowerCase() === category.toLowerCase());
+        title = `Pesanan Saya - Status: ${category}`;
+    }
+
+    list = list.sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.start}`);
+        const dateB = new Date(`${b.date}T${b.start}`);
+        return dateB - dateA;
+    });
+
+    document.getElementById('stat-table-title').innerText = `${title} (${list.length})`;
+    const body = document.getElementById('stat-table-body');
+
+    if (list.length === 0) {
+        body.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>`;
+    } else {
+        body.innerHTML = list.map(b => {
+            const roomName = b.roomId ? (localState.rooms.find(r => String(r.id) === String(b.roomId))?.name || 'N/A') : 'Hanya Alat';
+            return `
+                <tr class="hover:bg-slate-50 transition-colors border-b last:border-0">
+                    <td class="px-4 py-3">
+                        <p class="font-bold text-slate-700">${b.userName}</p>
+                        <p class="text-[9px] text-slate-400 uppercase">${b.dept}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs text-slate-600 line-clamp-1">${b.goal}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs font-medium text-slate-700">${roomName}</p>
+                        <p class="text-[9px] text-indigo-500 font-bold">
+                            ${(b.tools && b.tools.length > 0)
+                                ? 'Alat: ' + b.tools.map(t => t.name).join(', ')
+                                : 'Tanpa alat'}
+                        </p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-xs text-slate-700 font-medium">${b.date}</p>
+                        <p class="text-[9px] text-slate-400">${b.start} - ${b.end}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    document.getElementById('modal-stat-table').classList.remove('hide');
+};
+
+// 🔥 DAFTAR PELANGGARAN SAYA (READ ONLY)
+window.showMyViolations = (filterStatus = null) => {
+    if (!currentUser) return;
+    const mine = (localState.violations || []).filter(v =>
+        (v.userName || '').toLowerCase() === (currentUser.username || '').toLowerCase()
+    );
+
+    const list = filterStatus === 'Selesai'
+        ? mine.filter(v => v.status === 'Selesai')
+        : mine.filter(v => v.status !== 'Selesai');
+
+    document.getElementById('my-violations-title').innerText =
+        filterStatus === 'Selesai' ? '✅ Pelanggaran Saya - Sudah Selesai' : '⚠ Pelanggaran Saya - Belum Selesai';
+
+    const container = document.getElementById('my-violations-list');
+
+    if (list.length === 0) {
+        container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada data pelanggaran</div>`;
+    } else {
+        container.innerHTML = list.map(v => {
+            const date = v.createdAt?.seconds
+                ? new Date(v.createdAt.seconds * 1000).toLocaleDateString('id-ID')
+                : '-';
+            const levelColor =
+                v.level === 'Berat' ? 'bg-rose-100 text-rose-600' :
+                v.level === 'Sedang' ? 'bg-amber-100 text-amber-600' :
+                'bg-slate-100 text-slate-600';
+            return `
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[9px] font-black px-2 py-1 rounded-full ${levelColor}">${v.level}</span>
+                    <span class="text-[10px] text-slate-400">${date}</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mb-1">📍 ${v.assetLabel} • ${v.type}</p>
+                <p class="text-xs text-slate-600 italic mb-1">${v.description}</p>
+                <p class="text-[11px] text-rose-500 bg-rose-50 rounded-lg p-2 mb-1"><b>Konsekuensi:</b> ${v.consequence}</p>
+                ${v.status === 'Selesai' ? `
+                <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-2 mt-1">
+                    <p class="text-[10px] font-bold text-emerald-600 mb-1">✅ Sudah Diselesaikan</p>
+                    ${v.resolutionNote ? `<p class="text-[11px] text-slate-600 italic">${v.resolutionNote}</p>` : ''}
+                    ${v.resolutionEvidence ? `<a href="${v.resolutionEvidence}" target="_blank" class="text-[10px] text-indigo-500 underline">Lihat Bukti Penyelesaian</a>` : ''}
+                </div>` : `
+                <p class="text-[10px] font-bold text-rose-500">Status: ${v.status}</p>`}
+            </div>
+            `;
+        }).join('');
+    }
+
+    document.getElementById('modal-my-violations').classList.remove('hide');
+};
+
+function renderStatistikSaya() {
+    if (!currentUser) return;
+    const mine = getMyBookings();
+    const total = mine.length;
+
+    const getStatus = (b) => (b.status || '').toLowerCase();
+    const pending = mine.filter(b => getStatus(b) === 'pending');
+    const approved = mine.filter(b => getStatus(b) === 'approved');
+    const ongoing = mine.filter(b => getStatus(b) === 'ongoing');
+    const completed = mine.filter(b => getStatus(b) === 'completed');
+    const rejected = mine.filter(b => getStatus(b) === 'rejected');
+    const cancelled = mine.filter(b => getStatus(b) === 'cancelled');
+    const rated = mine.filter(b => window.hasUserRatedBooking && window.hasUserRatedBooking(b.id));
+
+    const myViolations = (localState.violations || []).filter(v =>
+        (v.userName || '').toLowerCase() === (currentUser.username || '').toLowerCase()
+    );
+    const violationActive = myViolations.filter(v => v.status !== 'Selesai');
+    const violationDone = myViolations.filter(v => v.status === 'Selesai');
+
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    const pct = (n) => total === 0 ? '0%' : `${Math.round((n / total) * 100)}%`;
+
+    setTxt('mystat-total', total);
+    setTxt('mystat-pending', pending.length);
+    setTxt('mystat-pending-pct', pct(pending.length));
+    setTxt('mystat-approved', approved.length);
+    setTxt('mystat-approved-pct', pct(approved.length));
+    setTxt('mystat-ongoing', ongoing.length);
+    setTxt('mystat-ongoing-pct', pct(ongoing.length));
+    setTxt('mystat-completed', completed.length);
+    setTxt('mystat-completed-pct', pct(completed.length));
+    setTxt('mystat-rejected', rejected.length);
+    setTxt('mystat-rejected-pct', pct(rejected.length));
+    setTxt('mystat-cancelled', cancelled.length);
+    setTxt('mystat-cancelled-pct', pct(cancelled.length));
+    setTxt('mystat-rated', rated.length);
+    setTxt('mystat-violation-active', violationActive.length);
+    setTxt('mystat-violation-done', violationDone.length);
+
+    setTimeout(() => updateMyChart(mine), 100);
+}
+window.renderStatistikSaya = renderStatistikSaya;
+
+function updateMyChart(dataList) {
+    // STATUS DOUGHNUT
+    const statusCount = { Pending: 0, Approved: 0, Ongoing: 0, Completed: 0, Rejected: 0, Cancelled: 0 };
+    dataList.forEach(b => {
+        const s = (b.status || '').toLowerCase();
+        if (s === 'pending') statusCount.Pending++;
+        else if (s === 'approved') statusCount.Approved++;
+        else if (s === 'ongoing') statusCount.Ongoing++;
+        else if (s === 'completed') statusCount.Completed++;
+        else if (s === 'rejected') statusCount.Rejected++;
+        else if (s === 'cancelled') statusCount.Cancelled++;
+    });
+
+    const ctxStatus = document.getElementById('statusChartMine');
+    if (ctxStatus) {
+        if (statusChartMine) statusChartMine.destroy();
+        statusChartMine = new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusCount),
+                datasets: [{
+                    data: Object.values(statusCount),
+                    backgroundColor: ['#f59e0b', '#6366f1', '#06b6d4', '#10b981', '#ef4444', '#64748b']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+        });
+    }
+
+    // TREND LINE (per bulan)
+    const trendMap = {};
+    dataList.forEach(b => {
+        if (!b.date) return;
+        const d = new Date(b.date);
+        if (isNaN(d)) return;
+        const label = d.toLocaleString('id-ID', { month: 'short', year: '2-digit' });
+        trendMap[label] = (trendMap[label] || 0) + 1;
+    });
+
+    const ctxTrend = document.getElementById('trendChartMine');
+    if (ctxTrend) {
+        if (trendChartMine) trendChartMine.destroy();
+        trendChartMine = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: Object.keys(trendMap),
+                datasets: [{
+                    label: 'Pesanan Saya',
+                    data: Object.values(trendMap),
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79,70,229,0.15)',
+                    tension: 0.35,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // ASSET BAR CHART
+    const assetStats = {};
+    dataList.forEach(b => {
+        const room = b.roomId ? localState.rooms.find(r => String(r.id) === String(b.roomId)) : null;
+        if (room) assetStats[room.name] = (assetStats[room.name] || 0) + 1;
+        (b.tools || []).forEach(t => { assetStats[t.name] = (assetStats[t.name] || 0) + 1; });
+    });
+
+    const ctxAsset = document.getElementById('assetChartMine');
+    if (ctxAsset) {
+        if (assetChartMine) assetChartMine.destroy();
+        assetChartMine = new Chart(ctxAsset, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(assetStats),
+                datasets: [{
+                    label: 'Frekuensi Pinjam',
+                    data: Object.values(assetStats),
+                    backgroundColor: '#10b981',
+                    borderRadius: 8,
+                    barThickness: 24
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+}
+
         window.showRoomStatsDetail = () => {
             const container = document.getElementById('room-stats-container');
             container.innerHTML = localState.rooms.map(room => {
@@ -3646,6 +4069,10 @@ if (activeView === 'statistik') {
 
 }
 
+
+if (activeView === 'statistik-saya') {
+    if (typeof renderStatistikSaya === 'function') renderStatistikSaya();
+}
 
 // ================= VIEW LAIN =================
 
@@ -8254,6 +8681,118 @@ window.markViolationStatus = async (id, status) => {
     }
 };
 
+// ================= 🔥 UPDATE PENYELESAIAN PELANGGARAN + EVIDENCE =================
+window.openResolveViolationModal = (id) => {
+    const v = (localState.violations || []).find(x => x.id === id);
+    if (!v) return;
+
+    document.getElementById('resolve-violation-id').value = id;
+    document.getElementById('resolve-violation-summary').innerText =
+        `${v.userName} (${v.dept}) - ${v.type} [${v.level}]`;
+    document.getElementById('resolve-note').value = v.resolutionNote || '';
+    document.getElementById('resolve-evidence-file').value = '';
+    document.getElementById('resolve-evidence-progress').style.width = '0%';
+    document.getElementById('resolve-evidence-progress-text').innerText = '';
+
+    const existingEl = document.getElementById('resolve-existing-evidence');
+    existingEl.innerHTML = v.resolutionEvidence
+        ? `<a href="${v.resolutionEvidence}" target="_blank" class="text-indigo-500 underline">Lihat bukti yang sudah diunggah sebelumnya</a>`
+        : '';
+
+    document.getElementById('modal-violation-resolve').classList.remove('hide');
+};
+
+window.submitViolationResolution = async () => {
+    const id = document.getElementById('resolve-violation-id').value;
+    if (!id) return;
+
+    const v = (localState.violations || []).find(x => x.id === id);
+    const note = document.getElementById('resolve-note').value.trim();
+    const file = document.getElementById('resolve-evidence-file').files[0];
+
+    if (!note) { alert('Catatan penyelesaian wajib diisi'); return; }
+
+    const btn = document.getElementById('btn-submit-resolve');
+    btn.disabled = true;
+    btn.innerText = 'Menyimpan...';
+
+    try {
+        let evidenceUrl = v?.resolutionEvidence || null;
+
+        if (file) {
+            const compressed = await compressImage(file);
+            evidenceUrl = await uploadToCloudinary(
+                compressed,
+                'resolve-evidence-progress',
+                'resolve-evidence-progress-text',
+                'btn-submit-resolve'
+            );
+        }
+
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'violations', id), {
+            status: 'Selesai',
+            resolutionNote: note,
+            resolutionEvidence: evidenceUrl,
+            resolvedAt: serverTimestamp(),
+            resolvedBy: currentUser?.username || 'Admin'
+        });
+
+        alert('✅ Pelanggaran berhasil ditandai selesai dengan bukti penyelesaian');
+        window.closeModal('modal-violation-resolve');
+    } catch (err) {
+        console.error('Submit violation resolution error:', err);
+        alert('Gagal menyimpan penyelesaian: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Penyelesaian & Tandai Selesai';
+    }
+};
+
+// ================= 🔥 REMINDER TINDAK LANJUT (SUSULAN, TIDAK MENGUBAH STATUS) =================
+window.sendViolationReminder = (id) => {
+    const v = (localState.violations || []).find(x => x.id === id);
+    if (!v) return;
+
+    let email = (v.email || '').trim();
+    if (!email && v.bookingId) {
+        const b = localState.bookings.find(x => x.id === v.bookingId);
+        if (b) email = findUserEmailForBooking(b);
+    }
+    if (!email && localState.users) {
+        const user = localState.users.find(u =>
+            (u.username && v.userName && u.username === v.userName)
+            || (u.name && v.userName && u.name === v.userName)
+        );
+        if (user && user.email) email = user.email;
+    }
+    if (!email) {
+        const input = prompt('Email peminjam belum ditemukan. Masukkan alamat email peminjam:') || '';
+        email = input.trim();
+        if (!email) return;
+    }
+
+    const subject = `[Reminder] Tindak Lanjut Penyelesaian Pelanggaran Peminjaman`;
+    const body =
+`Yth. ${v.userName},
+
+Ini adalah pengingat bahwa pelanggaran peminjaman ${v.assetLabel} (${v.type}, tingkat ${v.level}) yang tercatat pada sistem BELUM berstatus selesai ditindaklanjuti.
+
+Konsekuensi / Tindak Lanjut yang harus dipenuhi:
+${v.consequence}
+
+Mohon segera menyelesaikan tindak lanjut yang diminta. Terima kasih atas perhatian dan kerjasamanya.
+
+- Admin TrainingHub`;
+
+    window.location.href =
+        `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'violations', id), {
+        reminderCount: (v.reminderCount || 0) + 1,
+        lastReminderAt: serverTimestamp()
+    }).catch(err => console.error('Update reminder error:', err));
+};
+
 window.deleteViolation = async (id) => {
     if (!confirm('Hapus catatan pelanggaran ini?')) return;
     try {
@@ -8405,16 +8944,33 @@ function renderPelanggaran() {
             <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2 mb-1 italic">${v.description}</p>
             <p class="text-[11px] text-rose-500 bg-rose-50 rounded-lg p-2 mb-3"><b>Konsekuensi:</b> ${v.consequence}</p>
 
+            ${v.status === 'Selesai' ? `
+            <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 mb-3">
+                <p class="text-[10px] font-black text-emerald-600 mb-1">✅ Penyelesaian Tercatat${v.resolvedBy ? ' oleh ' + v.resolvedBy : ''}${v.resolvedAt?.seconds ? ' • ' + new Date(v.resolvedAt.seconds * 1000).toLocaleDateString('id-ID') : ''}</p>
+                ${v.resolutionNote ? `<p class="text-[11px] text-slate-600 italic mb-1">${v.resolutionNote}</p>` : ''}
+                ${v.resolutionEvidence ? `<a href="${v.resolutionEvidence}" target="_blank" class="text-[10px] text-indigo-600 underline font-bold">📎 Lihat Bukti Penyelesaian</a>` : `<p class="text-[10px] text-slate-400 italic">Tidak ada lampiran bukti</p>`}
+            </div>` : `
+            ${v.reminderCount ? `<p class="text-[10px] text-amber-600 mb-2">🔔 Reminder terkirim ${v.reminderCount}x${v.lastReminderAt?.seconds ? ' • terakhir ' + new Date(v.lastReminderAt.seconds * 1000).toLocaleDateString('id-ID') : ''}</p>` : ''}
+            `}
+
             <div class="flex flex-wrap gap-2">
                 <button onclick="window.sendViolationEmail('${v.id}')"
                     class="px-3 py-1.5 text-[10px] font-bold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1">
                     <i class="fas fa-envelope"></i> Kirim Peringatan Email
                 </button>
                 ${v.status !== 'Selesai' ? `
-                <button onclick="window.markViolationStatus('${v.id}', 'Selesai')"
-                    class="px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
-                    ✔ Tandai Selesai
-                </button>` : ''}
+                <button onclick="window.sendViolationReminder('${v.id}')"
+                    class="px-3 py-1.5 text-[10px] font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition flex items-center gap-1">
+                    <i class="fas fa-bell"></i> Kirim Reminder
+                </button>
+                <button onclick="window.openResolveViolationModal('${v.id}')"
+                    class="px-3 py-1.5 text-[10px] font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                    ✅ Update Penyelesaian
+                </button>` : `
+                <button onclick="window.openResolveViolationModal('${v.id}')"
+                    class="px-3 py-1.5 text-[10px] font-bold border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">
+                    ✏ Edit Bukti Penyelesaian
+                </button>`}
                 <button onclick="window.deleteViolation('${v.id}')"
                     class="px-3 py-1.5 text-[10px] font-bold border border-rose-200 text-rose-500 rounded-lg hover:bg-rose-50 transition">
                     🗑 Hapus
@@ -8423,8 +8979,66 @@ function renderPelanggaran() {
         </div>
         `;
     }).join('');
+
+    renderViolationMonitoring();
 }
 window.renderPelanggaran = renderPelanggaran;
+
+// ================= 🔥 MONITORING & REMINDER PANEL (ADMIN) =================
+function renderViolationMonitoring() {
+    const listEl = document.getElementById('monitor-reminder-list');
+    if (!listEl) return;
+
+    const all = localState.violations || [];
+    const baru = all.filter(v => v.status === 'Baru');
+    const diperingatkan = all.filter(v => v.status === 'Sudah Diperingatkan');
+    const selesai = all.filter(v => v.status === 'Selesai');
+
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+    const needFollowUp = all.filter(v => v.status !== 'Selesai');
+
+    const overdue = needFollowUp.filter(v => {
+        const created = v.createdAt?.seconds ? v.createdAt.seconds * 1000 : null;
+        return created && (now - created) > 7 * DAY;
+    });
+
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    setTxt('monitor-stat-baru', baru.length);
+    setTxt('monitor-stat-diperingatkan', diperingatkan.length);
+    setTxt('monitor-stat-overdue', overdue.length);
+    setTxt('monitor-stat-selesai', selesai.length);
+
+    const sorted = needFollowUp.slice().sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+    if (sorted.length === 0) {
+        listEl.innerHTML = `<div class="py-6 text-center text-slate-400 italic text-xs">🎉 Tidak ada pelanggaran yang perlu ditindaklanjuti</div>`;
+        return;
+    }
+
+    listEl.innerHTML = sorted.map(v => {
+        const created = v.createdAt?.seconds ? v.createdAt.seconds * 1000 : null;
+        const daysAgo = created ? Math.floor((now - created) / DAY) : null;
+        const isOverdue = daysAgo !== null && daysAgo > 7;
+
+        return `
+        <div class="flex items-center justify-between gap-2 p-3 rounded-xl border ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}">
+            <div class="min-w-0">
+                <p class="text-xs font-bold text-slate-700 truncate">${v.userName} <span class="font-normal text-slate-400">• ${v.type}</span></p>
+                <p class="text-[10px] ${isOverdue ? 'text-rose-500 font-bold' : 'text-slate-400'}">
+                    ${daysAgo !== null ? `${daysAgo} hari sejak dicatat` : '-'} • Status: ${v.status}
+                    ${v.reminderCount ? ` • 🔔 ${v.reminderCount}x reminder` : ''}
+                </p>
+            </div>
+            <button onclick="window.sendViolationReminder('${v.id}')"
+                class="flex-shrink-0 px-3 py-1.5 text-[10px] font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg flex items-center gap-1">
+                <i class="fas fa-bell"></i> Reminder
+            </button>
+        </div>
+        `;
+    }).join('');
+}
+window.renderViolationMonitoring = renderViolationMonitoring;
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -8902,6 +9516,73 @@ ${b.status}
                 <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Semua Rating & Feedback</p>
                 <div id="asset-rating-list" class="space-y-2"></div>
             </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: DAFTAR PELANGGARAN SAYA (READ-ONLY, USER) ================= -->
+<div id="modal-my-violations" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-rose-50">
+            <h3 id="my-violations-title" class="text-lg font-black text-rose-600">⚠ Pelanggaran Saya</h3>
+            <button onclick="closeModal('modal-my-violations')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="my-violations-list" class="p-6 overflow-y-auto space-y-3"></div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: UPDATE PENYELESAIAN PELANGGARAN (ADMIN) ================= -->
+<div id="modal-violation-resolve" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-emerald-50">
+            <h3 class="text-lg font-black text-emerald-600">✅ Update Penyelesaian Pelanggaran</h3>
+            <button onclick="closeModal('modal-violation-resolve')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4">
+
+            <input type="hidden" id="resolve-violation-id">
+
+            <div class="bg-slate-50 rounded-xl p-3">
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Peminjam / Pelanggaran</p>
+                <p id="resolve-violation-summary" class="text-sm font-bold text-slate-700">-</p>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Catatan Penyelesaian</label>
+                <textarea id="resolve-note" rows="3" placeholder="Jelaskan tindak lanjut yang sudah dilakukan, mis. sanksi sudah dijalankan, kerugian sudah diganti, dsb..."
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-emerald-400"></textarea>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Lampiran Bukti Penyelesaian (Foto)</label>
+                <input id="resolve-evidence-file" type="file" accept="image/*"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-emerald-400">
+                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                    <div id="resolve-evidence-progress" class="bg-emerald-500 h-1.5 w-0 transition-all"></div>
+                </div>
+                <p id="resolve-evidence-progress-text" class="text-[9px] text-slate-400 mt-1"></p>
+                <p id="resolve-existing-evidence" class="text-[10px] mt-1"></p>
+            </div>
+
+            <button id="btn-submit-resolve" onclick="window.submitViolationResolution()"
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-bold text-sm transition">
+                Simpan Penyelesaian & Tandai Selesai
+            </button>
 
         </div>
 
