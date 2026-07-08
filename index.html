@@ -1057,7 +1057,7 @@ window.downloadQR = function () {
                 <i class="fas fa-list-check"></i> Panduan Singkat Pemesanan
             </h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
 
                 <!-- STEP 01 -->
                 <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-4 shadow flex flex-col">
@@ -1132,6 +1132,21 @@ window.downloadQR = function () {
                         <li>• Validasi serah terima ruangan</li>
                         <li>• Scan QR dari Admin Training</li>
                         <li>• Booking dinyatakan selesai</li>
+                    </ul>
+                </div>
+
+                <!-- STEP 06 -->
+                <div class="bg-[#0b1e3a] border border-blue-500/20 rounded-xl p-4 shadow flex flex-col">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="bg-amber-500 w-6 h-6 text-[10px] flex items-center justify-center rounded-full font-bold shrink-0">06</div>
+                        <h3 class="text-xs font-semibold text-amber-300 leading-tight">
+                            BERI RATING & FEEDBACK
+                        </h3>
+                    </div>
+                    <ul class="text-[11px] text-gray-300 leading-snug space-y-1">
+                        <li>• Buka pesanan berstatus <b>Selesai</b></li>
+                        <li>• Klik <b>⭐ Beri Rating</b></li>
+                        <li>• Nilai tiap ruangan/alat secara terpisah</li>
                     </ul>
                 </div>
 
@@ -1236,6 +1251,76 @@ window.downloadQR = function () {
                     <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
                         Bisa. Saat membuat pesanan, Anda dapat memilih beberapa peralatan sekaligus dalam satu
                         formulir pemesanan, selama semuanya tersedia pada tanggal dan jam yang sama.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Bagaimana cara memberi Rating & Feedback setelah pesanan selesai?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Buka menu <b>Pesanan Saya</b>, cari pesanan berstatus <b>Selesai</b>, lalu klik tombol
+                        <b>⭐ Beri Rating</b>. Anda akan diminta memberi bintang & komentar <b>terpisah untuk
+                        setiap ruangan/alat</b> yang dipakai pada pesanan tersebut — jadi kalau satu pesanan
+                        memakai 1 ruangan + 2 alat, Anda memberi 3 penilaian sendiri-sendiri, bukan 1 nilai
+                        untuk semuanya.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Kenapa angka rating di halaman "Pesanan Saya" berbeda dengan rating di halaman ruangan/alat?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Keduanya memang dihitung berbeda dan sama-sama benar:<br>
+                        • Di <b>detail pesanan</b>, angka yang tampil adalah <b>rata-rata gabungan</b> dari semua
+                        ruangan + alat pada pesanan itu saja.<br>
+                        • Di halaman <b>Ruangan/Peralatan Tersedia</b> atau menu master aset, angka yang tampil
+                        adalah <b>rata-rata rating aset tersebut dari seluruh pesanan</b> yang pernah menggunakannya.
+                        Klik <b>⭐ Rating & Feedback</b> pada aset untuk melihat rincian tiap ulasannya.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Apakah rating/feedback bisa diisi oleh Admin Training juga?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Bisa. Admin Training juga dapat menambahkan penilaian/catatan kondisi pada suatu ruangan
+                        atau alat melalui menu <b>⭐ Rating & Feedback</b> di halaman master aset, biasanya
+                        setelah melakukan pengecekan kondisi fisik. Penilaian dari Admin akan ditandai label
+                        <b>ADMIN</b>, sedangkan dari pengguna ditandai <b>USER</b>, dan keduanya sama-sama
+                        dihitung dalam rata-rata rating aset tersebut.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Bisakah saya memperbesar/melihat foto ruangan, alat, atau bukti serah terima?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Bisa. Semua foto di TrainingHub — foto ruangan, foto alat, maupun foto bukti mulai/selesai
+                        penggunaan — dapat <b>diklik langsung</b> untuk membukanya dalam tampilan layar penuh.
+                        Klik area di luar foto atau tombol ✕ di pojok untuk menutup tampilan tersebut.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Apa itu "Pelanggaran Peminjaman" dan bagaimana saya tahu jika tercatat?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Pelanggaran Peminjaman adalah catatan yang dibuat Admin Training apabila ditemukan
+                        ketidaksesuaian saat penggunaan ruangan/alat (misalnya kerusakan, keterlambatan
+                        pengembalian, atau kondisi tidak sesuai). Setiap pelanggaran memiliki tingkat
+                        <b>Ringan</b>, <b>Sedang</b>, atau <b>Berat</b>. Anda bisa melihat daftar pelanggaran
+                        yang tercatat atas nama Anda melalui menu <b>Pelanggaran Saya</b>, atau langsung pada
+                        bagian <b>"⚠ Pelanggaran Pada Pesanan Ini"</b> di detail pesanan terkait.
                     </div>
                 </div>
 
@@ -3554,18 +3639,29 @@ window.showMyStatTable = (category) => {
 };
 
 // 🔥 DAFTAR PELANGGARAN SAYA (READ ONLY)
-window.showMyViolations = (filterStatus = null) => {
+window.showMyViolations = (filterStatus = null, bookingId = null) => {
     if (!currentUser) return;
-    const mine = (localState.violations || []).filter(v =>
+    let mine = (localState.violations || []).filter(v =>
         (v.userName || '').toLowerCase() === (currentUser.username || '').toLowerCase()
     );
 
-    const list = filterStatus === 'Selesai'
-        ? mine.filter(v => v.status === 'Selesai')
-        : mine.filter(v => v.status !== 'Selesai');
+    // 🔥 Kalau dipanggil dari kartu pesanan tertentu (Pesanan Saya / Kalender),
+    // tampilkan HANYA pelanggaran milik pesanan itu (semua status, biar user
+    // bisa langsung lihat apakah sudah diselesaikan admin atau belum)
+    if (bookingId) {
+        mine = mine.filter(v => v.bookingId === bookingId);
+    }
+
+    const list = bookingId
+        ? mine
+        : (filterStatus === 'Selesai'
+            ? mine.filter(v => v.status === 'Selesai')
+            : mine.filter(v => v.status !== 'Selesai'));
 
     document.getElementById('my-violations-title').innerText =
-        filterStatus === 'Selesai' ? '✅ Pelanggaran Saya - Sudah Selesai' : '⚠ Pelanggaran Saya - Belum Selesai';
+        bookingId
+            ? '⚠ Status Penyelesaian Pelanggaran Pesanan Ini'
+            : (filterStatus === 'Selesai' ? '✅ Pelanggaran Saya - Sudah Selesai' : '⚠ Pelanggaran Saya - Belum Selesai');
 
     const container = document.getElementById('my-violations-list');
 
@@ -3753,7 +3849,8 @@ transition-all p-3 rounded-2xl cursor-pointer flex items-center gap-3 group">
     <!-- GAMBAR -->
     <img 
         src="${room.image || 'https://via.placeholder.com/100'}"
-        class="w-16 h-16 object-cover rounded-xl flex-shrink-0"
+        onclick="event.stopPropagation(); window.openImageLightbox('${room.image || ''}', decodeURIComponent('${encodeURIComponent(room.name)}'))"
+        class="w-16 h-16 object-cover rounded-xl flex-shrink-0 cursor-zoom-in hover:opacity-80 transition"
     />
 
     <!-- CONTENT -->
@@ -3837,7 +3934,8 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
     <!-- GAMBAR -->
     <img 
         src="${tool.image || 'https://via.placeholder.com/100'}"
-        class="w-16 h-16 object-cover rounded-xl flex-shrink-0"
+        onclick="event.stopPropagation(); window.openImageLightbox('${tool.image || ''}', decodeURIComponent('${encodeURIComponent(tool.name)}'))"
+        class="w-16 h-16 object-cover rounded-xl flex-shrink-0 cursor-zoom-in hover:opacity-80 transition"
     />
 
     <!-- CONTENT -->
@@ -4683,7 +4781,8 @@ if (!openDetailParam) {
         <!-- GAMBAR -->
         <img 
             src="${item.image || 'https://via.placeholder.com/150'}"
-            class="w-32 h-32 object-cover flex-shrink-0 ${isClosed ? 'opacity-70' : ''}"
+            onclick="event.stopPropagation(); window.openImageLightbox('${item.image || ''}', decodeURIComponent('${encodeURIComponent(item.name)}'))"
+            class="w-32 h-32 object-cover flex-shrink-0 cursor-zoom-in hover:opacity-80 transition ${isClosed ? 'opacity-70' : ''}"
         />
 
         <!-- CONTENT -->
@@ -5370,7 +5469,8 @@ if (isToolBentrok) {
 
     <img
         src="${t.image || 'https://via.placeholder.com/60'}"
-        class="w-14 h-14 rounded-lg object-cover border"
+        onclick="event.preventDefault(); event.stopPropagation(); window.openImageLightbox('${t.image || ''}', decodeURIComponent('${encodeURIComponent(t.name)}'))"
+        class="w-14 h-14 rounded-lg object-cover border cursor-zoom-in hover:opacity-80 transition"
     >
 
     <div class="flex-1">
@@ -5555,14 +5655,12 @@ const listenToData = () => {
             }
             ${
                 window.getBookingViolations && window.getBookingViolations(b.id).length > 0
-                ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
+                ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
+                    class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
+                    ⚠ Lihat Penyelesaian
+                    </button>`
                 : ''
             }
-        </p>
-
-        <p class="text-[11px] text-slate-500 truncate">
-            👤 ${b.name || b.userName || '-'} • ${b.department || b.dept || '-'}
-        </p>
 
         <p class="text-[11px] text-slate-500 truncate">
             📍 ${roomName}
@@ -5906,7 +6004,8 @@ window.renderAllBookings = function() {
 
         <img
             src="${roomImage}"
-            class="w-10 h-10 rounded object-cover border"
+            onclick="event.stopPropagation(); window.openImageLightbox('${roomImage || ''}', decodeURIComponent('${encodeURIComponent(roomName || '')}'))"
+            class="w-10 h-10 rounded object-cover border cursor-zoom-in hover:opacity-80 transition"
         >
 
         <span>
@@ -5926,7 +6025,8 @@ ${toolsWithImage.map(t => `
 
     <img
         src="${t.image || 'https://via.placeholder.com/40'}"
-        class="w-8 h-8 rounded object-cover border"
+        onclick="event.stopPropagation(); window.openImageLightbox('${t.image || ''}', decodeURIComponent('${encodeURIComponent(t.name)}'))"
+        class="w-8 h-8 rounded object-cover border cursor-zoom-in hover:opacity-80 transition"
     >
 
     <span class="text-xs">
@@ -6465,7 +6565,8 @@ return `
 
     <img
         src="${image}"
-        class="w-10 h-10 rounded object-cover border"
+        onclick="event.preventDefault(); event.stopPropagation(); window.openImageLightbox('${image || ''}', decodeURIComponent('${encodeURIComponent(t.name || '')}'))"
+        class="w-10 h-10 rounded object-cover border cursor-zoom-in hover:opacity-80 transition"
     >
 
     <span class="text-xs font-bold text-slate-700">
@@ -6553,7 +6654,8 @@ function renderMaster(){
     <!-- FOTO -->
     <img 
         src="${r.image || 'https://via.placeholder.com/100'}"
-        class="w-14 h-14 object-cover rounded-xl flex-shrink-0"
+        onclick="event.stopPropagation(); window.openImageLightbox('${r.image || ''}', decodeURIComponent('${encodeURIComponent(r.name)}'))"
+        class="w-14 h-14 object-cover rounded-xl flex-shrink-0 cursor-zoom-in hover:opacity-80 transition"
     />
 
     <!-- CONTENT -->
@@ -6632,7 +6734,8 @@ function renderMaster(){
     <!-- FOTO -->
     <img 
         src="${t.image || 'https://via.placeholder.com/100'}"
-        class="w-14 h-14 object-cover rounded-xl flex-shrink-0"
+        onclick="event.stopPropagation(); window.openImageLightbox('${t.image || ''}', decodeURIComponent('${encodeURIComponent(t.name)}'))"
+        class="w-14 h-14 object-cover rounded-xl flex-shrink-0 cursor-zoom-in hover:opacity-80 transition"
     />
 
     <!-- CONTENT -->
@@ -6953,6 +7056,22 @@ function isBookingExpired(b){
     return now > endTime;
 
 }
+
+// 🔥 Cek apakah waktu mulai pemesanan sudah tiba (dipakai buat nge-gate
+// tombol "Catat Pelanggaran" di kalender admin biar gak muncul buat
+// jadwal yang belum berjalan)
+function isBookingStarted(b){
+
+    if(!b.date || !b.start) return false;
+
+    const now = new Date();
+
+    const startTime =
+        new Date(`${b.date}T${b.start}`);
+
+    return now >= startTime;
+
+}
 		
 // ================= RENDER JADWAL =================
 
@@ -6985,6 +7104,9 @@ function renderJadwal() {
         const expired =
             b.status === "Approved"
             && isBookingExpired(b);
+
+        const started =
+            isBookingStarted(b);
 
         const isAdmin =
             currentUser?.role === "admin";
@@ -7069,7 +7191,14 @@ class="relative bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm 
             }
             ${
                 window.getBookingViolations && window.getBookingViolations(b.id).length > 0
-                ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
+                ? (
+                    isAdmin
+                    ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
+                    : `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
+                        class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
+                        ⚠ Lihat Penyelesaian
+                        </button>`
+                  )
                 : ''
             }
         </p>
@@ -7225,6 +7354,9 @@ isAdmin
     : ``
 }
 
+    ${
+    started
+    ? `
     <button
     onclick="event.stopPropagation(); window.openViolationModal('${b.id}')"
     class="px-3 py-1 text-[10px] font-bold 
@@ -7233,6 +7365,9 @@ isAdmin
     transition whitespace-nowrap">
     ⚠ Catat Pelanggaran
     </button>
+    `
+    : ``
+}
 
 </div>
 
@@ -7460,7 +7595,8 @@ ${room ? `
 
         <img
             src="${room.image || 'https://via.placeholder.com/80'}"
-            class="w-16 h-16 rounded-lg object-cover border"
+            onclick="event.stopPropagation(); window.openImageLightbox('${room.image || ''}', decodeURIComponent('${encodeURIComponent(room.name)}'))"
+            class="w-16 h-16 rounded-lg object-cover border cursor-zoom-in hover:opacity-80 transition"
         >
 
         <div class="font-bold italic">
@@ -7532,7 +7668,8 @@ ${
 
     <img
         src="${t.image || 'https://via.placeholder.com/60'}"
-        class="w-10 h-10 rounded object-cover border"
+        onclick="event.stopPropagation(); window.openImageLightbox('${t.image || ''}', decodeURIComponent('${encodeURIComponent(t.name)}'))"
+        class="w-10 h-10 rounded object-cover border cursor-zoom-in hover:opacity-80 transition"
     >
 
     <span class="text-[10px] font-bold text-emerald-700">
@@ -7562,15 +7699,19 @@ ${(() => {
     ${
         bookingRatings.length
         ? `
-    <div class="flex items-center gap-2 mb-2">
+    <div class="flex items-center gap-2 mb-1">
         <span class="text-2xl font-black text-amber-500">${ratingSummary.avg.toFixed(1)}</span>
         <span class="text-[10px] text-slate-500 font-bold">(${ratingSummary.count} penilaian)</span>
     </div>
+    <p class="text-[9px] text-amber-600/80 italic mb-2">Rata-rata gabungan dari semua ruangan + alat pada pesanan ini. Rincian per aset ada di bawah.</p>
     <div class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
         ${bookingRatings.map(r => `
         <div class="text-[11px] bg-white/70 rounded-lg p-2 border border-amber-100">
-            <span class="font-bold text-slate-700">${r.source === 'admin' ? '🛡 Admin' : ('👤 ' + (r.userName || 'User'))}</span>
-            <span class="text-amber-500 ml-1">${'★'.repeat(Number(r.rating) || 0)}${'☆'.repeat(5 - (Number(r.rating) || 0))}</span>
+            <div class="flex items-center justify-between gap-2">
+                <span class="font-bold text-slate-700">${r.source === 'admin' ? '🛡 Admin' : ('👤 ' + (r.userName || 'User'))}</span>
+                <span class="text-[9px] font-black text-indigo-500 uppercase truncate max-w-[45%] text-right">${r.assetName || ''}</span>
+            </div>
+            <span class="text-amber-500">${'★'.repeat(Number(r.rating) || 0)}${'☆'.repeat(5 - (Number(r.rating) || 0))}</span>
             ${r.comment ? `<div class="italic text-slate-500 mt-0.5">"${r.comment}"</div>` : ''}
         </div>
         `).join('')}
@@ -8095,7 +8236,9 @@ function injectBookingTimes(b){
             <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
                 Foto Mulai Penggunaan
             </p>
-            <img src="${b.startPhoto}" class="rounded-xl max-h-40 border shadow-sm"/>
+            <img src="${b.startPhoto}"
+                onclick="event.stopPropagation(); window.openImageLightbox('${b.startPhoto}', 'Foto Mulai Penggunaan')"
+                class="rounded-xl max-h-40 border shadow-sm cursor-zoom-in hover:opacity-80 transition"/>
         </div>` : ""}
 
         ${b.finishPhoto ? `
@@ -8103,7 +8246,9 @@ function injectBookingTimes(b){
             <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
                 Foto Selesai Penggunaan
             </p>
-            <img src="${b.finishPhoto}" class="rounded-xl max-h-40 border shadow-sm"/>
+            <img src="${b.finishPhoto}"
+                onclick="event.stopPropagation(); window.openImageLightbox('${b.finishPhoto}', 'Foto Selesai Penggunaan')"
+                class="rounded-xl max-h-40 border shadow-sm cursor-zoom-in hover:opacity-80 transition"/>
         </div>` : ""}
 
 ${b.finishedByAdmin ? `
@@ -8353,6 +8498,24 @@ window.showView('riwayat','Pesanan Saya');
 // 🔥🔥🔥 FITUR BARU: RATING & FEEDBACK + PELANGGARAN PEMINJAMAN
 // ============================================================
 
+// ================= 🔥 LIGHTBOX: KLIK FOTO UNTUK LIHAT/PERBESAR =================
+window.openImageLightbox = (src, caption) => {
+    if (!src) return;
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    if (!img) return;
+    img.src = src;
+    if (cap) cap.innerText = caption || '';
+    document.getElementById('modal-image-lightbox').classList.remove('hide');
+};
+
+window.closeImageLightbox = () => {
+    const modal = document.getElementById('modal-image-lightbox');
+    if (modal) modal.classList.add('hide');
+    const img = document.getElementById('lightbox-img');
+    if (img) img.src = '';
+};
+
 // ================= RATING & FEEDBACK: HELPER =================
 function getAssetRatings(type, id) {
     return (localState.ratings || []).filter(r =>
@@ -8418,21 +8581,64 @@ window.getBookingViolations = (bookingId) => {
     return (localState.violations || []).filter(v => v.bookingId === bookingId);
 };
 
+// 🔥 Bikin id form yang unik & aman dipakai di HTML per kombinasi tipe+id aset
+function assetRatingFormId(type, id) {
+    return `asset_${type}_${String(id).replace(/[^a-zA-Z0-9_-]/g, '')}`;
+}
+
 window.openUserRatingModal = (bookingId) => {
     const b = localState.bookings.find(x => x.id === bookingId);
     if (!b) return;
 
     document.getElementById('rating-booking-id').value = bookingId;
 
-    const room = b.roomId ? localState.rooms.find(r => String(r.id) === String(b.roomId)) : null;
-    const assetNames = [room ? room.name : null, ...(b.tools || []).map(t => t.name)]
-        .filter(Boolean).join(', ');
+    // 🔥 Kumpulkan semua aset (ruangan + tiap alat) pada pesanan ini,
+    // karena rating sekarang WAJIB per-aset (tidak digabung jadi 1 nilai)
+    const assets = [];
+    if (b.roomId) {
+        const room = localState.rooms.find(r => String(r.id) === String(b.roomId));
+        if (room) assets.push({ type: 'room', id: room.id, name: room.name, image: room.image, label: 'Ruangan' });
+    }
+    (b.tools || []).forEach(t => {
+        const masterTool = localState.tools.find(x => String(x.id) === String(t.id));
+        assets.push({ type: 'tool', id: t.id, name: t.name, image: t.image || masterTool?.image, label: 'Peralatan' });
+    });
 
-    document.getElementById('rating-asset-label').innerText = assetNames || '-';
+    window.__ratingModalAssets = assets;
 
-    window.__rating_userRating = 0;
-    document.getElementById('stars-userRating').innerHTML = starsRowHTML('userRating', 0);
-    document.getElementById('rating-comment').value = '';
+    const container = document.getElementById('rating-assets-container');
+
+    if (assets.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">Tidak ada aset pada pesanan ini.</p>`;
+    } else {
+        container.innerHTML = assets.map(a => {
+            const formId = assetRatingFormId(a.type, a.id);
+            return `
+            <div class="border border-slate-200 rounded-2xl p-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <img src="${a.image || 'https://via.placeholder.com/60'}"
+                        onclick="event.stopPropagation(); window.openImageLightbox('${a.image || ''}', decodeURIComponent('${encodeURIComponent(a.name)}'))"
+                        class="w-11 h-11 rounded-lg object-cover border cursor-zoom-in hover:opacity-80 transition flex-shrink-0" />
+                    <div class="min-w-0">
+                        <p class="text-[9px] font-black uppercase text-amber-500">${a.label}</p>
+                        <p class="text-xs font-bold text-slate-700 truncate">${a.name}</p>
+                    </div>
+                </div>
+                <div id="stars-${formId}" class="flex mb-2"></div>
+                <textarea id="comment-${formId}" rows="2"
+                    placeholder="Komentar untuk ${a.name} (opsional)..."
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+            </div>`;
+        }).join('');
+
+        // render bintang untuk tiap aset setelah HTML ter-inject
+        assets.forEach(a => {
+            const formId = assetRatingFormId(a.type, a.id);
+            window['__rating_' + formId] = 0;
+            const starsEl = document.getElementById('stars-' + formId);
+            if (starsEl) starsEl.innerHTML = starsRowHTML(formId, 0);
+        });
+    }
 
     document.getElementById('modal-rating').classList.remove('hide');
 };
@@ -8442,36 +8648,40 @@ window.submitUserRating = async () => {
     const b = localState.bookings.find(x => x.id === bookingId);
     if (!b) return;
 
-    const val = window.__rating_userRating || 0;
-    if (val < 1) { alert('Silakan pilih rating bintang terlebih dahulu'); return; }
-
-    const comment = document.getElementById('rating-comment').value.trim();
-
-    const assets = [];
-    if (b.roomId) {
-        const room = localState.rooms.find(r => String(r.id) === String(b.roomId));
-        if (room) assets.push({ type: 'room', id: room.id, name: room.name });
-    }
-    (b.tools || []).forEach(t => assets.push({ type: 'tool', id: t.id, name: t.name }));
-
+    const assets = window.__ratingModalAssets || [];
     if (assets.length === 0) { alert('Tidak ada aset pada pesanan ini'); return; }
 
+    // 🔥 Validasi: setiap aset WAJIB dinilai sendiri-sendiri (per-asset)
+    const payloads = [];
+    for (const a of assets) {
+        const formId = assetRatingFormId(a.type, a.id);
+        const val = window['__rating_' + formId] || 0;
+        if (val < 1) {
+            alert(`Silakan beri rating bintang untuk "${a.name}" terlebih dahulu`);
+            return;
+        }
+        const commentEl = document.getElementById('comment-' + formId);
+        payloads.push({
+            assetType: a.type,
+            assetId: a.id,
+            assetName: a.name,
+            rating: val,
+            comment: commentEl ? commentEl.value.trim() : ''
+        });
+    }
+
     try {
-        for (const a of assets) {
+        for (const p of payloads) {
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ratings'), {
                 bookingId,
-                assetType: a.type,
-                assetId: a.id,
-                assetName: a.name,
-                rating: val,
-                comment,
+                ...p,
                 source: 'user',
                 userName: b.userName || currentUser.username,
                 dept: b.dept || currentUser.dept || '-',
                 createdAt: serverTimestamp()
             });
         }
-        alert('Terima kasih atas penilaian Anda!');
+        alert('Terima kasih atas penilaian Anda untuk setiap ruangan/alat!');
         window.closeModal('modal-rating');
     } catch (err) {
         console.error('Submit rating error:', err);
@@ -9441,25 +9651,17 @@ ${b.status}
             </button>
         </div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
 
             <input type="hidden" id="rating-booking-id">
 
-            <div>
-                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Ruangan / Alat yang digunakan</p>
-                <p id="rating-asset-label" class="text-sm font-bold text-slate-700">-</p>
-            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed -mt-1">
+                Beri penilaian <b>terpisah untuk setiap ruangan/alat</b> pada pesanan ini. Nilai rata-rata gabungan
+                akan tampil di halaman detail pesanan, sedangkan nilai per aset akan tampil pada halaman ruangan/alat
+                terkait.
+            </p>
 
-            <div>
-                <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Bagaimana pengalaman Anda?</p>
-                <div id="stars-userRating" class="flex"></div>
-            </div>
-
-            <div>
-                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Komentar / Masukan (opsional)</p>
-                <textarea id="rating-comment" rows="3" placeholder="Ceritakan kondisi ruangan/alat, kendala, atau saran perbaikan..."
-                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"></textarea>
-            </div>
+            <div id="rating-assets-container" class="space-y-3"></div>
 
             <button onclick="window.submitUserRating()"
                 class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-bold text-sm transition">
@@ -9519,6 +9721,24 @@ ${b.status}
 
         </div>
 
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: LIGHTBOX LIHAT FOTO (KLIK UNTUK PERBESAR) ================= -->
+<div id="modal-image-lightbox"
+    class="fixed inset-0 z-[99999] hide bg-black/90 flex items-center justify-center p-4"
+    onclick="window.closeImageLightbox()">
+
+    <button onclick="event.stopPropagation(); window.closeImageLightbox()"
+        class="absolute top-4 right-4 md:top-6 md:right-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 w-10 h-10 rounded-full flex items-center justify-center transition">
+        <i class="fas fa-times text-lg"></i>
+    </button>
+
+    <div class="flex flex-col items-center max-w-full max-h-full" onclick="event.stopPropagation()">
+        <img id="lightbox-img" src="" alt="Pratinjau foto"
+            class="max-h-[85vh] max-w-[95vw] object-contain rounded-2xl shadow-2xl bg-slate-800" />
+        <p id="lightbox-caption" class="text-white/80 text-xs font-semibold mt-3 text-center px-4"></p>
     </div>
 
 </div>
