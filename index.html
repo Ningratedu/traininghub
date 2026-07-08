@@ -693,6 +693,13 @@ window.downloadQR = function () {
                         data-view="all-bookings">
                         <i class="fas fa-table w-5"></i> Semua Pesanan
                     </button>
+
+                    <button onclick="showView('pelanggaran', 'Pelanggaran Peminjaman')" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" 
+                        data-view="pelanggaran">
+                        <i class="fas fa-triangle-exclamation w-5"></i> Pelanggaran
+                        <span id="badge-violation" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
+                    </button>
                 </div>
 
             </div>
@@ -1431,6 +1438,8 @@ window.downloadQR = function () {
 
                     <th onclick="sortAllBookings('status')" class="px-3 py-2 min-w-[140px] cursor-pointer">Status</th>
 
+                    <th class="px-3 py-2 min-w-[140px]">Aksi</th>
+
                 </tr>
             </thead>
 
@@ -1439,6 +1448,62 @@ window.downloadQR = function () {
         </table>
 
     </div>
+
+</div>
+
+<!-- ================= VIEW PELANGGARAN PEMINJAMAN ================= -->
+<div id="view-pelanggaran" class="view hide">
+
+    <!-- SUMMARY CARDS -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+
+        <div class="stat-card stat-slate p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Total Pelanggaran</p>
+            <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-total">0</p>
+        </div>
+
+        <div class="stat-card stat-emerald p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Ringan</p>
+            <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-ringan">0</p>
+        </div>
+
+        <div class="stat-card stat-amber p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Sedang</p>
+            <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-sedang">0</p>
+        </div>
+
+        <div class="stat-card stat-rose p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Berat</p>
+            <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-berat">0</p>
+        </div>
+
+        <div class="stat-card stat-indigo p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">User Berulang (≥2x)</p>
+            <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-berulang">0</p>
+        </div>
+
+    </div>
+
+    <!-- SEARCH + ADD -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+
+        <input
+            type="search"
+            id="search-pelanggaran"
+            oninput="window.filterPelanggaran()"
+            placeholder="Cari nama / departemen / jenis pelanggaran..."
+            class="w-full md:w-1/3 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm"
+        />
+
+        <button
+            onclick="window.openViolationModal()"
+            class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 justify-center">
+            <i class="fas fa-plus"></i> Catat Pelanggaran
+        </button>
+
+    </div>
+
+    <div id="pelanggaran-list" class="space-y-3"></div>
 
 </div>
             </div>
@@ -2135,7 +2200,9 @@ window.localState = {
     rooms: [],
     tools: [],
     bookings: [],
-    users: []
+    users: [],
+    ratings: [],
+    violations: []
 };
 
 
@@ -3595,6 +3662,14 @@ if (activeView === 'all-bookings') {
     renderAllBookings();
 }
 
+if (activeView === 'pelanggaran') {
+    if (typeof renderPelanggaran === 'function') renderPelanggaran();
+}
+
+if (typeof updateViolationBadge === 'function') {
+    updateViolationBadge();
+}
+
 
 // ================= BADGE =================
 
@@ -4197,6 +4272,11 @@ if (!openDetailParam) {
                     : `Lokasi: ${item.pos || '-'}`
                 }
             </p>
+
+            <!-- RATING BADGE -->
+            <div class="mt-1" onclick="event.stopPropagation(); window.openAssetRating('${type}','${item.id}', decodeURIComponent('${encodeURIComponent(item.name)}'))">
+                ${window.ratingBadgeHTML ? window.ratingBadgeHTML(type, item.id) : ''}
+            </div>
 
         </div>
 
@@ -4904,7 +4984,7 @@ onAuthStateChanged(auth, (user) => {
 
 });
 const listenToData = () => {
-    ['rooms', 'tools', 'bookings', 'users'].forEach(coll => {
+    ['rooms', 'tools', 'bookings', 'users', 'ratings', 'violations'].forEach(coll => {
 
         onSnapshot(
             collection(
@@ -4967,6 +5047,12 @@ const listenToData = () => {
         function updatePendingBadge() {
             const count = localState.bookings.filter(b => b.status === 'Pending').length;
             const badge = document.getElementById('badge-pending');
+            if(badge) { badge.innerText = count; badge.classList.toggle('hide', count === 0); }
+        }
+
+        function updateViolationBadge() {
+            const count = (localState.violations || []).filter(v => v.status === 'Baru').length;
+            const badge = document.getElementById('badge-violation');
             if(badge) { badge.innerText = count; badge.classList.toggle('hide', count === 0); }
         }
 
@@ -5096,6 +5182,15 @@ class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover
 class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
     <i class="fas fa-trash-alt text-sm"></i>
 </button>
+` : b.status === 'Completed' ? `
+${
+    window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
+    ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
+    : `<button onclick="window.openUserRatingModal('${b.id}')"
+        class="px-3 py-1 text-[10px] font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition whitespace-nowrap">
+        ⭐ Beri Rating
+        </button>`
+}
 ` : ``}
 
 </div>
@@ -5270,7 +5365,7 @@ window.renderAllBookings = function() {
     if(data.length === 0){
         tbody.innerHTML = `
             <tr>
-                <td colspan="13" class="text-center py-6 text-slate-400">
+                <td colspan="14" class="text-center py-6 text-slate-400">
                     Tidak ada data
                 </td>
             </tr>`;
@@ -5314,7 +5409,14 @@ window.renderAllBookings = function() {
 
             <td class="px-3 py-2">${b.start} - ${b.end}</td>
 
-            <td class="px-3 py-2">${b.userName}</td>
+            <td class="px-3 py-2">
+                ${b.userName}
+                ${
+                    window.getUserViolationCount && window.getUserViolationCount(b.userName) > 0
+                    ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ ${window.getUserViolationCount(b.userName)}x</span>`
+                    : ''
+                }
+            </td>
 
             <td class="px-3 py-2">${b.dept}</td>
 
@@ -5389,6 +5491,13 @@ ${toolsWithImage.map(t => `
 
             <td class="px-3 py-2 text-center font-bold">
                 ${b.status}
+            </td>
+
+            <td class="px-3 py-2 text-center">
+                <button onclick="window.openViolationModal('${b.id}')"
+                    class="px-2 py-1 text-[9px] font-bold bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition whitespace-nowrap">
+                    ⚠ Catat Pelanggaran
+                </button>
             </td>
 
         </tr>
@@ -5978,21 +6087,33 @@ function renderMaster(){
         <p class="text-[10px] text-indigo-500 font-bold">
             👥 ${r.capacity || 0} Orang
         </p>
+
+        <div class="mt-1">
+            ${window.ratingBadgeHTML ? window.ratingBadgeHTML('room', r.id) : ''}
+        </div>
     </div>
 
     <!-- ACTION -->
-    <div class="flex items-center gap-3 text-[10px] italic">
+    <div class="flex flex-col items-end gap-1.5 text-[10px] italic">
+
+        <div class="flex items-center gap-3">
+            <button
+                onclick="openMasterModal('room','${r.id}')"
+                class="text-indigo-500 hover:underline">
+                Edit
+            </button>
+
+            <button
+                onclick="deleteMasterItem('room','${r.id}')"
+                class="text-rose-500 hover:underline">
+                Hapus
+            </button>
+        </div>
 
         <button
-            onclick="openMasterModal('room','${r.id}')"
-            class="text-indigo-500 hover:underline">
-            Edit
-        </button>
-
-        <button
-            onclick="deleteMasterItem('room','${r.id}')"
-            class="text-rose-500 hover:underline">
-            Hapus
+            onclick="window.openAssetRating('room','${r.id}', decodeURIComponent('${encodeURIComponent(r.name)}'))"
+            class="not-italic px-2 py-1 bg-amber-50 text-amber-600 rounded-lg font-bold hover:bg-amber-100">
+            ⭐ Rating & Feedback
         </button>
 
     </div>
@@ -6045,21 +6166,33 @@ function renderMaster(){
         <p class="text-[10px] text-indigo-500 font-bold">
             📍 ${t.pos || '-'}
         </p>
+
+        <div class="mt-1">
+            ${window.ratingBadgeHTML ? window.ratingBadgeHTML('tool', t.id) : ''}
+        </div>
     </div>
 
     <!-- ACTION -->
-    <div class="flex items-center gap-3 text-[10px] italic">
+    <div class="flex flex-col items-end gap-1.5 text-[10px] italic">
+
+        <div class="flex items-center gap-3">
+            <button
+                onclick="openMasterModal('tool','${t.id}')"
+                class="text-indigo-500 hover:underline">
+                Edit
+            </button>
+
+            <button
+                onclick="deleteMasterItem('tool','${t.id}')"
+                class="text-rose-500 hover:underline">
+                Hapus
+            </button>
+        </div>
 
         <button
-            onclick="openMasterModal('tool','${t.id}')"
-            class="text-indigo-500 hover:underline">
-            Edit
-        </button>
-
-        <button
-            onclick="deleteMasterItem('tool','${t.id}')"
-            class="text-rose-500 hover:underline">
-            Hapus
+            onclick="window.openAssetRating('tool','${t.id}', decodeURIComponent('${encodeURIComponent(t.name)}'))"
+            class="not-italic px-2 py-1 bg-amber-50 text-amber-600 rounded-lg font-bold hover:bg-amber-100">
+            ⭐ Rating & Feedback
         </button>
 
     </div>
@@ -6528,6 +6661,20 @@ ${
         ⏹ Akhiri
         </button>
         `
+        : b.status === 'Completed'
+        ? (
+            window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
+            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Dinilai</span>`
+            : `
+            <button
+            onclick="event.stopPropagation(); window.openUserRatingModal('${b.id}')"
+            class="px-3 py-1 text-[10px] font-bold 
+            bg-amber-500 text-white 
+            rounded-lg hover:bg-amber-600 transition whitespace-nowrap">
+            ⭐ Beri Rating
+            </button>
+            `
+          )
         : ``
     }
 
@@ -6589,6 +6736,15 @@ isAdmin
     `
     : ``
 }
+
+    <button
+    onclick="event.stopPropagation(); window.openViolationModal('${b.id}')"
+    class="px-3 py-1 text-[10px] font-bold 
+    bg-rose-100 text-rose-600 
+    rounded-lg hover:bg-rose-200 
+    transition whitespace-nowrap">
+    ⚠ Catat Pelanggaran
+    </button>
 
 </div>
 
@@ -6831,6 +6987,11 @@ ${room ? `
 <div class="col-span-2 text-xs">
 <span class="text-slate-500">Nama :</span>
 <span class="font-bold italic">${b.userName}</span>
+${
+    currentUser.role === 'admin' && window.getUserViolationCount && window.getUserViolationCount(b.userName) > 0
+    ? `<span class="ml-1 text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white">⚠ ${window.getUserViolationCount(b.userName)}x Pelanggaran</span>`
+    : ''
+}
 <br>
 <span class="text-slate-500">Departemen :</span>
 <span class="font-bold italic">${b.dept || '-'}</span>
@@ -7049,6 +7210,32 @@ class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-xs">
 
 `;
         }
+
+    } else {
+
+        // ================= FOOTER ADMIN =================
+        let adminFooterHtml = `
+<button onclick="window.openViolationModal('${b.id}')"
+class="w-full bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-2xl font-bold text-xs">
+⚠ Catat Pelanggaran Peminjaman
+</button>
+`;
+
+        if (status === 'completed') {
+            adminFooterHtml += `
+<button onclick="(() => {
+    const room = ${b.roomId ? `localState.rooms.find(r => String(r.id) === '${b.roomId}')` : 'null'};
+    if (room) { window.openAssetRating('room', '${b.roomId || ''}', room.name); return; }
+    const firstTool = ${JSON.stringify((b.tools || [])[0] || null)};
+    if (firstTool) { window.openAssetRating('tool', firstTool.id, firstTool.name); }
+})()"
+class="w-full bg-amber-500 text-white py-3 rounded-2xl font-bold text-xs mt-2">
+⭐ Lihat Rating & Feedback Aset
+</button>
+`;
+        }
+
+        footer.innerHTML = adminFooterHtml;
 
     }
 
@@ -7609,6 +7796,456 @@ window.showView('riwayat','Pesanan Saya');
 
 });
 
+// ============================================================
+// 🔥🔥🔥 FITUR BARU: RATING & FEEDBACK + PELANGGARAN PEMINJAMAN
+// ============================================================
+
+// ================= RATING & FEEDBACK: HELPER =================
+function getAssetRatings(type, id) {
+    return (localState.ratings || []).filter(r =>
+        r.assetType === type && String(r.assetId) === String(id)
+    );
+}
+
+function getAssetRatingSummary(type, id) {
+    const list = getAssetRatings(type, id);
+    if (!list.length) return { avg: 0, count: 0 };
+    const sum = list.reduce((a, r) => a + (Number(r.rating) || 0), 0);
+    return { avg: sum / list.length, count: list.length };
+}
+
+window.ratingBadgeHTML = function (type, id) {
+    const { avg, count } = getAssetRatingSummary(type, id);
+    if (!count) {
+        return `<span class="text-[9px] text-slate-400 italic">Belum ada rating</span>`;
+    }
+    return `<span class="text-[10px] font-black text-amber-500">⭐ ${avg.toFixed(1)}
+        <span class="text-slate-400 font-normal">(${count} ulasan)</span></span>`;
+};
+
+function starsRowHTML(formId, value) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += `<i class="fas fa-star cursor-pointer text-xl mr-1 ${i <= value ? 'text-amber-400' : 'text-slate-300'}"
+            onclick="window.setStarValue('${formId}', ${i})"></i>`;
+    }
+    return html;
+}
+
+window.setStarValue = (formId, val) => {
+    window['__rating_' + formId] = val;
+    const wrap = document.getElementById('stars-' + formId);
+    if (!wrap) return;
+    wrap.querySelectorAll('i').forEach((star, idx) => {
+        star.classList.toggle('text-amber-400', idx < val);
+        star.classList.toggle('text-slate-300', idx >= val);
+    });
+};
+
+// ================= USER: BERI RATING PER PESANAN =================
+window.hasUserRatedBooking = (bookingId) => {
+    return (localState.ratings || []).some(r => r.bookingId === bookingId && r.source === 'user');
+};
+
+window.openUserRatingModal = (bookingId) => {
+    const b = localState.bookings.find(x => x.id === bookingId);
+    if (!b) return;
+
+    document.getElementById('rating-booking-id').value = bookingId;
+
+    const room = b.roomId ? localState.rooms.find(r => String(r.id) === String(b.roomId)) : null;
+    const assetNames = [room ? room.name : null, ...(b.tools || []).map(t => t.name)]
+        .filter(Boolean).join(', ');
+
+    document.getElementById('rating-asset-label').innerText = assetNames || '-';
+
+    window.__rating_userRating = 0;
+    document.getElementById('stars-userRating').innerHTML = starsRowHTML('userRating', 0);
+    document.getElementById('rating-comment').value = '';
+
+    document.getElementById('modal-rating').classList.remove('hide');
+};
+
+window.submitUserRating = async () => {
+    const bookingId = document.getElementById('rating-booking-id').value;
+    const b = localState.bookings.find(x => x.id === bookingId);
+    if (!b) return;
+
+    const val = window.__rating_userRating || 0;
+    if (val < 1) { alert('Silakan pilih rating bintang terlebih dahulu'); return; }
+
+    const comment = document.getElementById('rating-comment').value.trim();
+
+    const assets = [];
+    if (b.roomId) {
+        const room = localState.rooms.find(r => String(r.id) === String(b.roomId));
+        if (room) assets.push({ type: 'room', id: room.id, name: room.name });
+    }
+    (b.tools || []).forEach(t => assets.push({ type: 'tool', id: t.id, name: t.name }));
+
+    if (assets.length === 0) { alert('Tidak ada aset pada pesanan ini'); return; }
+
+    try {
+        for (const a of assets) {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ratings'), {
+                bookingId,
+                assetType: a.type,
+                assetId: a.id,
+                assetName: a.name,
+                rating: val,
+                comment,
+                source: 'user',
+                userName: b.userName || currentUser.username,
+                dept: b.dept || currentUser.dept || '-',
+                createdAt: serverTimestamp()
+            });
+        }
+        alert('Terima kasih atas penilaian Anda!');
+        window.closeModal('modal-rating');
+    } catch (err) {
+        console.error('Submit rating error:', err);
+        alert('Gagal mengirim rating: ' + err.message);
+    }
+};
+
+// ================= ADMIN & USER: RINGKASAN RATING PER ASET =================
+window.openAssetRating = (type, id, name) => {
+    document.getElementById('asset-rating-title').innerText = `Rating & Feedback: ${name}`;
+    document.getElementById('asset-rating-type').value = type;
+    document.getElementById('asset-rating-id').value = id;
+    document.getElementById('asset-rating-name').value = name;
+
+    const summary = getAssetRatingSummary(type, id);
+    document.getElementById('asset-rating-avg').innerText = summary.count ? summary.avg.toFixed(1) : '-';
+    document.getElementById('asset-rating-count').innerText = `${summary.count} ulasan`;
+
+    const list = getAssetRatings(type, id);
+
+    // breakdown per bintang
+    const breakdownEl = document.getElementById('asset-rating-breakdown');
+    let breakdownHtml = '';
+    for (let star = 5; star >= 1; star--) {
+        const c = list.filter(r => Number(r.rating) === star).length;
+        const pct = list.length ? Math.round((c / list.length) * 100) : 0;
+        breakdownHtml += `
+        <div class="flex items-center gap-2 text-[10px] mb-1">
+            <span class="w-8 text-slate-500 font-bold">${star} ⭐</span>
+            <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-amber-400 h-2" style="width:${pct}%"></div>
+            </div>
+            <span class="w-6 text-right text-slate-400">${c}</span>
+        </div>`;
+    }
+    breakdownEl.innerHTML = breakdownHtml;
+
+    // daftar feedback
+    const listEl = document.getElementById('asset-rating-list');
+    if (list.length === 0) {
+        listEl.innerHTML = `<div class="py-6 text-center text-xs text-slate-400 italic">Belum ada rating & feedback</div>`;
+    } else {
+        listEl.innerHTML = list.slice().reverse().map(r => `
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-slate-700">
+                    ${r.userName || '-'} <span class="text-slate-400 font-normal">(${r.dept || '-'})</span>
+                </span>
+                <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${r.source === 'admin' ? 'bg-indigo-100 text-indigo-600' : 'bg-emerald-100 text-emerald-600'}">
+                    ${r.source === 'admin' ? 'ADMIN' : 'USER'}
+                </span>
+            </div>
+            <div class="text-amber-400 text-xs my-1">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+            <p class="text-[11px] text-slate-600 italic">${r.comment ? r.comment : 'Tidak ada komentar'}</p>
+        </div>
+        `).join('');
+    }
+
+    // form feedback admin (hanya tampil untuk role admin)
+    const adminForm = document.getElementById('asset-rating-admin-form');
+    if (adminForm) adminForm.classList.toggle('hide', !(currentUser && currentUser.role === 'admin'));
+
+    window.__rating_adminAssetRating = 0;
+    const adminStars = document.getElementById('stars-adminAssetRating');
+    if (adminStars) adminStars.innerHTML = starsRowHTML('adminAssetRating', 0);
+
+    const adminComment = document.getElementById('asset-rating-admin-comment');
+    if (adminComment) adminComment.value = '';
+
+    document.getElementById('modal-asset-rating').classList.remove('hide');
+};
+
+window.submitAdminAssetRating = async () => {
+    const type = document.getElementById('asset-rating-type').value;
+    const id = document.getElementById('asset-rating-id').value;
+    const name = document.getElementById('asset-rating-name').value;
+
+    const val = window.__rating_adminAssetRating || 0;
+    if (val < 1) { alert('Silakan pilih rating bintang terlebih dahulu'); return; }
+
+    const comment = document.getElementById('asset-rating-admin-comment').value.trim();
+
+    try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ratings'), {
+            bookingId: null,
+            assetType: type,
+            assetId: id,
+            assetName: name,
+            rating: val,
+            comment,
+            source: 'admin',
+            userName: currentUser?.username || 'Admin',
+            dept: 'Admin Training',
+            createdAt: serverTimestamp()
+        });
+        alert('Feedback admin berhasil disimpan');
+        window.openAssetRating(type, id, name);
+    } catch (err) {
+        console.error('Submit admin rating error:', err);
+        alert('Gagal menyimpan feedback: ' + err.message);
+    }
+};
+
+// ================= PELANGGARAN PEMINJAMAN =================
+const VIOLATION_CONSEQUENCE_SUGGESTION = {
+    'Ringan': 'Teguran lisan/tertulis dan diminta membuat pernyataan tidak akan mengulangi pelanggaran.',
+    'Sedang': 'Skorsing hak peminjaman ruangan/alat selama 2 minggu dan wajib mengganti kerugian jika ada kerusakan/kehilangan.',
+    'Berat': 'Skorsing hak peminjaman selama 1 bulan, wajib mengganti kerugian penuh, dan dilaporkan ke atasan/departemen terkait.'
+};
+
+window.updateViolationConsequenceSuggestion = () => {
+    const level = document.getElementById('violation-level').value;
+    document.getElementById('violation-consequence').value = VIOLATION_CONSEQUENCE_SUGGESTION[level] || '';
+};
+
+window.openViolationModal = (bookingId = null) => {
+    document.getElementById('violation-booking-id').value = bookingId || '';
+    document.getElementById('violation-type').value = 'Terlambat Mengembalikan';
+    document.getElementById('violation-level').value = 'Ringan';
+    document.getElementById('violation-description').value = '';
+    document.getElementById('violation-consequence').value = VIOLATION_CONSEQUENCE_SUGGESTION['Ringan'];
+    document.getElementById('violation-phone').value = '';
+
+    if (bookingId) {
+        const b = localState.bookings.find(x => x.id === bookingId);
+        if (b) {
+            const room = b.roomId ? localState.rooms.find(r => String(r.id) === String(b.roomId)) : null;
+            const assetLabel = [room ? room.name : null, ...(b.tools || []).map(t => t.name)]
+                .filter(Boolean).join(', ') || '-';
+
+            document.getElementById('violation-username').value = b.userName || '-';
+            document.getElementById('violation-dept').value = b.dept || '-';
+            document.getElementById('violation-asset').value = assetLabel;
+        }
+    } else {
+        document.getElementById('violation-username').value = '';
+        document.getElementById('violation-dept').value = '';
+        document.getElementById('violation-asset').value = '';
+    }
+
+    document.getElementById('modal-violation').classList.remove('hide');
+};
+
+window.submitViolation = async () => {
+    const username = document.getElementById('violation-username').value.trim();
+    const dept = document.getElementById('violation-dept').value.trim();
+    const asset = document.getElementById('violation-asset').value.trim();
+    const type = document.getElementById('violation-type').value;
+    const level = document.getElementById('violation-level').value;
+    const description = document.getElementById('violation-description').value.trim();
+    const consequence = document.getElementById('violation-consequence').value.trim();
+    const phone = document.getElementById('violation-phone').value.trim();
+    const bookingId = document.getElementById('violation-booking-id').value || null;
+
+    if (!username) { alert('Nama peminjam wajib diisi'); return; }
+    if (!description) { alert('Deskripsi pelanggaran wajib diisi'); return; }
+
+    try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'violations'), {
+            bookingId,
+            userName: username,
+            dept: dept || '-',
+            assetLabel: asset || '-',
+            type,
+            level,
+            description,
+            consequence,
+            phone,
+            status: 'Baru',
+            createdAt: serverTimestamp(),
+            createdBy: currentUser?.username || 'Admin'
+        });
+        alert('Pelanggaran berhasil dicatat');
+        window.closeModal('modal-violation');
+        window.showView('pelanggaran', 'Pelanggaran Peminjaman');
+    } catch (err) {
+        console.error('Submit violation error:', err);
+        alert('Gagal mencatat pelanggaran: ' + err.message);
+    }
+};
+
+window.markViolationStatus = async (id, status) => {
+    try {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'violations', id), { status });
+    } catch (err) {
+        console.error('Update violation status error:', err);
+        alert('Gagal update status: ' + err.message);
+    }
+};
+
+window.deleteViolation = async (id) => {
+    if (!confirm('Hapus catatan pelanggaran ini?')) return;
+    try {
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'violations', id));
+    } catch (err) {
+        console.error('Delete violation error:', err);
+        alert('Gagal menghapus: ' + err.message);
+    }
+};
+
+// ================= NOTIFIKASI WHATSAPP =================
+window.sendViolationWhatsApp = (id) => {
+    const v = (localState.violations || []).find(x => x.id === id);
+    if (!v) return;
+
+    let phone = (v.phone || '').replace(/[^0-9]/g, '');
+    if (!phone) {
+        const input = prompt('Nomor WhatsApp belum diisi. Masukkan nomor WhatsApp peminjam (contoh: 081234567890):') || '';
+        phone = input.replace(/[^0-9]/g, '');
+        if (!phone) return;
+    }
+    if (phone.startsWith('0')) phone = '62' + phone.slice(1);
+    else if (!phone.startsWith('62')) phone = '62' + phone;
+
+    const message =
+`Yth. ${v.userName},
+
+Sehubungan dengan penggunaan ${v.assetLabel} pada peminjaman ruangan/alat, kami informasikan bahwa tercatat pelanggaran ketentuan peminjaman:
+
+Jenis Pelanggaran: ${v.type}
+Tingkat: ${v.level}
+Keterangan: ${v.description}
+
+Konsekuensi/tindak lanjut:
+${v.consequence}
+
+Mohon agar hal ini menjadi perhatian dan tidak terulang kembali. Terima kasih.
+
+- Admin TrainingHub`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+
+    if (v.status === 'Baru') {
+        window.markViolationStatus(id, 'Sudah Diperingatkan');
+    }
+};
+
+window.getUserViolationCount = (userName) => {
+    if (!userName) return 0;
+    return (localState.violations || []).filter(v =>
+        (v.userName || '').toLowerCase() === userName.toLowerCase()
+    ).length;
+};
+
+window.filterPelanggaran = () => renderPelanggaran();
+
+function renderPelanggaran() {
+    const container = document.getElementById('pelanggaran-list');
+    if (!container) return;
+
+    const keyword = (document.getElementById('search-pelanggaran')?.value || '').toLowerCase();
+    let list = (localState.violations || []).slice();
+
+    if (keyword) {
+        list = list.filter(v =>
+            (v.userName || '').toLowerCase().includes(keyword) ||
+            (v.dept || '').toLowerCase().includes(keyword) ||
+            (v.type || '').toLowerCase().includes(keyword) ||
+            (v.assetLabel || '').toLowerCase().includes(keyword)
+        );
+    }
+
+    list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+    // ================= SUMMARY =================
+    const all = localState.violations || [];
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+
+    setTxt('pelanggaran-stat-total', all.length);
+    setTxt('pelanggaran-stat-ringan', all.filter(v => v.level === 'Ringan').length);
+    setTxt('pelanggaran-stat-sedang', all.filter(v => v.level === 'Sedang').length);
+    setTxt('pelanggaran-stat-berat', all.filter(v => v.level === 'Berat').length);
+
+    const userCounts = {};
+    all.forEach(v => {
+        const key = (v.userName || '-').toLowerCase();
+        userCounts[key] = (userCounts[key] || 0) + 1;
+    });
+    setTxt('pelanggaran-stat-berulang', Object.values(userCounts).filter(c => c >= 2).length);
+
+    if (list.length === 0) {
+        container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Belum ada catatan pelanggaran</div>`;
+        return;
+    }
+
+    container.innerHTML = list.map(v => {
+        const levelColor =
+            v.level === 'Berat' ? 'bg-rose-100 text-rose-600' :
+            v.level === 'Sedang' ? 'bg-amber-100 text-amber-600' :
+            'bg-slate-100 text-slate-600';
+
+        const statusColor =
+            v.status === 'Selesai' ? 'bg-emerald-100 text-emerald-600' :
+            v.status === 'Sudah Diperingatkan' ? 'bg-indigo-100 text-indigo-600' :
+            'bg-rose-100 text-rose-600';
+
+        const date = v.createdAt?.seconds
+            ? new Date(v.createdAt.seconds * 1000).toLocaleDateString('id-ID')
+            : '-';
+
+        const repeatCount = window.getUserViolationCount(v.userName);
+
+        return `
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div>
+                    <p class="font-bold text-sm text-slate-800">
+                        ${v.userName}
+                        ${repeatCount >= 2 ? `<span class="ml-1 text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white">⚠ ${repeatCount}x</span>` : ''}
+                    </p>
+                    <p class="text-[10px] text-slate-400">${v.dept} • ${date}</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-[9px] font-black px-2 py-1 rounded-full ${levelColor}">${v.level}</span>
+                    <span class="text-[9px] font-black px-2 py-1 rounded-full ${statusColor}">${v.status}</span>
+                </div>
+            </div>
+
+            <p class="text-[11px] text-slate-500 mb-1">📍 Aset: <span class="font-semibold text-slate-700">${v.assetLabel}</span></p>
+            <p class="text-[11px] text-slate-500 mb-1">📌 Jenis: <span class="font-semibold text-slate-700">${v.type}</span></p>
+            <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2 mb-1 italic">${v.description}</p>
+            <p class="text-[11px] text-rose-500 bg-rose-50 rounded-lg p-2 mb-3"><b>Konsekuensi:</b> ${v.consequence}</p>
+
+            <div class="flex flex-wrap gap-2">
+                <button onclick="window.sendViolationWhatsApp('${v.id}')"
+                    class="px-3 py-1.5 text-[10px] font-bold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1">
+                    <i class="fab fa-whatsapp"></i> Kirim Peringatan WA
+                </button>
+                ${v.status !== 'Selesai' ? `
+                <button onclick="window.markViolationStatus('${v.id}', 'Selesai')"
+                    class="px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+                    ✔ Tandai Selesai
+                </button>` : ''}
+                <button onclick="window.deleteViolation('${v.id}')"
+                    class="px-3 py-1.5 text-[10px] font-bold border border-rose-200 text-rose-500 rounded-lg hover:bg-rose-50 transition">
+                    🗑 Hapus
+                </button>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+window.renderPelanggaran = renderPelanggaran;
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
@@ -7982,6 +8619,187 @@ ${b.status}
         <div class="flex justify-end gap-2">
             <button onclick="closeChangePassword()" class="px-3 py-1 text-sm">Batal</button>
             <button onclick="submitChangePassword()" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">Simpan</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: USER BERI RATING PER PESANAN ================= -->
+<div id="modal-rating" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 class="text-lg font-black text-slate-800">⭐ Beri Rating & Feedback</h3>
+            <button onclick="closeModal('modal-rating')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+
+            <input type="hidden" id="rating-booking-id">
+
+            <div>
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Ruangan / Alat yang digunakan</p>
+                <p id="rating-asset-label" class="text-sm font-bold text-slate-700">-</p>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Bagaimana pengalaman Anda?</p>
+                <div id="stars-userRating" class="flex"></div>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Komentar / Masukan (opsional)</p>
+                <textarea id="rating-comment" rows="3" placeholder="Ceritakan kondisi ruangan/alat, kendala, atau saran perbaikan..."
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+            </div>
+
+            <button onclick="window.submitUserRating()"
+                class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-bold text-sm transition">
+                Kirim Rating & Feedback
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: RINGKASAN RATING & FEEDBACK PER ASET (USER + ADMIN) ================= -->
+<div id="modal-asset-rating" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 id="asset-rating-title" class="text-lg font-black text-slate-800">Rating & Feedback</h3>
+            <button onclick="closeModal('modal-asset-rating')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-5">
+
+            <input type="hidden" id="asset-rating-type">
+            <input type="hidden" id="asset-rating-id">
+            <input type="hidden" id="asset-rating-name">
+
+            <!-- SUMMARY -->
+            <div class="flex items-center gap-4 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                <div class="text-center">
+                    <p id="asset-rating-avg" class="text-3xl font-black text-amber-500">-</p>
+                    <p id="asset-rating-count" class="text-[10px] text-slate-500 font-bold">0 ulasan</p>
+                </div>
+                <div class="flex-1" id="asset-rating-breakdown"></div>
+            </div>
+
+            <!-- FORM FEEDBACK ADMIN -->
+            <div id="asset-rating-admin-form" class="hide bg-indigo-50 border border-indigo-100 rounded-2xl p-4 space-y-3">
+                <p class="text-[10px] font-black uppercase text-indigo-500">Tambah Penilaian / Catatan Admin</p>
+                <div id="stars-adminAssetRating" class="flex"></div>
+                <textarea id="asset-rating-admin-comment" rows="2" placeholder="Catatan kondisi aset, hasil pengecekan, dsb..."
+                    class="w-full border border-indigo-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+                <button onclick="window.submitAdminAssetRating()"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-xs transition">
+                    Simpan Penilaian Admin
+                </button>
+            </div>
+
+            <!-- DAFTAR FEEDBACK -->
+            <div>
+                <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Semua Rating & Feedback</p>
+                <div id="asset-rating-list" class="space-y-2"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: CATAT PELANGGARAN PEMINJAMAN ================= -->
+<div id="modal-violation" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-rose-50">
+            <h3 class="text-lg font-black text-rose-600">⚠ Catat Pelanggaran Peminjaman</h3>
+            <button onclick="closeModal('modal-violation')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4">
+
+            <input type="hidden" id="violation-booking-id">
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Nama Peminjam</label>
+                    <input id="violation-username" type="text" placeholder="Nama peminjam"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Departemen</label>
+                    <input id="violation-dept" type="text" placeholder="Departemen"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Ruangan / Alat Terkait</label>
+                <input id="violation-asset" type="text" placeholder="Contoh: Ruang Meeting A, Proyektor 1"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Jenis Pelanggaran</label>
+                    <select id="violation-type" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400">
+                        <option value="Terlambat Mengembalikan">Terlambat Mengembalikan</option>
+                        <option value="Kerusakan Alat/Ruangan">Kerusakan Alat/Ruangan</option>
+                        <option value="Tidak Melakukan Serah Terima">Tidak Melakukan Serah Terima</option>
+                        <option value="Penyalahgunaan Alat/Ruangan">Penyalahgunaan Alat/Ruangan</option>
+                        <option value="Membawa Alat Keluar Area">Membawa Alat Keluar Area Tanpa Izin</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Tingkat Pelanggaran</label>
+                    <select id="violation-level" onchange="window.updateViolationConsequenceSuggestion()"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400">
+                        <option value="Ringan">Ringan</option>
+                        <option value="Sedang">Sedang</option>
+                        <option value="Berat">Berat</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Deskripsi Pelanggaran</label>
+                <textarea id="violation-description" rows="3" placeholder="Jelaskan kronologi pelanggaran secara singkat..."
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400"></textarea>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Konsekuensi / Tindak Lanjut</label>
+                <textarea id="violation-consequence" rows="2"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400"></textarea>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">No. WhatsApp Peminjam (opsional, untuk kirim peringatan)</label>
+                <input id="violation-phone" type="tel" placeholder="Contoh: 081234567890"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400">
+            </div>
+
+            <button onclick="window.submitViolation()"
+                class="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-2xl font-bold text-sm transition">
+                Simpan Catatan Pelanggaran
+            </button>
+
         </div>
 
     </div>
