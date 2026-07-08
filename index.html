@@ -1285,15 +1285,35 @@ window.downloadQR = function () {
 
                 <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
                     <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
-                        <span>Apakah rating/feedback bisa diisi oleh Admin Training juga?</span>
+                        <span>Apakah rating/feedback ruangan & alat bisa diisi oleh Admin Training juga?</span>
                         <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
                     </button>
                     <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
-                        Bisa. Admin Training juga dapat menambahkan penilaian/catatan kondisi pada suatu ruangan
-                        atau alat melalui menu <b>⭐ Rating & Feedback</b> di halaman master aset, biasanya
-                        setelah melakukan pengecekan kondisi fisik. Penilaian dari Admin akan ditandai label
-                        <b>ADMIN</b>, sedangkan dari pengguna ditandai <b>USER</b>, dan keduanya sama-sama
-                        dihitung dalam rata-rata rating aset tersebut.
+                        Tidak lagi. Rating & feedback ruangan/alat pada menu <b>⭐ Rating & Feedback</b> kini
+                        murni berasal dari <b>pengguna (USER)</b> yang benar-benar memakai aset tersebut, agar
+                        penilaian tetap objektif dan tidak bercampur dengan catatan sepihak dari Admin. Untuk
+                        pengecekan kondisi fisik, Admin tetap mencatatnya melalui menu
+                        <b>⚠ Pelanggaran Peminjaman</b> apabila memang ditemukan ketidaksesuaian.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Apa itu "Rating Peminjam" dan bagaimana cara menghitungnya?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Rating Peminjam adalah penilaian <b>objektif</b> terhadap kredibilitas setiap peminjam,
+                        dihitung otomatis dari <b>total pelanggaran</b> yang pernah tercatat atas nama Anda —
+                        bukan penilaian subjektif dari siapa pun. Ketentuannya:<br>
+                        • Belum pernah melanggar &nbsp;→ <b>★★★★★ (5 bintang)</b><br>
+                        • 1x pelanggaran &nbsp;→ <b>★★★★☆ (4 bintang)</b><br>
+                        • 2x pelanggaran &nbsp;→ <b>★★★☆☆ (3 bintang)</b><br>
+                        • 3x pelanggaran &nbsp;→ <b>★★☆☆☆ (2 bintang)</b><br>
+                        • 4x pelanggaran &nbsp;→ <b>★☆☆☆☆ (1 bintang)</b><br>
+                        • 5x pelanggaran atau lebih &nbsp;→ <b>0 bintang</b>, dan Anda <b>tidak dapat mengajukan
+                        peminjaman baru</b> sampai dihubungi/ditindaklanjuti oleh Admin Training.<br>
+                        Anda dapat melihat rating ini kapan saja di menu <b>Statistik Saya</b>.
                     </div>
                 </div>
 
@@ -1320,7 +1340,9 @@ window.downloadQR = function () {
                         pengembalian, atau kondisi tidak sesuai). Setiap pelanggaran memiliki tingkat
                         <b>Ringan</b>, <b>Sedang</b>, atau <b>Berat</b>. Anda bisa melihat daftar pelanggaran
                         yang tercatat atas nama Anda melalui menu <b>Pelanggaran Saya</b>, atau langsung pada
-                        bagian <b>"⚠ Pelanggaran Pada Pesanan Ini"</b> di detail pesanan terkait.
+                        bagian <b>"⚠ Pelanggaran Pada Pesanan Ini"</b> di detail pesanan terkait. Setiap
+                        pelanggaran yang tercatat juga otomatis menurunkan <b>Rating Peminjam</b> Anda 1 bintang,
+                        dan setelah <b>5x pelanggaran</b> Anda tidak dapat mengajukan peminjaman baru.
                     </div>
                 </div>
 
@@ -1453,6 +1475,14 @@ window.downloadQR = function () {
             <p class="text-emerald-600 text-[9px] font-black uppercase">Pelanggaran Selesai</p>
             <h3 class="text-xl font-black mt-1" id="mystat-violation-done">0</h3>
             <p class="text-[8px] text-slate-400 mt-2">Sudah ditindaklanjuti</p>
+        </div>
+
+        <div class="stat-card card-pop p-4 border-t-4 border-amber-600 col-span-2" onclick="window.showMyViolations()">
+            <p class="text-amber-600 text-[9px] font-black uppercase">⭐ Rating Peminjam Saya (Objektif)</p>
+            <h3 class="text-xl font-black mt-1 text-amber-500" id="mystat-rating-stars">★★★★★</h3>
+            <p class="text-[8px] text-slate-400 mt-2" id="mystat-rating-desc">
+                0x pelanggaran • dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin
+            </p>
         </div>
 
     </div>
@@ -3740,6 +3770,18 @@ function renderStatistikSaya() {
     setTxt('mystat-violation-active', violationActive.length);
     setTxt('mystat-violation-done', violationDone.length);
 
+    // 🔥 Rating peminjam objektif (berdasarkan total pelanggaran, bukan penilaian subjektif Admin)
+    if (window.getUserObjectiveRating) {
+        const { stars, violationCount, blocked, maxViolations } = window.getUserObjectiveRating(currentUser.username);
+        const starsText = '★'.repeat(stars) + '☆'.repeat(maxViolations - stars);
+        setTxt('mystat-rating-stars', starsText);
+        const starsEl = document.getElementById('mystat-rating-stars');
+        if (starsEl) starsEl.classList.toggle('text-rose-600', blocked);
+        setTxt('mystat-rating-desc', blocked
+            ? `⛔ ${violationCount}x pelanggaran (batas ${maxViolations}x) • Anda tidak bisa mengajukan peminjaman baru. Hubungi Admin Training.`
+            : `${violationCount}x pelanggaran • dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin`);
+    }
+
     setTimeout(() => updateMyChart(mine), 100);
 }
 window.renderStatistikSaya = renderStatistikSaya;
@@ -5132,6 +5174,13 @@ if(window.innerWidth < 768){
         // 🔥 Klik "+ Buat Pesanan" -> tampilkan popup peringatan aturan dulu
         window.openBooking = () => {
 
+    // 🔥 CEK RATING PEMINJAM: kalau total pelanggaran sudah mencapai batas, tidak bisa mengajukan peminjaman baru
+    if (currentUser && currentUser.role !== 'admin' && window.isUserBlockedFromBooking && window.isUserBlockedFromBooking(currentUser.username)) {
+        const { violationCount, maxViolations } = window.getUserObjectiveRating(currentUser.username);
+        alert(`⛔ Pengajuan peminjaman ditolak.\n\nAnda telah tercatat ${violationCount}x pelanggaran (batas maksimal ${maxViolations}x), sehingga rating peminjam Anda 0 bintang dan tidak dapat mengajukan peminjaman baru. Silakan hubungi Admin Training untuk informasi lebih lanjut.`);
+        return;
+    }
+
     // Reset checkbox & tombol lanjut tiap kali dibuka
     const agreeBox = document.getElementById('booking-warning-agree');
     const continueBtn = document.getElementById('booking-warning-continue');
@@ -5987,11 +6036,7 @@ window.renderAllBookings = function() {
 
             <td class="px-3 py-2">
                 ${b.userName}
-                ${
-                    window.getUserViolationCount && window.getUserViolationCount(b.userName) > 0
-                    ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ ${window.getUserViolationCount(b.userName)}x</span>`
-                    : ''
-                }
+                ${window.userRatingBadgeHTML ? window.userRatingBadgeHTML(b.userName) : ''}
             </td>
 
             <td class="px-3 py-2">${b.dept}</td>
@@ -7612,8 +7657,8 @@ ${room ? `
 <span class="text-slate-500">Nama :</span>
 <span class="font-bold italic">${b.userName}</span>
 ${
-    currentUser.role === 'admin' && window.getUserViolationCount && window.getUserViolationCount(b.userName) > 0
-    ? `<span class="ml-1 text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white">⚠ ${window.getUserViolationCount(b.userName)}x Pelanggaran</span>`
+    currentUser.role === 'admin' && window.userRatingBadgeHTML
+    ? `<span class="ml-1">${window.userRatingBadgeHTML(b.userName)}</span>`
     : ''
 }
 <br>
@@ -8268,6 +8313,14 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
     try {
 
+        const editIdCheck = document.getElementById('edit-booking-id').value;
+
+        // 🔥 CEK ULANG RATING PEMINJAM SAAT SIMPAN (JAGA-JAGA), HANYA UNTUK PESANAN BARU
+        if (!editIdCheck && currentUser && currentUser.role !== 'admin' && window.isUserBlockedFromBooking && window.isUserBlockedFromBooking(currentUser.username)) {
+            alert('⛔ Pesanan tidak dapat disimpan karena rating peminjam Anda 0 bintang (terlalu banyak pelanggaran). Silakan hubungi Admin Training.');
+            return;
+        }
+
         const date = document.getElementById('book-date').value;
         const dateEndRaw = document.getElementById('book-date-end')?.value || '';
         const start = document.getElementById('book-start').value;
@@ -8731,49 +8784,12 @@ window.openAssetRating = (type, id, name) => {
         `).join('');
     }
 
-    // form feedback admin (hanya tampil untuk role admin)
-    const adminForm = document.getElementById('asset-rating-admin-form');
-    if (adminForm) adminForm.classList.toggle('hide', !(currentUser && currentUser.role === 'admin'));
-
-    window.__rating_adminAssetRating = 0;
-    const adminStars = document.getElementById('stars-adminAssetRating');
-    if (adminStars) adminStars.innerHTML = starsRowHTML('adminAssetRating', 0);
-
-    const adminComment = document.getElementById('asset-rating-admin-comment');
-    if (adminComment) adminComment.value = '';
+    // 🔥 Fitur "Admin bisa memberi rating aset" DIHAPUS karena bersifat subjektif.
+    // Penilaian aset sekarang murni berasal dari rating pengguna (USER) setelah memakai aset,
+    // sedangkan penilaian terhadap PEMINJAM sendiri sudah objektif berdasarkan riwayat pelanggaran
+    // (lihat window.getUserObjectiveRating / window.userRatingBadgeHTML).
 
     document.getElementById('modal-asset-rating').classList.remove('hide');
-};
-
-window.submitAdminAssetRating = async () => {
-    const type = document.getElementById('asset-rating-type').value;
-    const id = document.getElementById('asset-rating-id').value;
-    const name = document.getElementById('asset-rating-name').value;
-
-    const val = window.__rating_adminAssetRating || 0;
-    if (val < 1) { alert('Silakan pilih rating bintang terlebih dahulu'); return; }
-
-    const comment = document.getElementById('asset-rating-admin-comment').value.trim();
-
-    try {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ratings'), {
-            bookingId: null,
-            assetType: type,
-            assetId: id,
-            assetName: name,
-            rating: val,
-            comment,
-            source: 'admin',
-            userName: currentUser?.username || 'Admin',
-            dept: 'Admin Training',
-            createdAt: serverTimestamp()
-        });
-        alert('Feedback admin berhasil disimpan');
-        window.openAssetRating(type, id, name);
-    } catch (err) {
-        console.error('Submit admin rating error:', err);
-        alert('Gagal menyimpan feedback: ' + err.message);
-    }
 };
 
 // ================= PELANGGARAN PEMINJAMAN =================
@@ -9066,6 +9082,33 @@ window.getUserViolationCount = (userName) => {
     ).length;
 };
 
+// ================= 🔥 RATING PEMINJAM: OBJEKTIF BERDASARKAN TOTAL PELANGGARAN =================
+// Aturan: belum pernah melanggar = 5 bintang, tiap 1x pelanggaran mengurangi 1 bintang.
+// Setelah mencapai batas MAX_VIOLATIONS (5x), peminjam tidak bisa mengajukan peminjaman baru lagi.
+const MAX_VIOLATIONS_BEFORE_BLOCKED = 5;
+
+window.getUserObjectiveRating = (userName) => {
+    const violationCount = window.getUserViolationCount(userName);
+    const blocked = violationCount >= MAX_VIOLATIONS_BEFORE_BLOCKED;
+    const stars = Math.max(0, MAX_VIOLATIONS_BEFORE_BLOCKED - violationCount);
+    return { stars, violationCount, blocked, maxViolations: MAX_VIOLATIONS_BEFORE_BLOCKED };
+};
+
+window.isUserBlockedFromBooking = (userName) => window.getUserObjectiveRating(userName).blocked;
+
+// Badge kecil "★★★★☆ (Nx pelanggaran)" untuk ditempel di daftar/detail pesanan & pelanggaran
+window.userRatingBadgeHTML = (userName, opts = {}) => {
+    const { stars, violationCount, blocked } = window.getUserObjectiveRating(userName);
+    const size = opts.size || 'text-[9px]';
+    const starsText = '★'.repeat(stars) + '☆'.repeat(MAX_VIOLATIONS_BEFORE_BLOCKED - stars);
+    return `
+    <span class="inline-flex items-center gap-1 ${size} font-black px-1.5 py-0.5 rounded-full whitespace-nowrap ${blocked ? 'bg-rose-600 text-white' : 'bg-amber-100 text-amber-600'}"
+        title="Rating objektif peminjam berdasarkan ${violationCount}x pelanggaran">
+        <span class="tracking-tighter">${starsText}</span>
+        ${blocked ? '⛔ Diblokir' : ''}
+    </span>`;
+};
+
 window.filterPelanggaran = () => renderPelanggaran();
 
 function renderPelanggaran() {
@@ -9131,6 +9174,7 @@ function renderPelanggaran() {
                     <p class="font-bold text-sm text-slate-800">
                         ${v.userName}
                         ${repeatCount >= 2 ? `<span class="ml-1 text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white">⚠ ${repeatCount}x</span>` : ''}
+                        ${window.userRatingBadgeHTML ? `<span class="ml-1">${window.userRatingBadgeHTML(v.userName)}</span>` : ''}
                     </p>
                     <p class="text-[10px] text-slate-400">${v.dept} • ${date}</p>
                 </div>
@@ -9690,18 +9734,6 @@ ${b.status}
                     <p id="asset-rating-count" class="text-[10px] text-slate-500 font-bold">0 ulasan</p>
                 </div>
                 <div class="flex-1" id="asset-rating-breakdown"></div>
-            </div>
-
-            <!-- FORM FEEDBACK ADMIN -->
-            <div id="asset-rating-admin-form" class="hide bg-indigo-50 border border-indigo-100 rounded-2xl p-4 space-y-3">
-                <p class="text-[10px] font-black uppercase text-indigo-500">Tambah Penilaian / Catatan Admin</p>
-                <div id="stars-adminAssetRating" class="flex"></div>
-                <textarea id="asset-rating-admin-comment" rows="2" placeholder="Catatan kondisi aset, hasil pengecekan, dsb..."
-                    class="w-full border border-indigo-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
-                <button onclick="window.submitAdminAssetRating()"
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-xs transition">
-                    Simpan Penilaian Admin
-                </button>
             </div>
 
             <!-- DAFTAR FEEDBACK -->
