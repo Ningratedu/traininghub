@@ -707,6 +707,13 @@ window.downloadQR = function () {
                         <i class="fas fa-triangle-exclamation w-5"></i> Pelanggaran
                         <span id="badge-violation" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
                     </button>
+
+                    <button onclick="showView('rating-monitoring', 'Rating & Feedback Aset')" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" 
+                        data-view="rating-monitoring">
+                        <i class="fas fa-star-half-stroke w-5"></i> Rating & Feedback
+                        <span id="badge-rating-attention" class="ml-auto bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
+                    </button>
                 </div>
 
             </div>
@@ -1175,6 +1182,28 @@ window.downloadQR = function () {
 
                 <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
                     <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Apa saja ketentuan yang harus saya setujui sebelum mengajukan peminjaman?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Setiap kali klik <b>+ Buat Pesanan</b>, akan muncul popup <b>"Perhatian Sebelum Memesan"</b> berisi
+                        ketentuan yang wajib dibaca & disetujui (centang) sebelum lanjut ke form pemesanan:<br>
+                        • Isi data pemesanan (tanggal, jam, ruangan/alat) dengan <b>benar dan lengkap</b>.<br>
+                        • Pemesanan disarankan dilakukan <b>minimal H-1</b> sebelum kegiatan.<br>
+                        • Gunakan ruangan/alat <b>sesuai jadwal</b> yang disetujui, dan wajib upload foto bukti kondisi
+                        saat <b>mulai</b> & <b>selesai</b> penggunaan.<br>
+                        • <b>Wajib merawat</b> dan <b>mengembalikan tepat waktu</b> dalam kondisi baik seperti semula —
+                        kerusakan/kehilangan menjadi <b>tanggung jawab peminjam</b> untuk diperbaiki/diganti paling
+                        lambat <b>2x24 jam</b> sejak selesai penggunaan.<br>
+                        • Dilarang meninggalkan sampah atau merusak fasilitas.<br>
+                        • Segera laporkan ke <b>Admin Training</b> jika ada kendala teknis/kerusakan.<br>
+                        Pelanggaran atas ketentuan ini akan dicatat pada menu <b>Pelanggaran Peminjaman</b> dan
+                        memengaruhi <b>Rating Peminjam</b> Anda.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
                         <span>Bagaimana cara mengetahui status pesanan saya?</span>
                         <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
                     </button>
@@ -1256,6 +1285,20 @@ window.downloadQR = function () {
 
                 <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
                     <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Bisakah saya memesan untuk beberapa hari sekaligus (multi-hari)?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Bisa. Pada form pemesanan, isi <b>Tanggal Mulai</b> dan <b>Tanggal Selesai</b> untuk membuat
+                        pesanan yang berlangsung beberapa hari berturut-turut. Sistem otomatis membuatkan pesanan
+                        untuk <b>setiap tanggal</b> dalam rentang tersebut (tetap dianggap satu grup pesanan), dan
+                        akan tetap dicek ulang supaya ruangan/alat yang sama tidak bentrok dengan pesanan lain di
+                        tanggal manapun dalam rentang tersebut.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
                         <span>Bagaimana cara memberi Rating & Feedback setelah pesanan selesai?</span>
                         <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
                     </button>
@@ -1314,6 +1357,21 @@ window.downloadQR = function () {
                         • 5x pelanggaran atau lebih &nbsp;→ <b>0 bintang</b>, dan Anda <b>tidak dapat mengajukan
                         peminjaman baru</b> sampai dihubungi/ditindaklanjuti oleh Admin Training.<br>
                         Anda dapat melihat rating ini kapan saja di menu <b>Statistik Saya</b>.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-[#0b1e3a] border border-blue-500/20 rounded-xl overflow-hidden">
+                    <button onclick="window.toggleFaq(this)" class="faq-question w-full flex items-center justify-between gap-3 p-4 text-left text-sm font-medium">
+                        <span>Kenapa tombol "+ Buat Pesanan" saya diblokir / muncul peringatan tidak bisa mengajukan peminjaman?</span>
+                        <i class="fas fa-chevron-down text-cyan-300 text-xs transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hide px-4 pb-4 text-[13px] text-gray-300 leading-relaxed">
+                        Ini terjadi apabila total pelanggaran yang tercatat atas nama Anda sudah mencapai
+                        <b>5 kali</b>, sehingga Rating Peminjam Anda menjadi <b>0 bintang</b> dan sistem otomatis
+                        menahan pengajuan peminjaman baru sampai ada tindak lanjut. Anda tetap bisa melihat riwayat
+                        pesanan & pelanggaran seperti biasa melalui menu <b>Statistik Saya</b> / <b>Pelanggaran Saya</b>.
+                        Untuk membuka blokir ini, silakan hubungi <b>Admin Training</b> (lihat tombol WhatsApp di
+                        bagian bawah halaman ini) untuk klarifikasi/penyelesaian pelanggaran terkait.
                     </div>
                 </div>
 
@@ -1386,10 +1444,18 @@ window.downloadQR = function () {
             <h2 class="text-sm font-bold text-cyan-300 mb-1">
                 Masih Butuh Bantuan?
             </h2>
-            <p class="text-gray-300 text-[13px] max-w-md mx-auto">
-                Jika pertanyaan Anda belum terjawab di atas, silakan hubungi <b>Admin Training</b> melalui
-                Human Resource untuk bantuan lebih lanjut.
+            <p class="text-gray-300 text-[13px] max-w-md mx-auto mb-4">
+                Jika pertanyaan Anda belum terjawab di atas — termasuk soal status pesanan, pelanggaran,
+                Rating Peminjam, atau kendala teknis lainnya — silakan hubungi <b>Admin Training TrainingHub</b>
+                langsung lewat WhatsApp.
             </p>
+            <a href="https://wa.me/6282116444887?text=Halo%20Admin%20TrainingHub%2C%20saya%20butuh%20bantuan%20terkait%20penggunaan%20sistem%20TrainingHub%20%28peminjaman%20ruangan%2Falat%29." 
+                target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/20 transition">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                Chat Admin Training via WhatsApp
+            </a>
+            <p class="text-gray-500 text-[10px] mt-2">082116444887</p>
         </div>
 
         <div class="text-center mt-6 pb-2">
@@ -1781,6 +1847,73 @@ window.downloadQR = function () {
     </div>
 
     <div id="pelanggaran-list" class="space-y-3"></div>
+
+</div>
+
+<!-- ================= 🔥 VIEW: MONITORING RATING & FEEDBACK (ADMIN) ================= -->
+<div id="view-rating-monitoring" class="view hide">
+
+    <!-- SUMMARY CARDS -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+
+        <div class="stat-card stat-amber p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Rata-rata Rating Keseluruhan</p>
+            <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-avg">-</p>
+        </div>
+
+        <div class="stat-card stat-slate p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Total Ulasan Masuk</p>
+            <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-total">0</p>
+        </div>
+
+        <div class="stat-card stat-rose p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Aset Perlu Tindak Lanjut</p>
+            <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-attention">0</p>
+        </div>
+
+        <div class="stat-card stat-indigo p-4">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Aset Belum Ada Ulasan</p>
+            <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-norating">0</p>
+        </div>
+
+    </div>
+
+    <!-- ================= REKOMENDASI TINDAK LANJUT ================= -->
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 mb-6">
+
+        <h4 class="font-black text-sm text-slate-700 mb-1 flex items-center gap-2">
+            <i class="fas fa-lightbulb text-amber-500"></i>
+            Rekomendasi Tindak Lanjut untuk Tim TrainingHub
+        </h4>
+        <p class="text-[11px] text-slate-400 mb-4">
+            Disusun otomatis dari rata-rata rating &amp; keluhan pengguna per ruangan/alat — jadi bahan
+            evaluasi &amp; perbaikan aset, bukan penilaian ke peminjam.
+        </p>
+
+        <div id="ratingmon-recommendation-list" class="space-y-3"></div>
+
+    </div>
+
+    <!-- ================= SEMUA FEEDBACK ================= -->
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <h4 class="font-black text-sm text-slate-700 flex items-center gap-2">
+                <i class="fas fa-comments text-indigo-500"></i>
+                Semua Rating &amp; Feedback Masuk
+            </h4>
+            <input
+                type="search"
+                id="search-ratingmon"
+                oninput="window.filterRatingMonitoring()"
+                placeholder="Cari nama aset / peminjam / komentar..."
+                class="w-full md:w-1/3 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm"
+            />
+        </div>
+
+        <div id="ratingmon-feedback-list" class="space-y-2 max-h-[420px] overflow-y-auto"></div>
+
+    </div>
 
 </div>
             </div>
@@ -4240,8 +4373,16 @@ if (activeView === 'pelanggaran') {
     if (typeof renderPelanggaran === 'function') renderPelanggaran();
 }
 
+if (activeView === 'rating-monitoring') {
+    if (typeof renderRatingMonitoring === 'function') renderRatingMonitoring();
+}
+
 if (typeof updateViolationBadge === 'function') {
     updateViolationBadge();
+}
+
+if (typeof updateRatingAttentionBadge === 'function') {
+    updateRatingAttentionBadge();
 }
 
 
@@ -5697,11 +5838,6 @@ const listenToData = () => {
 
         <p class="font-bold text-sm text-slate-800 truncate">
             ${b.goal}
-            ${
-                window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-                ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 whitespace-nowrap">✅ Dinilai</span>`
-                : ''
-            }
             ${
                 window.getBookingViolations && window.getBookingViolations(b.id).length > 0
                 ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
@@ -7229,11 +7365,6 @@ class="relative bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm 
 
         <p class="font-bold text-sm truncate">
             ${b.goal}
-            ${
-                window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-                ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 whitespace-nowrap">✅ Dinilai</span>`
-                : ''
-            }
             ${
                 window.getBookingViolations && window.getBookingViolations(b.id).length > 0
                 ? (
@@ -9284,6 +9415,140 @@ function renderViolationMonitoring() {
     }).join('');
 }
 window.renderViolationMonitoring = renderViolationMonitoring;
+
+// ================= 🔥 MONITORING RATING & FEEDBACK (ADMIN): SUMMARY + REKOMENDASI TINDAK LANJUT =================
+// Mengumpulkan rating & feedback dari SELURUH ruangan/alat, lalu menyusun rekomendasi otomatis
+// berdasarkan rata-rata rating tiap aset -- jadi bahan evaluasi/perbaikan tim TrainingHub,
+// TERPISAH dari rating objektif peminjam (yang berdasarkan pelanggaran).
+const RATING_ATTENTION_THRESHOLD = 3.5; // di bawah nilai ini dianggap "perlu tindak lanjut"
+
+function getAllAssetRatingSummaries() {
+    const assets = [
+        ...(localState.rooms || []).map(r => ({ type: 'room', id: r.id, name: r.name })),
+        ...(localState.tools || []).map(t => ({ type: 'tool', id: t.id, name: t.name })),
+    ];
+    return assets.map(a => {
+        const list = getAssetRatings(a.type, a.id);
+        const summary = getAssetRatingSummary(a.type, a.id);
+        const negativeComments = list.filter(r => Number(r.rating) <= 2 && r.comment).map(r => r.comment);
+        return { ...a, count: summary.count, avg: summary.avg, list, negativeComments };
+    });
+}
+
+function ratingRecommendationLevel(avg, count) {
+    if (!count) return null;
+    if (avg < 2.5) return {
+        label: '🔴 Prioritas Tinggi',
+        desc: 'Kondisi dinilai buruk oleh pengguna — segera cek fisik & jadwalkan perbaikan/maintenance.',
+        badgeClass: 'bg-rose-100 text-rose-600', cardClass: 'bg-rose-50 border-rose-200'
+    };
+    if (avg < RATING_ATTENTION_THRESHOLD) return {
+        label: '🟠 Perlu Perhatian',
+        desc: 'Rating cenderung di bawah rata-rata — pantau kondisi & kumpulkan info tambahan dari pengguna berikutnya.',
+        badgeClass: 'bg-amber-100 text-amber-600', cardClass: 'bg-amber-50 border-amber-200'
+    };
+    return null; // kondisi baik, tidak perlu direkomendasikan
+}
+
+function updateRatingAttentionBadge() {
+    const rated = getAllAssetRatingSummaries().filter(s => s.count > 0);
+    const count = rated.filter(s => ratingRecommendationLevel(s.avg, s.count)).length;
+    const badge = document.getElementById('badge-rating-attention');
+    if (badge) {
+        badge.innerText = count;
+        badge.classList.toggle('hide', count === 0);
+    }
+}
+
+function renderRatingMonitoring() {
+    const summaries = getAllAssetRatingSummaries();
+    const rated = summaries.filter(s => s.count > 0);
+    const totalReviews = rated.reduce((a, s) => a + s.count, 0);
+    const totalStars = rated.reduce((a, s) => a + (s.avg * s.count), 0);
+    const overallAvg = totalReviews ? (totalStars / totalReviews) : 0;
+    const noRating = summaries.filter(s => s.count === 0);
+
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    setTxt('ratingmon-stat-avg', totalReviews ? overallAvg.toFixed(1) + ' ⭐' : '-');
+    setTxt('ratingmon-stat-total', totalReviews);
+    setTxt('ratingmon-stat-norating', noRating.length);
+
+    // Rekomendasi tindak lanjut: aset dengan rating rendah, diurutkan dari paling buruk
+    const recommendations = rated
+        .map(s => ({ ...s, rec: ratingRecommendationLevel(s.avg, s.count) }))
+        .filter(s => s.rec)
+        .sort((a, b) => a.avg - b.avg);
+
+    setTxt('ratingmon-stat-attention', recommendations.length);
+    updateRatingAttentionBadge();
+
+    const recListEl = document.getElementById('ratingmon-recommendation-list');
+    if (recListEl) {
+        if (recommendations.length === 0) {
+            recListEl.innerHTML = `<div class="py-8 text-center text-xs text-slate-400 italic">✅ Tidak ada aset dengan rating rendah saat ini. Semua kondisi baik menurut feedback pengguna.</div>`;
+        } else {
+            recListEl.innerHTML = recommendations.map(s => `
+            <div class="rounded-2xl border p-4 ${s.rec.cardClass}">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                    <p class="font-bold text-sm text-slate-800">
+                        ${s.type === 'room' ? '🏠' : '🧰'} ${s.name}
+                        <span class="ml-1 text-[9px] font-black px-2 py-0.5 rounded-full ${s.rec.badgeClass}">${s.rec.label}</span>
+                    </p>
+                    <span class="text-xs font-black text-amber-500">${'★'.repeat(Math.round(s.avg))}${'☆'.repeat(5 - Math.round(s.avg))} (${s.avg.toFixed(1)} dari ${s.count} ulasan)</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mb-2">${s.rec.desc}</p>
+                ${s.negativeComments.length ? `
+                <div class="bg-white/70 rounded-xl p-2 space-y-1">
+                    <p class="text-[9px] font-black uppercase text-slate-400">Kutipan Keluhan Pengguna:</p>
+                    ${s.negativeComments.slice(0, 3).map(c => `<p class="text-[11px] text-slate-600 italic">"${c}"</p>`).join('')}
+                </div>` : ''}
+                <button onclick="window.openAssetRating('${s.type}','${s.id}', decodeURIComponent('${encodeURIComponent(s.name)}'))"
+                    class="mt-2 text-[10px] font-bold text-indigo-600 hover:underline">Lihat semua ulasan →</button>
+            </div>
+            `).join('');
+        }
+    }
+
+    // Semua feedback (gabungan semua aset), terbaru dulu
+    window.__allFeedbackCache = rated.flatMap(s => s.list.map(r => ({ ...r, assetType: s.type, assetName: s.name })))
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+    renderRatingMonitoringFeedbackList();
+}
+
+function renderRatingMonitoringFeedbackList() {
+    const listEl = document.getElementById('ratingmon-feedback-list');
+    if (!listEl) return;
+    const keyword = (document.getElementById('search-ratingmon')?.value || '').toLowerCase();
+    let list = window.__allFeedbackCache || [];
+    if (keyword) {
+        list = list.filter(r =>
+            (r.assetName || '').toLowerCase().includes(keyword) ||
+            (r.userName || '').toLowerCase().includes(keyword) ||
+            (r.comment || '').toLowerCase().includes(keyword)
+        );
+    }
+    if (list.length === 0) {
+        listEl.innerHTML = `<div class="py-8 text-center text-xs text-slate-400 italic">Belum ada rating & feedback</div>`;
+        return;
+    }
+    listEl.innerHTML = list.map(r => `
+    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+        <div class="flex items-center justify-between flex-wrap gap-1">
+            <span class="text-[11px] font-bold text-slate-700">
+                ${r.assetType === 'room' ? '🏠' : '🧰'} ${r.assetName}
+                <span class="text-slate-400 font-normal">oleh ${r.userName || '-'} (${r.dept || '-'})</span>
+            </span>
+            <span class="text-amber-400 text-xs">${'★'.repeat(Number(r.rating) || 0)}${'☆'.repeat(5 - (Number(r.rating) || 0))}</span>
+        </div>
+        <p class="text-[11px] text-slate-600 italic mt-1">${r.comment ? r.comment : 'Tidak ada komentar'}</p>
+    </div>
+    `).join('');
+}
+
+window.filterRatingMonitoring = () => renderRatingMonitoringFeedbackList();
+window.renderRatingMonitoring = renderRatingMonitoring;
+window.updateRatingAttentionBadge = updateRatingAttentionBadge;
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
