@@ -640,11 +640,11 @@ window.downloadQR = function () {
 
             <!-- GROUP 1 -->
             <div class="menu-group">
-                <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg sidebar-item-active" data-view="dashboard">
+                <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-left whitespace-nowrap sidebar-item-active" data-view="dashboard">
                     <i class="fas fa-th-large w-5"></i> Dashboard
                 </button>
 
-                <button onclick="showView('jadwal', 'Kalender')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="jadwal">
+                <button onclick="showView('jadwal', 'Kalender')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" data-view="jadwal">
                     <i class="fas fa-calendar-alt w-5"></i> Kalender
                 </button>
             </div>
@@ -653,28 +653,28 @@ window.downloadQR = function () {
             <div id="user-menu-section" class="menu-group mt-3 hide">
 
     <button onclick="showView('riwayat', 'Pesanan Saya')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
     data-view="riwayat">
         <i class="fas fa-history w-5"></i>
         <span>Pesanan Saya</span>
     </button>
 
     <button onclick="showView('statistik-saya', 'Statistik Saya')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
     data-view="statistik-saya">
         <i class="fas fa-chart-pie w-5"></i>
         <span>Statistik Saya</span>
     </button>
 
     <button onclick="showView('statistik', 'Statistik All')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
     data-view="statistik">
         <i class="fas fa-chart-line w-5"></i>
         <span>Statistik All</span>
     </button>
 
     <button onclick="showView('cara-penggunaan', 'Bantuan & FAQ')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
     data-view="cara-penggunaan">
         <i class="fas fa-circle-question w-5"></i>
         <span>Bantuan & FAQ</span>
@@ -686,30 +686,30 @@ window.downloadQR = function () {
             <div id="admin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
 
                 <div class="menu-group">
-                    <button onclick="showView('approval', 'Approval')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="approval">
+                    <button onclick="showView('approval', 'Approval')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" data-view="approval">
                         <i class="fas fa-check-double w-5"></i> Approval 
                         <span id="badge-pending" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
                     </button>
 
-                    <button onclick="showView('master-data', 'Database Aset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" data-view="master-data">
+                    <button onclick="showView('master-data', 'Database Aset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" data-view="master-data">
                         <i class="fas fa-database w-5"></i> Database Aset
                     </button>
 
                     <button onclick="showView('all-bookings', 'Semua Pesanan')" 
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" 
                         data-view="all-bookings">
                         <i class="fas fa-table w-5"></i> Semua Pesanan
                     </button>
 
                     <button onclick="showView('pelanggaran', 'Pelanggaran Peminjaman')" 
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" 
                         data-view="pelanggaran">
                         <i class="fas fa-triangle-exclamation w-5"></i> Pelanggaran
                         <span id="badge-violation" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
                     </button>
 
                     <button onclick="showView('rating-monitoring', 'Rating & Feedback Aset')" 
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" 
                         data-view="rating-monitoring">
                         <i class="fas fa-star-half-stroke w-5"></i> Rating & Feedback
                         <span id="badge-rating-attention" class="ml-auto bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
@@ -1434,6 +1434,17 @@ window.downloadQR = function () {
                     <li class="text-red-300"><i class="fas fa-xmark mr-1"></i> Tidak merusak fasilitas</li>
                     <li class="text-red-300"><i class="fas fa-xmark mr-1"></i> Tidak meninggalkan sampah</li>
                 </ul>
+
+                <div class="mt-4 bg-rose-500/10 border border-rose-400/40 rounded-xl p-3 flex gap-2">
+                    <i class="fas fa-circle-exclamation text-rose-400 mt-0.5 shrink-0"></i>
+                    <p class="text-[12px] text-rose-100 leading-relaxed">
+                        <b class="text-rose-300">Poin Penting:</b>
+                        Peminjam <b>wajib merawat</b> dan <b>mengembalikan ruangan/peralatan tepat waktu</b> sesuai
+                        jadwal pemesanan, dalam kondisi baik seperti semula. Apabila terjadi <b>kerusakan atau
+                        kehilangan</b>, maka menjadi <b>tanggung jawab peminjam</b> untuk memperbaiki dan/atau
+                        mengganti, <b>paling lambat 2x24 jam</b> sejak waktu selesai penggunaan.
+                    </p>
+                </div>
             </div>
 
         </div>
