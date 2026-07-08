@@ -45,7 +45,9 @@ body {
     border-right: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 8px 32px rgba(0,0,0,0.1);
 
-    padding: 16px; /* biar isi gak nempel pinggir */
+    /* 🔧 FIX: padding cukup dari .p-6 pada konten di dalamnya saja,
+       supaya tidak dobel padding (penyebab ruang teks jadi sempit
+       & teks menu lewat/kepotong dari area padding) */
 }
 
 /* 🔥 HEADER PUTIH SOLID (LOGO AREA) */
@@ -90,6 +92,23 @@ body {
         0 6px 16px rgba(0,0,0,0.08);
 
     transition: all 0.25s ease;
+}
+
+/* 🔧 FIX: teks menu rata kiri & tidak lewat/keluar dari area padding.
+   Label dibungkus <span class="nav-label"> lalu dipotong rapi (ellipsis)
+   kalau kepanjangan, bukan meluber keluar tombol. */
+#mobile-sidebar .nav-btn {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+#mobile-sidebar .nav-btn .nav-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Hover */
@@ -189,6 +208,20 @@ body {
     left: 0;
     width: 100%;
     height: 5px;
+}
+
+/* 🔥 Hover effect untuk SEMUA stat-card (user maupun admin), termasuk yang
+   sebelumnya belum punya class .card-pop, supaya semua card konsisten
+   punya efek hover. Card yang punya onclick otomatis dapat cursor pointer. */
+.stat-card {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+.stat-card[onclick] {
+    cursor: pointer;
 }
 
 .stat-blue::before { background: #3b82f6; }
@@ -640,12 +673,12 @@ window.downloadQR = function () {
 
             <!-- GROUP 1 -->
             <div class="menu-group">
-                <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-left whitespace-nowrap sidebar-item-active" data-view="dashboard">
-                    <i class="fas fa-th-large w-5"></i> Dashboard
+                <button onclick="showView('dashboard', 'Dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-left sidebar-item-active" data-view="dashboard">
+                    <i class="fas fa-th-large w-5"></i> <span class="nav-label">Dashboard</span>
                 </button>
 
-                <button onclick="showView('jadwal', 'Kalender')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" data-view="jadwal">
-                    <i class="fas fa-calendar-alt w-5"></i> Kalender
+                <button onclick="showView('jadwal', 'Kalender')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left" data-view="jadwal">
+                    <i class="fas fa-calendar-alt w-5"></i> <span class="nav-label">Kalender</span>
                 </button>
             </div>
 
@@ -653,31 +686,31 @@ window.downloadQR = function () {
             <div id="user-menu-section" class="menu-group mt-3 hide">
 
     <button onclick="showView('riwayat', 'Pesanan Saya')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left"
     data-view="riwayat">
         <i class="fas fa-history w-5"></i>
-        <span>Pesanan Saya</span>
+        <span class="nav-label">Pesanan Saya</span>
     </button>
 
     <button onclick="showView('statistik-saya', 'Statistik Saya')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left"
     data-view="statistik-saya">
         <i class="fas fa-chart-pie w-5"></i>
-        <span>Statistik Saya</span>
+        <span class="nav-label">Statistik Saya</span>
     </button>
 
     <button onclick="showView('statistik', 'Statistik All')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left"
     data-view="statistik">
         <i class="fas fa-chart-line w-5"></i>
-        <span>Statistik All</span>
+        <span class="nav-label">Statistik All</span>
     </button>
 
     <button onclick="showView('cara-penggunaan', 'Bantuan & FAQ')" 
-    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap"
+    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left"
     data-view="cara-penggunaan">
         <i class="fas fa-circle-question w-5"></i>
-        <span>Bantuan & FAQ</span>
+        <span class="nav-label">Bantuan & FAQ</span>
     </button>
 
 </div>
@@ -686,33 +719,33 @@ window.downloadQR = function () {
             <div id="admin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
 
                 <div class="menu-group">
-                    <button onclick="showView('approval', 'Approval')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" data-view="approval">
-                        <i class="fas fa-check-double w-5"></i> Approval 
-                        <span id="badge-pending" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
+                    <button onclick="showView('approval', 'Approval')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left" data-view="approval">
+                        <i class="fas fa-check-double w-5"></i> <span class="nav-label">Approval</span>
+                        <span id="badge-pending" class="ml-auto flex-shrink-0 bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
                     </button>
 
-                    <button onclick="showView('master-data', 'Database Aset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" data-view="master-data">
-                        <i class="fas fa-database w-5"></i> Database Aset
+                    <button onclick="showView('master-data', 'Database Aset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left" data-view="master-data">
+                        <i class="fas fa-database w-5"></i> <span class="nav-label">Database Aset</span>
                     </button>
 
                     <button onclick="showView('all-bookings', 'Semua Pesanan')" 
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left" 
                         data-view="all-bookings">
-                        <i class="fas fa-table w-5"></i> Semua Pesanan
+                        <i class="fas fa-table w-5"></i> <span class="nav-label">Semua Pesanan</span>
                     </button>
 
                     <button onclick="showView('pelanggaran', 'Pelanggaran Peminjaman')" 
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left" 
                         data-view="pelanggaran">
-                        <i class="fas fa-triangle-exclamation w-5"></i> Pelanggaran
-                        <span id="badge-violation" class="ml-auto bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
+                        <i class="fas fa-triangle-exclamation w-5"></i> <span class="nav-label">Pelanggaran</span>
+                        <span id="badge-violation" class="ml-auto flex-shrink-0 bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
                     </button>
 
                     <button onclick="showView('rating-monitoring', 'Rating & Feedback Aset')" 
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left whitespace-nowrap" 
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left" 
                         data-view="rating-monitoring">
-                        <i class="fas fa-star-half-stroke w-5"></i> Rating & Feedback
-                        <span id="badge-rating-attention" class="ml-auto bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
+                        <i class="fas fa-star-half-stroke w-5"></i> <span class="nav-label">Rating & Feedback</span>
+                        <span id="badge-rating-attention" class="ml-auto flex-shrink-0 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
                     </button>
                 </div>
 
@@ -1356,7 +1389,11 @@ window.downloadQR = function () {
                         • 4x pelanggaran &nbsp;→ <b>★☆☆☆☆ (1 bintang)</b><br>
                         • 5x pelanggaran atau lebih &nbsp;→ <b>0 bintang</b>, dan Anda <b>tidak dapat mengajukan
                         peminjaman baru</b> sampai dihubungi/ditindaklanjuti oleh Admin Training.<br>
-                        Anda dapat melihat rating ini kapan saja di menu <b>Statistik Saya</b>.
+                        Anda dapat melihat rating ini kapan saja di menu <b>Statistik Saya</b> — klik kartu
+                        <b>⭐ Rating Peminjam Saya</b> untuk melihat <b>seluruh riwayat pelanggaran</b> Anda (baik
+                        yang sudah selesai maupun yang belum). Untuk pelanggaran yang <b>belum selesai</b>,
+                        tersedia tombol <b>Selesaikan via WhatsApp Admin</b> agar Anda bisa langsung menghubungi
+                        Tim TrainingHub dengan pesan otomatis berisi detail pelanggarannya.
                     </div>
                 </div>
 
@@ -1554,12 +1591,16 @@ window.downloadQR = function () {
             <p class="text-[8px] text-slate-400 mt-2">Sudah ditindaklanjuti</p>
         </div>
 
-        <div class="stat-card card-pop p-4 border-t-4 border-amber-600 col-span-2" onclick="window.showMyViolations()">
+        <div class="stat-card card-pop p-4 border-t-4 border-amber-600 col-span-2" onclick="window.showMyViolations('all')">
             <p class="text-amber-600 text-[9px] font-black uppercase">⭐ Rating Peminjam Saya (Objektif)</p>
-            <h3 class="text-xl font-black mt-1 text-amber-500" id="mystat-rating-stars">★★★★★</h3>
+            <div class="flex items-baseline gap-2 mt-1">
+                <h3 class="text-xl font-black text-amber-500" id="mystat-rating-stars">★★★★★</h3>
+                <span class="text-xs font-black text-slate-400" id="mystat-rating-number">5/5</span>
+            </div>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-rating-desc">
                 0x pelanggaran • dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin
             </p>
+            <p class="text-[8px] text-indigo-400 font-bold mt-1">Klik untuk lihat semua riwayat pelanggaran</p>
         </div>
 
     </div>
@@ -1774,29 +1815,34 @@ window.downloadQR = function () {
     <!-- SUMMARY CARDS -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
 
-        <div class="stat-card stat-slate p-4">
+        <div class="stat-card card-pop p-4" onclick="window.filterPelanggaranByLevel(null)">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Total Pelanggaran</p>
             <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-total">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik untuk lihat semua</p>
         </div>
 
-        <div class="stat-card stat-emerald p-4">
+        <div class="stat-card stat-emerald card-pop p-4" onclick="window.filterPelanggaranByLevel('Ringan')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Ringan</p>
             <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-ringan">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat daftar</p>
         </div>
 
-        <div class="stat-card stat-amber p-4">
+        <div class="stat-card stat-amber card-pop p-4" onclick="window.filterPelanggaranByLevel('Sedang')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Sedang</p>
             <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-sedang">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat daftar</p>
         </div>
 
-        <div class="stat-card stat-rose p-4">
+        <div class="stat-card stat-rose card-pop p-4" onclick="window.filterPelanggaranByLevel('Berat')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Berat</p>
             <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-berat">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat daftar</p>
         </div>
 
-        <div class="stat-card stat-indigo p-4">
+        <div class="stat-card stat-indigo card-pop p-4" onclick="window.filterPelanggaranByLevel('berulang')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">User Berulang (≥2x)</p>
             <p class="text-2xl font-black text-slate-800" id="pelanggaran-stat-berulang">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat daftar</p>
         </div>
 
     </div>
@@ -1867,24 +1913,28 @@ window.downloadQR = function () {
     <!-- SUMMARY CARDS -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
 
-        <div class="stat-card stat-amber p-4">
+        <div class="stat-card stat-amber card-pop p-4" onclick="window.scrollToRatingSection('ratingmon-feedback-list')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Rata-rata Rating Keseluruhan</p>
             <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-avg">-</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat semua ulasan</p>
         </div>
 
-        <div class="stat-card stat-slate p-4">
+        <div class="stat-card stat-slate card-pop p-4" onclick="window.scrollToRatingSection('ratingmon-feedback-list')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Total Ulasan Masuk</p>
             <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-total">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat semua ulasan</p>
         </div>
 
-        <div class="stat-card stat-rose p-4">
+        <div class="stat-card stat-rose card-pop p-4" onclick="window.scrollToRatingSection('ratingmon-recommendation-list')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Aset Perlu Tindak Lanjut</p>
             <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-attention">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat rekomendasi</p>
         </div>
 
-        <div class="stat-card stat-indigo p-4">
+        <div class="stat-card stat-indigo card-pop p-4" onclick="window.scrollToRatingSection('ratingmon-recommendation-list')">
             <p class="text-[10px] font-bold text-slate-400 uppercase">Aset Belum Ada Ulasan</p>
             <p class="text-2xl font-black text-slate-800" id="ratingmon-stat-norating">0</p>
+            <p class="text-[8px] text-slate-400 mt-2">Klik lihat rekomendasi</p>
         </div>
 
     </div>
@@ -3830,18 +3880,27 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
         ? mine
         : (filterStatus === 'Selesai'
             ? mine.filter(v => v.status === 'Selesai')
-            : mine.filter(v => v.status !== 'Selesai'));
+            : (filterStatus === 'all'
+                ? mine
+                : mine.filter(v => v.status !== 'Selesai')));
 
     document.getElementById('my-violations-title').innerText =
         bookingId
             ? '⚠ Status Penyelesaian Pelanggaran Pesanan Ini'
-            : (filterStatus === 'Selesai' ? '✅ Pelanggaran Saya - Sudah Selesai' : '⚠ Pelanggaran Saya - Belum Selesai');
+            : (filterStatus === 'Selesai'
+                ? '✅ Pelanggaran Saya - Sudah Selesai'
+                : (filterStatus === 'all'
+                    ? '⭐ Rating Peminjam Saya - Semua Riwayat Pelanggaran'
+                    : '⚠ Pelanggaran Saya - Belum Selesai'));
 
     const container = document.getElementById('my-violations-list');
 
     if (list.length === 0) {
         container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada data pelanggaran</div>`;
     } else {
+        // urutkan terbaru dulu supaya mudah dilihat
+        list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
         container.innerHTML = list.map(v => {
             const date = v.createdAt?.seconds
                 ? new Date(v.createdAt.seconds * 1000).toLocaleDateString('id-ID')
@@ -3850,6 +3909,23 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
                 v.level === 'Berat' ? 'bg-rose-100 text-rose-600' :
                 v.level === 'Sedang' ? 'bg-amber-100 text-amber-600' :
                 'bg-slate-100 text-slate-600';
+
+            // 🔥 Tombol aksi penyelesaian: WA ke Tim TrainingHub dengan teks otomatis
+            // yang relevan (nama peminjam, aset, jenis & tanggal pelanggaran),
+            // hanya muncul untuk pelanggaran yang BELUM selesai.
+            const waText = encodeURIComponent(
+                `Halo Admin TrainingHub, saya ${currentUser.username || '-'} ingin menindaklanjuti penyelesaian pelanggaran peminjaman:\n` +
+                `• Aset: ${v.assetLabel || '-'}\n` +
+                `• Jenis Pelanggaran: ${v.type || '-'} (${v.level || '-'})\n` +
+                `• Tanggal: ${date}\n` +
+                `Mohon informasi langkah penyelesaiannya. Terima kasih.`
+            );
+            const waButton = `
+                <a href="https://wa.me/6282116444887?text=${waText}" target="_blank" rel="noopener noreferrer"
+                    class="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-bold shadow transition">
+                    <i class="fa-brands fa-whatsapp"></i> Selesaikan via WhatsApp Admin
+                </a>`;
+
             return `
             <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                 <div class="flex justify-between items-center mb-1">
@@ -3865,7 +3941,8 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
                     ${v.resolutionNote ? `<p class="text-[11px] text-slate-600 italic">${v.resolutionNote}</p>` : ''}
                     ${v.resolutionEvidence ? `<a href="${v.resolutionEvidence}" target="_blank" class="text-[10px] text-indigo-500 underline">Lihat Bukti Penyelesaian</a>` : ''}
                 </div>` : `
-                <p class="text-[10px] font-bold text-rose-500">Status: ${v.status}</p>`}
+                <p class="text-[10px] font-bold text-rose-500 mb-1">Status: ${v.status}</p>
+                ${waButton}`}
             </div>
             `;
         }).join('');
@@ -3919,8 +3996,11 @@ function renderStatistikSaya() {
         const { stars, violationCount, blocked, maxViolations } = window.getUserObjectiveRating(currentUser.username);
         const starsText = '★'.repeat(stars) + '☆'.repeat(maxViolations - stars);
         setTxt('mystat-rating-stars', starsText);
+        setTxt('mystat-rating-number', `${stars}/${maxViolations}`);
         const starsEl = document.getElementById('mystat-rating-stars');
         if (starsEl) starsEl.classList.toggle('text-rose-600', blocked);
+        const numberEl = document.getElementById('mystat-rating-number');
+        if (numberEl) numberEl.classList.toggle('text-rose-500', blocked);
         setTxt('mystat-rating-desc', blocked
             ? `⛔ ${violationCount}x pelanggaran (batas ${maxViolations}x) • Anda tidak bisa mengajukan peminjaman baru. Hubungi Admin Training.`
             : `${violationCount}x pelanggaran • dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin`);
@@ -5329,7 +5409,7 @@ if(window.innerWidth < 768){
     // 🔥 CEK RATING PEMINJAM: kalau total pelanggaran sudah mencapai batas, tidak bisa mengajukan peminjaman baru
     if (currentUser && currentUser.role !== 'admin' && window.isUserBlockedFromBooking && window.isUserBlockedFromBooking(currentUser.username)) {
         const { violationCount, maxViolations } = window.getUserObjectiveRating(currentUser.username);
-        alert(`⛔ Pengajuan peminjaman ditolak.\n\nAnda telah tercatat ${violationCount}x pelanggaran (batas maksimal ${maxViolations}x), sehingga rating peminjam Anda 0 bintang dan tidak dapat mengajukan peminjaman baru. Silakan hubungi Admin Training untuk informasi lebih lanjut.`);
+        alert(`⛔ Pengajuan peminjaman ditolak.\n\nAnda telah tercatat ${violationCount}x pelanggaran (batas maksimal ${maxViolations}x), sehingga rating peminjam Anda 0 bintang dan tidak dapat mengajukan peminjaman baru.\n\nSilakan buka menu "Statistik Saya" → kartu "⭐ Rating Peminjam Saya" untuk melihat detail pelanggaran & tombol WhatsApp penyelesaian ke Admin Training (082116444887).`);
         return;
     }
 
@@ -7916,7 +7996,19 @@ ${(() => {
         bookingViolations.length
         ? `
     <div class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-        ${bookingViolations.map(v => `
+        ${bookingViolations.map(v => {
+            const vDate = v.createdAt?.seconds
+                ? new Date(v.createdAt.seconds * 1000).toLocaleDateString('id-ID')
+                : '-';
+            const showWaBtn = currentUser.role !== 'admin' && v.status !== 'Selesai';
+            const waTextDetail = encodeURIComponent(
+                `Halo Admin TrainingHub, saya ${currentUser.username || '-'} ingin menindaklanjuti penyelesaian pelanggaran peminjaman:\n` +
+                `• Aset: ${v.assetLabel || '-'}\n` +
+                `• Jenis Pelanggaran: ${v.type || '-'} (${v.level || '-'})\n` +
+                `• Tanggal: ${vDate}\n` +
+                `Mohon informasi langkah penyelesaiannya. Terima kasih.`
+            );
+            return `
         <div class="text-[11px] bg-white/70 rounded-lg p-2 border border-rose-100">
             <div class="flex justify-between items-center gap-2">
                 <span class="font-bold text-rose-700">${v.type}</span>
@@ -7924,8 +8016,14 @@ ${(() => {
             </div>
             <div class="text-slate-500 mt-0.5">${v.description || '-'}</div>
             <div class="text-[9px] text-slate-400 mt-1">Status: ${v.status || '-'}</div>
+            ${showWaBtn ? `
+            <a href="https://wa.me/6282116444887?text=${waTextDetail}" target="_blank" rel="noopener noreferrer"
+                class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold shadow transition">
+                <i class="fa-brands fa-whatsapp"></i> Selesaikan via WhatsApp Admin
+            </a>` : ''}
         </div>
-        `).join('')}
+        `;
+        }).join('')}
     </div>
     `
         : `<p class="text-[11px] text-slate-400 italic">Tidak ada pelanggaran tercatat untuk pesanan ini.</p>`
@@ -9253,6 +9351,15 @@ window.userRatingBadgeHTML = (userName, opts = {}) => {
 
 window.filterPelanggaran = () => renderPelanggaran();
 
+// 🔥 Klik kartu ringkasan (Total/Ringan/Sedang/Berat/User Berulang) untuk
+// menyaring daftar pelanggaran di bawahnya sekaligus scroll ke sana.
+window.__pelanggaranLevelFilter = null;
+window.filterPelanggaranByLevel = (level) => {
+    window.__pelanggaranLevelFilter = level;
+    renderPelanggaran();
+    document.getElementById('pelanggaran-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
 function renderPelanggaran() {
     const container = document.getElementById('pelanggaran-list');
     if (!container) return;
@@ -9267,6 +9374,18 @@ function renderPelanggaran() {
             (v.type || '').toLowerCase().includes(keyword) ||
             (v.assetLabel || '').toLowerCase().includes(keyword)
         );
+    }
+
+    const levelFilter = window.__pelanggaranLevelFilter;
+    if (levelFilter === 'berulang') {
+        const counts = {};
+        (localState.violations || []).forEach(v => {
+            const key = (v.userName || '-').toLowerCase();
+            counts[key] = (counts[key] || 0) + 1;
+        });
+        list = list.filter(v => counts[(v.userName || '-').toLowerCase()] >= 2);
+    } else if (levelFilter) {
+        list = list.filter(v => v.level === levelFilter);
     }
 
     list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
@@ -9470,6 +9589,10 @@ function updateRatingAttentionBadge() {
         badge.classList.toggle('hide', count === 0);
     }
 }
+
+window.scrollToRatingSection = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 
 function renderRatingMonitoring() {
     const summaries = getAllAssetRatingSummaries();
