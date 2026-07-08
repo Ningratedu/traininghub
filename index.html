@@ -7908,19 +7908,10 @@ class="w-full bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-2xl f
 </button>
 `;
 
-        if (status === 'completed') {
-            adminFooterHtml += `
-<button onclick="(() => {
-    const room = ${b.roomId ? `localState.rooms.find(r => String(r.id) === '${b.roomId}')` : 'null'};
-    if (room) { window.openAssetRating('room', '${b.roomId || ''}', room.name); return; }
-    const firstTool = ${JSON.stringify((b.tools || [])[0] || null)};
-    if (firstTool) { window.openAssetRating('tool', firstTool.id, firstTool.name); }
-})()"
-class="w-full bg-amber-500 text-white py-3 rounded-2xl font-bold text-xs mt-2">
-⭐ Lihat Rating & Feedback Aset
-</button>
-`;
-        }
+        // 🔥 Tombol "Lihat Rating & Feedback Aset" DIHAPUS karena ringkasan
+        // rating & feedback pesanan ini SUDAH tampil langsung di body detail
+        // pesanan (bagian "⭐ Rating & Feedback Pesanan Ini"), jadi tombol ini
+        // sudah redundan sekaligus sempat menyebabkan error sintaks JS.
 
         footer.innerHTML = adminFooterHtml;
 
