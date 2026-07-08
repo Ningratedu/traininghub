@@ -5812,7 +5812,7 @@ onAuthStateChanged(auth, (user) => {
 
 });
 const listenToData = () => {
-    ['rooms', 'tools', 'bookings', 'users', 'ratings', 'violations'].forEach(coll => {
+    ['rooms', 'tools', 'bookings', 'users', 'ratings', 'violations', 'assetFollowUps'].forEach(coll => {
 
         onSnapshot(
             collection(
@@ -9574,7 +9574,8 @@ function getAllAssetRatingSummaries() {
         const list = getAssetRatings(a.type, a.id);
         const summary = getAssetRatingSummary(a.type, a.id);
         const negativeComments = list.filter(r => Number(r.rating) <= 2 && r.comment).map(r => r.comment);
-        return { ...a, count: summary.count, avg: summary.avg, list, negativeComments };
+        const latestRatingAt = list.reduce((max, r) => Math.max(max, r.createdAt?.seconds || 0), 0);
+        return { ...a, count: summary.count, avg: summary.avg, list, negativeComments, latestRatingAt };
     });
 }
 
@@ -9593,9 +9594,26 @@ function ratingRecommendationLevel(avg, count) {
     return null; // kondisi baik, tidak perlu direkomendasikan
 }
 
+// 🔥 TINDAK LANJUT REKOMENDASI PERBAIKAN ASET (ADMIN)
+// Dicatat per-aset (type+id). Rekomendasi dianggap "sudah ditindaklanjuti" hanya jika
+// waktu penyelesaian LEBIH BARU dari rating terakhir yang masuk untuk aset itu — jadi
+// kalau ada rating negatif baru setelah ditindaklanjuti, rekomendasi otomatis muncul lagi.
+function getAssetFollowUp(type, id) {
+    const list = (localState.assetFollowUps || [])
+        .filter(f => f.assetType === type && String(f.assetId) === String(id))
+        .sort((a, b) => (b.resolvedAt?.seconds || 0) - (a.resolvedAt?.seconds || 0));
+    return list[0] || null;
+}
+
+function isRecommendationResolved(summary) {
+    const followUp = getAssetFollowUp(summary.type, summary.id);
+    if (!followUp) return false;
+    return (followUp.resolvedAt?.seconds || 0) >= (summary.latestRatingAt || 0);
+}
+
 function updateRatingAttentionBadge() {
     const rated = getAllAssetRatingSummaries().filter(s => s.count > 0);
-    const count = rated.filter(s => ratingRecommendationLevel(s.avg, s.count)).length;
+    const count = rated.filter(s => ratingRecommendationLevel(s.avg, s.count) && !isRecommendationResolved(s)).length;
     const badge = document.getElementById('badge-rating-attention');
     if (badge) {
         badge.innerText = count;
@@ -9605,6 +9623,46 @@ function updateRatingAttentionBadge() {
 
 window.scrollToRatingSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+// 🔥 Modal "Tandai Sudah Ditindaklanjuti" untuk rekomendasi perbaikan aset
+window.openAssetFollowUpModal = (type, id, name) => {
+    document.getElementById('followup-asset-type').value = type;
+    document.getElementById('followup-asset-id').value = id;
+    document.getElementById('followup-asset-name').innerText = name;
+    document.getElementById('followup-note').value = '';
+    document.getElementById('modal-followup-rating').classList.remove('hide');
+};
+
+window.submitAssetFollowUp = async () => {
+    const type = document.getElementById('followup-asset-type').value;
+    const id = document.getElementById('followup-asset-id').value;
+    const note = document.getElementById('followup-note').value.trim();
+
+    if (!note) { alert('Catatan tindak lanjut / perbaikan wajib diisi'); return; }
+
+    const btn = document.getElementById('btn-submit-followup');
+    btn.disabled = true;
+    btn.innerText = 'Menyimpan...';
+
+    try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'assetFollowUps'), {
+            assetType: type,
+            assetId: id,
+            note,
+            resolvedAt: serverTimestamp(),
+            resolvedBy: currentUser?.username || 'Admin'
+        });
+
+        alert('✅ Rekomendasi perbaikan berhasil ditandai sudah ditindaklanjuti');
+        window.closeModal('modal-followup-rating');
+    } catch (err) {
+        console.error('Submit asset follow-up error:', err);
+        alert('Gagal menyimpan tindak lanjut: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = 'Simpan & Tandai Selesai';
+    }
 };
 
 function renderRatingMonitoring() {
@@ -9620,21 +9678,30 @@ function renderRatingMonitoring() {
     setTxt('ratingmon-stat-total', totalReviews);
     setTxt('ratingmon-stat-norating', noRating.length);
 
-    // Rekomendasi tindak lanjut: aset dengan rating rendah, diurutkan dari paling buruk
-    const recommendations = rated
+    // Rekomendasi tindak lanjut: aset dengan rating rendah, diurutkan dari paling buruk,
+    // dipisah antara yang MASIH PERLU tindak lanjut dan yang SUDAH ditindaklanjuti admin.
+    const withRec = rated
         .map(s => ({ ...s, rec: ratingRecommendationLevel(s.avg, s.count) }))
         .filter(s => s.rec)
         .sort((a, b) => a.avg - b.avg);
 
-    setTxt('ratingmon-stat-attention', recommendations.length);
+    const openRecs = withRec.filter(s => !isRecommendationResolved(s));
+    const resolvedRecs = withRec
+        .filter(s => isRecommendationResolved(s))
+        .map(s => ({ ...s, followUp: getAssetFollowUp(s.type, s.id) }));
+
+    // 🔥 update summary: jumlah yang tampil di kartu & badge sidebar HANYA yang masih perlu tindak lanjut
+    setTxt('ratingmon-stat-attention', openRecs.length);
     updateRatingAttentionBadge();
 
     const recListEl = document.getElementById('ratingmon-recommendation-list');
     if (recListEl) {
-        if (recommendations.length === 0) {
-            recListEl.innerHTML = `<div class="py-8 text-center text-xs text-slate-400 italic">✅ Tidak ada aset dengan rating rendah saat ini. Semua kondisi baik menurut feedback pengguna.</div>`;
+        let html = '';
+
+        if (openRecs.length === 0) {
+            html += `<div class="py-8 text-center text-xs text-slate-400 italic">✅ Tidak ada aset dengan rating rendah yang masih perlu tindak lanjut saat ini.</div>`;
         } else {
-            recListEl.innerHTML = recommendations.map(s => `
+            html += openRecs.map(s => `
             <div class="rounded-2xl border p-4 ${s.rec.cardClass}">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
                     <p class="font-bold text-sm text-slate-800">
@@ -9649,11 +9716,36 @@ function renderRatingMonitoring() {
                     <p class="text-[9px] font-black uppercase text-slate-400">Kutipan Keluhan Pengguna:</p>
                     ${s.negativeComments.slice(0, 3).map(c => `<p class="text-[11px] text-slate-600 italic">"${c}"</p>`).join('')}
                 </div>` : ''}
-                <button onclick="window.openAssetRating('${s.type}','${s.id}', decodeURIComponent('${encodeURIComponent(s.name)}'))"
-                    class="mt-2 text-[10px] font-bold text-indigo-600 hover:underline">Lihat semua ulasan →</button>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <button onclick="window.openAssetRating('${s.type}','${s.id}', decodeURIComponent('${encodeURIComponent(s.name)}'))"
+                        class="text-[10px] font-bold text-indigo-600 hover:underline">Lihat semua ulasan →</button>
+                    <button onclick="window.openAssetFollowUpModal('${s.type}','${s.id}', decodeURIComponent('${encodeURIComponent(s.name)}'))"
+                        class="ml-auto px-3 py-1.5 text-[10px] font-bold bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition flex items-center gap-1">
+                        <i class="fas fa-check"></i> Tandai Sudah Ditindaklanjuti
+                    </button>
+                </div>
             </div>
             `).join('');
         }
+
+        if (resolvedRecs.length > 0) {
+            html += `
+            <p class="text-[10px] font-black uppercase text-slate-400 mt-4 mb-2">✅ Riwayat Tindak Lanjut Selesai</p>
+            ` + resolvedRecs.map(s => `
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                    <p class="font-bold text-sm text-slate-800">
+                        ${s.type === 'room' ? '🏠' : '🧰'} ${s.name}
+                        <span class="ml-1 text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">✅ Sudah Ditindaklanjuti</span>
+                    </p>
+                    <span class="text-[10px] text-slate-400">${s.followUp?.resolvedBy ? 'oleh ' + s.followUp.resolvedBy : ''}${s.followUp?.resolvedAt?.seconds ? ' • ' + new Date(s.followUp.resolvedAt.seconds * 1000).toLocaleDateString('id-ID') : ''}</span>
+                </div>
+                ${s.followUp?.note ? `<p class="text-[11px] text-slate-600 italic">"${s.followUp.note}"</p>` : ''}
+            </div>
+            `).join('');
+        }
+
+        recListEl.innerHTML = html;
     }
 
     // Semua feedback (gabungan semua aset), terbaru dulu
@@ -10153,6 +10245,51 @@ ${b.status}
                 <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Semua Rating & Feedback</p>
                 <div id="asset-rating-list" class="space-y-2"></div>
             </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: TANDAI SUDAH DITINDAKLANJUTI (REKOMENDASI RATING) ================= -->
+<div id="modal-followup-rating" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-emerald-50">
+            <h3 class="text-lg font-black text-emerald-600">✅ Tandai Tindak Lanjut Selesai</h3>
+            <button onclick="closeModal('modal-followup-rating')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4">
+
+            <input type="hidden" id="followup-asset-type">
+            <input type="hidden" id="followup-asset-id">
+
+            <div class="bg-slate-50 rounded-xl p-3">
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Ruangan / Alat</p>
+                <p id="followup-asset-name" class="text-sm font-bold text-slate-700">-</p>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Catatan Perbaikan / Tindak Lanjut</label>
+                <textarea id="followup-note" rows="4" placeholder="Contoh: AC sudah diservis, kursi rusak sudah diganti, kebersihan sudah ditingkatkan, dsb..."
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-emerald-400"></textarea>
+            </div>
+
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+                Setelah ditandai selesai, rekomendasi ini akan hilang dari daftar "Perlu Tindak Lanjut" dan
+                dipindahkan ke riwayat. Jika ada rating negatif baru masuk setelah ini, rekomendasi akan
+                otomatis muncul kembali.
+            </p>
+
+            <button id="btn-submit-followup" onclick="window.submitAssetFollowUp()"
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-bold text-sm transition">
+                Simpan & Tandai Selesai
+            </button>
 
         </div>
 
