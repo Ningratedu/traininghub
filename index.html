@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrainingHub - Training Aset Management</title>
 
+    <!-- 📱 PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TrainingHub">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png">
+
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -7797,7 +7806,7 @@ ${
         : b.status === 'Completed'
         ? (
             window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
+            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Dinilai</span>`
             : `
             <button
             onclick="event.stopPropagation(); window.openUserRatingModal('${b.id}')"
@@ -10879,6 +10888,17 @@ ${b.status}
     </div>
 
 </div>
+
+<!-- 📱 Register Service Worker (PWA) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker aktif'))
+        .catch(err => console.error('❌ SW gagal daftar:', err));
+    });
+  }
+</script>
 
 </body>
 </html>
