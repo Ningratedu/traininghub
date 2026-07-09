@@ -9134,7 +9134,13 @@ window.goToViolationDetail = (bookingId) => {
     const latest = window.getLatestBookingViolation(bookingId);
     if (!latest) return;
 
-    window.closeModal('modal-detail');
+    // 🔥 Nutup modal detail TANPA trigger history.back() (beda dari closeModal biasa),
+    // karena kita mau langsung pindah ke view 'pelanggaran' setelah ini. Kalau pakai
+    // history.back(), popstate-nya baru kepanggil belakangan (async) dan malah
+    // nimpa balik showView('pelanggaran') di bawah dengan view sebelumnya.
+    const detailModalEl = document.getElementById('modal-detail');
+    if (detailModalEl) detailModalEl.classList.add('hide');
+    window.__detailModalHistoryPushed = false;
 
     window.__pelanggaranLevelFilter = null;
     const searchInput = document.getElementById('search-pelanggaran');
