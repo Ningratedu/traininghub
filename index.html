@@ -2685,7 +2685,7 @@ window.downloadQR = function () {
     <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, getDoc, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
     getStorage,
@@ -2741,7 +2741,41 @@ const appId = "booking-ruang-training";
 	window.serverTimestamp = serverTimestamp;
 	window.deleteDoc = deleteDoc;
 	window.getDocs = getDocs;
+	window.getDoc = getDoc;
 	window.onSnapshot = onSnapshot;
+
+	// 🔥 VALIDASI SESI SEKALI SAAT APP DIBUKA/DIREFRESH (BUKAN LISTENER REALTIME,
+	// biar gak nambah beban/lag selama sesi jalan). Kalau password akun ini udah
+	// diganti dari device lain, atau akunnya udah dihapus, device ini otomatis
+	// logout paksa saat dibuka/direfresh berikutnya.
+	window.validateSessionAgainstServer = async () => {
+		if (!currentUser || !currentUser.uid) return;
+
+		try {
+			const snap = await getDoc(
+				doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid)
+			);
+
+			if (!snap.exists()) {
+				// akun udah dihapus dari server
+				window.logout();
+				return;
+			}
+
+			const serverData = snap.data();
+
+			if (serverData.password !== currentUser.password) {
+				// password udah diganti dari device lain
+				alert("Password akun Anda telah diperbarui dari perangkat lain. Silakan login ulang.");
+				window.logout();
+			}
+
+		} catch (err) {
+			// gagal cek (misal offline) — biarkan sesi lama tetap jalan,
+			// jangan paksa logout hanya karena network error
+			console.error("Gagal validasi sesi:", err);
+		}
+	};
 
 	signInAnonymously(auth).catch(err => console.error(err));
 	
@@ -3456,6 +3490,11 @@ window.addEventListener("DOMContentLoaded", () => {
         if(loginScreen){
             loginScreen.classList.add('hide');
         }
+
+        // 🔥 Cek sekali ke server apakah password akun ini masih sama dengan
+        // yang tersimpan di device ini (lihat window.validateSessionAgainstServer).
+        // Fire-and-forget, gak nge-block tampilan app.
+        window.validateSessionAgainstServer && window.validateSessionAgainstServer();
 
         setTimeout(()=>{
             initSession();
