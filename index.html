@@ -6065,14 +6065,7 @@ const listenToData = () => {
 
         <p class="font-bold text-sm text-slate-800 truncate">
             ${b.goal}
-            ${
-                window.getBookingViolations && window.getBookingViolations(b.id).length > 0
-                ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
-                    class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
-                    ⚠ Lihat Penyelesaian
-                    </button>`
-                : ''
-            }
+        </p>
 
         <p class="text-[11px] text-slate-500 truncate">
             📍 ${roomName}
@@ -6085,6 +6078,15 @@ const listenToData = () => {
         <p class="text-[10px] text-slate-400">
             ⏰ ${b.start} - ${b.end}
         </p>
+
+        ${
+            window.getBookingViolations && window.getBookingViolations(b.id).length > 0
+            ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
+                class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
+                ⚠ Lihat Penyelesaian
+                </button>`
+            : ''
+        }
 
     </div>
 
@@ -7701,26 +7703,6 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
 
         <p class="font-bold text-sm text-slate-800 truncate">
             ${b.goal}
-            ${
-                window.getBookingViolations && window.getBookingViolations(b.id).length > 0
-                ? (
-                    (
-                        !isAdmin &&
-                        currentUser &&
-                        (
-                            String(b.userUid) === String(currentUser.uid)
-                            ||
-                            b.userName === currentUser.username
-                        )
-                    )
-                    ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
-                        class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
-                        ⚠ Lihat Penyelesaian
-                        </button>`
-                    : `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
-                  )
-                : ''
-            }
         </p>
 
         <p class="text-[11px] text-slate-500 truncate">
@@ -7738,6 +7720,27 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
         <p class="text-[10px] text-slate-400">
             ⏰ ${b.start} - ${b.end}
         </p>
+
+        ${
+            window.getBookingViolations && window.getBookingViolations(b.id).length > 0
+            ? (
+                (
+                    !isAdmin &&
+                    currentUser &&
+                    (
+                        String(b.userUid) === String(currentUser.uid)
+                        ||
+                        b.userName === currentUser.username
+                    )
+                )
+                ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
+                    class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
+                    ⚠ Lihat Penyelesaian
+                    </button>`
+                : `<span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
+              )
+            : ''
+        }
 
                 `;
 
@@ -7794,7 +7797,7 @@ ${
         : b.status === 'Completed'
         ? (
             window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Dinilai</span>`
+            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
             : `
             <button
             onclick="event.stopPropagation(); window.openUserRatingModal('${b.id}')"
