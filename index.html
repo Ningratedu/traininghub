@@ -1836,7 +1836,7 @@ window.downloadQR = function () {
 
                     <th onclick="sortAllBookings('status')" class="px-3 py-2 min-w-[140px] cursor-pointer">Status</th>
 
-                    <th class="px-3 py-2 min-w-[140px]">Pelanggaran</th>
+                    <th class="px-3 py-2 min-w-[140px]">Aksi</th>
 
                 </tr>
             </thead>
@@ -3136,13 +3136,13 @@ if (validRoomId && localState.rooms) {
     let detailLines = [];
 
     // 🔥 ROOM SELALU TAMPIL
-    detailLines.push(`🏢 Ruangan : ${roomName}`);
+    detailLines.push(`- Ruangan : ${roomName}`);
 
     // 🔥 AGENDA SELALU TAMPIL (FIXED: konsisten format & fallback aman)
-    detailLines.push(`🎯 Agenda  : ${agendaText}`);
+    detailLines.push(`- Agenda  : ${agendaText}`);
 
     // 🔥 TOOLS SELALU TAMPIL
-    detailLines.push(`🧰 Peralatan : ${toolsText}`);
+    detailLines.push(`- Peralatan : ${toolsText}`);
 
     const detail =
         detailLines.join("\n");
@@ -3159,8 +3159,8 @@ if (validRoomId && localState.rooms) {
 
 Ini adalah reminder penggunaan ruangan / peralatan yang telah dijadwalkan.
 
-📅 Tanggal : ${b.date}
-⏰ Waktu   : ${b.start} - ${b.end}
+Tanggal : ${b.date}
+Waktu   : ${b.start} - ${b.end}
 
 DETAIL PEMESANAN :
 
@@ -3170,8 +3170,8 @@ Mohon hadir sesuai jadwal yang telah ditentukan.
 
 Saat mulai penggunaan Ruangan/Alat, harap melakukan:
 
-📸 Upload foto penggunaan ruangan
-📲 Scan QR Code Serah Terima dari admin Ruang Training
+- Upload foto penggunaan ruangan
+- Scan QR Code Serah Terima dari admin Ruang Training
 
 Di Link Berikut ini : 
 
@@ -3305,9 +3305,9 @@ let toolsText =
     : "-";
 
 // ================= DETAIL PUSH =================
-detailLines.push(`🏢 Ruangan : ${roomName}`);
-detailLines.push(`🎯 Agenda  : ${agendaText}`);
-detailLines.push(`🧰 Peralatan : ${toolsText}`);
+detailLines.push(`- Ruangan : ${roomName}`);
+detailLines.push(`- Agenda  : ${agendaText}`);
+detailLines.push(`- Peralatan : ${toolsText}`);
 
 const detail = detailLines.join("\n");
 	
@@ -3318,11 +3318,11 @@ const detail = detailLines.join("\n");
 
 Berikut adalah QR Code untuk proses serah terima (penyelesaian booking).
 
-📌 DETAIL PESANAN:
+DETAIL PESANAN:
 ${detail}
 
-📅 Tanggal : ${b.date}
-⏰ Jam     : ${b.start} - ${b.end}
+Tanggal : ${b.date}
+Jam     : ${b.start} - ${b.end}
 
 Silakan buka link berikut untuk melihat dan download QR:
 ${qrLink}
@@ -6577,16 +6577,23 @@ window.exportAllBookingsExcel = () => {
     return {
         No: index + 1,
         Tanggal: b.date,
+        Periode: (b.dayCount > 1 && b.dateRangeText) ? `${b.dateRangeText} (${b.dayCount} hari)` : '-',
         Waktu: `${b.start} - ${b.end}`,
-        Nama: b.userName,
-        Departemen: b.dept,
-        Agenda: b.goal || '-',
-        Ruangan: room ? room.name : '-',
-        Alat: (b.tools || []).map(t => t.name).join(', '),
+        Nama: b.userName || '-',
+        Departemen: b.dept || b.department || '-',
+        Email: b.email || b.userEmail || b.mail || '-',
+        Agenda: b.goal || b.goals || b.agenda || b.purpose || '-',
+        Ruangan: room ? room.name : (b.roomName || '-'),
+        Alat: (b.tools || []).map(t => t.name).join(', ') || '-',
         Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
         Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
         Keterangan: ket.text,
-        Status: b.status
+        Status: b.status || '-',
+        "Catatan User": b.notes || '-',
+        "Catatan Admin": b.adminNote || '-',
+        "Foto Mulai": b.startPhoto && b.startPhoto !== 'AUTO_ADMIN' ? b.startPhoto : '-',
+        "Foto Selesai": b.finishPhoto && b.finishPhoto !== 'AUTO_ADMIN' ? b.finishPhoto : '-',
+        "Dibuat Pada": b.createdAt ? formatTime(b.createdAt) : '-'
     };
 });
     const worksheet = XLSX.utils.json_to_sheet(rows);
@@ -9555,18 +9562,18 @@ window.sendViolationEmail = (id) => {
     const toolsText = (b?.tools || []).map(t => t.name).join(', ') || (b ? '-' : null);
 
     const bookingDetailText = b
-        ? `📅 Tanggal Pesanan : ${b.date} (${b.start} - ${b.end})
-📍 Ruangan : ${roomName}
-🧰 Alat : ${toolsText}
-📝 Agenda : ${b.goal || '-'}`
-        : `📌 Aset : ${v.assetLabel}`;
+        ? `Tanggal Pesanan : ${b.date} (${b.start} - ${b.end})
+- Ruangan : ${roomName}
+- Alat : ${toolsText}
+- Agenda : ${b.goal || '-'}`
+        : `Aset : ${v.assetLabel}`;
 
     // 🔥 INFO RATING PEMINJAM (akumulasi pelanggaran & risiko pemblokiran pemesanan)
     const ratingInfo = window.getUserObjectiveRating ? window.getUserObjectiveRating(v.userName) : null;
     const ratingWarning = ratingInfo
         ? `
 
-⭐ Info Rating Peminjam Anda saat ini: ${ratingInfo.stars}/${ratingInfo.maxViolations} (tercatat ${ratingInfo.violationCount}x pelanggaran).
+Info Rating Peminjam Anda saat ini: ${ratingInfo.stars}/${ratingInfo.maxViolations} (tercatat ${ratingInfo.violationCount}x pelanggaran).
 ${ratingInfo.blocked
     ? 'Rating Anda sudah mencapai batas minimum, sehingga akun Anda saat ini TIDAK BISA mengajukan peminjaman baru. Silakan hubungi Admin Training untuk info lebih lanjut.'
     : 'Setiap pelanggaran akan mengurangi rating ini. Apabila rating mencapai 0, Anda akan DIBLOKIR dari sistem pemesanan ruangan/alat Training hingga menghubungi Admin Training.'}`
@@ -9588,9 +9595,9 @@ Detail Pesanan Terkait:
 ${bookingDetailText}
 
 Detail Pelanggaran:
-📌 Jenis Pelanggaran : ${v.type}
-📌 Tingkat Pelanggaran : ${v.level}
-📝 Kronologi/Keterangan : ${v.description}
+- Jenis Pelanggaran : ${v.type}
+- Tingkat Pelanggaran : ${v.level}
+- Kronologi/Keterangan : ${v.description}
 
 Konsekuensi / Tindak Lanjut yang Telah Diselesaikan:
 ${v.consequence}
@@ -9612,9 +9619,9 @@ Terima kasih atas perhatian dan kerjasamanya.
 
 Sehubungan dengan penggunaan ${v.assetLabel} pada peminjaman ruangan/alat Training, kami informasikan bahwa tercatat pelanggaran terhadap ketentuan peminjaman yang berlaku:
 
-📌 Jenis Pelanggaran  : ${v.type}
-📌 Tingkat Pelanggaran : ${v.level}
-📝 Kronologi/Keterangan : ${v.description}
+- Jenis Pelanggaran  : ${v.type}
+- Tingkat Pelanggaran : ${v.level}
+- Kronologi/Keterangan : ${v.description}
 
 Sesuai ketentuan peminjaman ruangan/alat Training, peminjam wajib merawat dan mengembalikan ruangan/peralatan tepat waktu sesuai jadwal yang disetujui, dalam kondisi baik seperti semula. Apabila terjadi kerusakan atau kehilangan, hal tersebut menjadi tanggung jawab peminjam untuk memperbaiki dan/atau mengganti, paling lambat 2x24 jam sejak waktu selesai penggunaan.
 
