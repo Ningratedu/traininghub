@@ -6392,15 +6392,15 @@ ${toolsWithImage.map(t => `
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.startPhoto 
+                ${b.startPhoto && b.startPhoto !== 'AUTO_ADMIN'
                     ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-                    : '-'}
+                    : (b.startPhoto === 'AUTO_ADMIN' ? '<span class="text-slate-400 italic">Auto Admin</span>' : '-')}
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.finishPhoto 
+                ${b.finishPhoto && b.finishPhoto !== 'AUTO_ADMIN'
                     ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-                    : '-'}
+                    : (b.finishPhoto === 'AUTO_ADMIN' ? '<span class="text-slate-400 italic">Auto Admin</span>' : '-')}
             </td>
 
             <!-- 🔥 KETERANGAN BERWARNA -->
@@ -7740,7 +7740,7 @@ ${
         : b.status === 'Completed'
         ? (
             window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Dinilai</span>`
+            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
             : `
             <button
             onclick="event.stopPropagation(); window.openUserRatingModal('${b.id}')"
@@ -8720,7 +8720,7 @@ function injectBookingTimes(b){
         <div>Mulai: ${formatTime(b.startedAt)}</div>
         <div>Selesai: ${formatTime(b.finishedAt)}</div>
 
-        ${b.startPhoto ? `
+        ${b.startPhoto && b.startPhoto !== 'AUTO_ADMIN' ? `
         <div class="mt-3">
             <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
                 Foto Mulai Penggunaan
@@ -8728,9 +8728,15 @@ function injectBookingTimes(b){
             <img src="${b.startPhoto}"
                 onclick="event.stopPropagation(); window.openImageLightbox('${b.startPhoto}', 'Foto Mulai Penggunaan')"
                 class="rounded-xl max-h-40 border shadow-sm cursor-zoom-in hover:opacity-80 transition"/>
-        </div>` : ""}
+        </div>` : (b.startPhoto === 'AUTO_ADMIN' ? `
+        <div class="mt-3">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+                Foto Mulai Penggunaan
+            </p>
+            <p class="text-[11px] text-slate-400 italic">Diselesaikan otomatis oleh Admin (tanpa foto)</p>
+        </div>` : "")}
 
-        ${b.finishPhoto ? `
+        ${b.finishPhoto && b.finishPhoto !== 'AUTO_ADMIN' ? `
         <div class="mt-3">
             <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
                 Foto Selesai Penggunaan
@@ -8738,7 +8744,13 @@ function injectBookingTimes(b){
             <img src="${b.finishPhoto}"
                 onclick="event.stopPropagation(); window.openImageLightbox('${b.finishPhoto}', 'Foto Selesai Penggunaan')"
                 class="rounded-xl max-h-40 border shadow-sm cursor-zoom-in hover:opacity-80 transition"/>
-        </div>` : ""}
+        </div>` : (b.finishPhoto === 'AUTO_ADMIN' ? `
+        <div class="mt-3">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">
+                Foto Selesai Penggunaan
+            </p>
+            <p class="text-[11px] text-slate-400 italic">Diselesaikan otomatis oleh Admin (tanpa foto)</p>
+        </div>` : "")}
 
 ${b.finishedByAdmin ? `
 <div class="mt-3 bg-rose-50 border border-rose-200 p-3 rounded text-xs">
