@@ -10270,13 +10270,17 @@ window.submitChangePassword = async () => {
             }
         }
 
-        alert("Password berhasil diubah!");
-
         document.getElementById('old-pass').value = '';
         document.getElementById('new-pass').value = '';
         document.getElementById('confirm-pass').value = '';
 
         closeChangePassword();
+
+        // 🔥 4. AUTO LOGOUT SETELAH GANTI PASSWORD
+        // Supaya sesi yang masih login pakai password LAMA otomatis
+        // ter-logout, dan user wajib login ulang pakai password BARU.
+        alert("Password berhasil diubah! Silakan login ulang menggunakan password baru Anda.");
+        window.logout();
 
     } catch (err) {
         console.error("Change password error:", err);
