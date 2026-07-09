@@ -1605,13 +1605,16 @@ window.downloadQR = function () {
         </div>
 
         <div class="stat-card card-pop p-4 border-t-4 border-amber-600 col-span-2" onclick="window.showMyViolations('all')">
-            <p class="text-amber-600 text-[9px] font-black uppercase">⭐ Rating Peminjam Saya (Objektif)</p>
+            <p class="text-amber-600 text-[9px] font-black uppercase">⭐ COLLECTABILITY</p>
             <div class="flex items-baseline gap-2 mt-1">
                 <h3 class="text-xl font-black text-amber-500" id="mystat-rating-stars">★★★★★</h3>
                 <span class="text-xs font-black text-slate-400" id="mystat-rating-number">5/5</span>
             </div>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-rating-desc">
                 0x pelanggaran • dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin
+            </p>
+            <p class="text-[8px] text-rose-500 font-bold mt-1">
+                ⚠ Ketentuan: Collectability dihitung dari akumulasi pelanggaran. Jika mencapai 0, akun Anda akan DIBLOKIR dari pengajuan peminjaman baru.
             </p>
             <p class="text-[8px] text-indigo-400 font-bold mt-1">Klik untuk lihat semua riwayat pelanggaran</p>
         </div>
@@ -1646,8 +1649,10 @@ window.downloadQR = function () {
                 <i class="fas fa-chart-bar text-indigo-500"></i>
                 Ruangan / Alat yang Sering Saya Pinjam
             </h4>
-            <div class="h-[280px]">
-                <canvas id="assetChartMine"></canvas>
+            <div id="assetChartMineScroll" class="h-[280px] overflow-x-auto overflow-y-hidden">
+                <div id="assetChartMineWrap" class="h-full" style="min-width:100%;">
+                    <canvas id="assetChartMine"></canvas>
+                </div>
             </div>
         </div>
 
@@ -4004,7 +4009,7 @@ function renderStatistikSaya() {
     setTxt('mystat-violation-active', violationActive.length);
     setTxt('mystat-violation-done', violationDone.length);
 
-    // 🔥 Rating peminjam objektif (berdasarkan total pelanggaran, bukan penilaian subjektif Admin)
+    // 🔥 Rating peminjam objektif / COLLECTABILITY (berdasarkan total pelanggaran, bukan penilaian subjektif Admin)
     if (window.getUserObjectiveRating) {
         const { stars, violationCount, blocked, maxViolations } = window.getUserObjectiveRating(currentUser.username);
         const starsText = '★'.repeat(stars) + '☆'.repeat(maxViolations - stars);
@@ -4015,8 +4020,8 @@ function renderStatistikSaya() {
         const numberEl = document.getElementById('mystat-rating-number');
         if (numberEl) numberEl.classList.toggle('text-rose-500', blocked);
         setTxt('mystat-rating-desc', blocked
-            ? `⛔ ${violationCount}x pelanggaran (batas ${maxViolations}x) • Anda tidak bisa mengajukan peminjaman baru. Hubungi Admin Training.`
-            : `${violationCount}x pelanggaran • dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin`);
+            ? `⛔ Collectability Anda sudah 0/${maxViolations} (${violationCount}x pelanggaran). Akun Anda saat ini DIBLOKIR dari pengajuan peminjaman baru. Hubungi Admin Training.`
+            : `${violationCount}x pelanggaran tercatat • Collectability dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin`);
     }
 
     setTimeout(() => updateMyChart(mine), 100);
@@ -4090,19 +4095,35 @@ function updateMyChart(dataList) {
         (b.tools || []).forEach(t => { assetStats[t.name] = (assetStats[t.name] || 0) + 1; });
     });
 
+    const assetLabels = Object.keys(assetStats);
+
+    // 🔥 Lebar canvas dibuat fleksibel & proporsional sesuai jumlah aset,
+    // supaya batang chart TIDAK berhimpitan saat data banyak (scroll-x aktif)
+    // sekaligus tetap memenuhi lebar kartu saat data sedikit.
+    const scrollWrap = document.getElementById('assetChartMineWrap');
+    const scrollContainer = document.getElementById('assetChartMineScroll');
+    if (scrollWrap) {
+        const minWidthPerBar = 90;
+        const containerWidth = (scrollContainer && scrollContainer.clientWidth) || 600;
+        const neededWidth = Math.max(containerWidth, assetLabels.length * minWidthPerBar);
+        scrollWrap.style.width = `${neededWidth}px`;
+    }
+
     const ctxAsset = document.getElementById('assetChartMine');
     if (ctxAsset) {
         if (assetChartMine) assetChartMine.destroy();
         assetChartMine = new Chart(ctxAsset, {
             type: 'bar',
             data: {
-                labels: Object.keys(assetStats),
+                labels: assetLabels,
                 datasets: [{
                     label: 'Frekuensi Pinjam',
                     data: Object.values(assetStats),
                     backgroundColor: '#10b981',
                     borderRadius: 8,
-                    barThickness: 24
+                    maxBarThickness: 42,
+                    categoryPercentage: 0.6,
+                    barPercentage: 0.7
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
@@ -5923,6 +5944,14 @@ const listenToData = () => {
                 .map(t => t.name)
                 .join(', ') || '-';
 
+            // 🔥 Gate tombol "Catat Pelanggaran" (admin): hanya kalau waktu
+            // pemesanan sudah mulai & belum Completed. Otomatis berubah jadi
+            // badge "Ada / status" kalau pesanan ini sudah punya catatan pelanggaran.
+            const isAdmin = currentUser?.role === 'admin';
+            const started = isBookingStarted(b);
+            const violationEligible = isAdmin && started && b.status !== 'Completed';
+            const hasViolation = isAdmin && window.getLatestBookingViolation && window.getLatestBookingViolation(b.id);
+
             return `
 
             <div class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group">
@@ -6023,6 +6052,12 @@ ${
         </button>`
 }
 ` : ``}
+
+${
+    (violationEligible || hasViolation)
+    ? window.violationActionCellHTML(b.id, violationEligible, 'text-[10px]')
+    : ``
+}
 
 </div>
 
@@ -6357,10 +6392,10 @@ ${toolsWithImage.map(t => `
             </td>
 
             <td class="px-3 py-2 text-center">
-                <button onclick="window.openViolationModal('${b.id}')"
-                    class="px-2 py-1 text-[9px] font-bold bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition whitespace-nowrap">
-                    ⚠ Catat Pelanggaran
-                </button>
+                ${window.violationActionCellHTML(
+                    b.id,
+                    ['Approved', 'Ongoing', 'Completed'].includes(b.status)
+                )}
             </td>
 
         </tr>
@@ -7635,17 +7670,8 @@ isAdmin
 }
 
     ${
-    started
-    ? `
-    <button
-    onclick="event.stopPropagation(); window.openViolationModal('${b.id}')"
-    class="px-3 py-1 text-[10px] font-bold 
-    bg-rose-100 text-rose-600 
-    rounded-lg hover:bg-rose-200 
-    transition whitespace-nowrap">
-    ⚠ Catat Pelanggaran
-    </button>
-    `
+    (started && b.status !== 'Completed') || (window.getLatestBookingViolation && window.getLatestBookingViolation(b.id))
+    ? window.violationActionCellHTML(b.id, started && b.status !== 'Completed', 'text-[10px]')
     : ``
 }
 
@@ -8199,12 +8225,35 @@ class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-xs">
     } else {
 
         // ================= FOOTER ADMIN =================
-        let adminFooterHtml = `
+        // 🔥 Tombol "Catat Pelanggaran" hanya muncul kalau waktu pemesanan sudah
+        // mulai & belum Completed. Kalau sudah ada catatan pelanggaran, tombol
+        // otomatis berubah jadi badge "Ada Pelanggaran / <status>" yang bisa
+        // diklik untuk lompat ke detailnya di menu Pelanggaran.
+        const violationEligible = isBookingStarted(b) && status !== 'completed';
+        const latestViolation = window.getLatestBookingViolation ? window.getLatestBookingViolation(b.id) : null;
+
+        let adminFooterHtml = '';
+
+        if (latestViolation) {
+            const vStatusColor =
+                latestViolation.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100' :
+                latestViolation.status === 'Sudah Diperingatkan' ? 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100' :
+                'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100';
+
+            adminFooterHtml += `
+<button onclick="window.goToViolationDetail('${b.id}')"
+class="w-full ${vStatusColor} border py-3 rounded-2xl font-bold text-xs transition">
+⚠ Ada Pelanggaran / ${latestViolation.status}
+</button>
+`;
+        } else if (violationEligible) {
+            adminFooterHtml += `
 <button onclick="window.openViolationModal('${b.id}')"
-class="w-full bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-2xl font-bold text-xs">
+class="w-full bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-2xl font-bold text-xs hover:bg-rose-100 transition">
 ⚠ Catat Pelanggaran Peminjaman
 </button>
 `;
+        }
 
         // 🔥 Tombol "Lihat Rating & Feedback Aset" DIHAPUS karena ringkasan
         // rating & feedback pesanan ini SUDAH tampil langsung di body detail
@@ -8878,6 +8927,70 @@ window.getBookingViolations = (bookingId) => {
     return (localState.violations || []).filter(v => v.bookingId === bookingId);
 };
 
+// 🔥 Ambil catatan pelanggaran TERBARU untuk 1 pesanan (dipakai badge "Ada / status")
+window.getLatestBookingViolation = (bookingId) => {
+    const list = window.getBookingViolations(bookingId);
+    if (!list.length) return null;
+    return list.slice().sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))[0];
+};
+
+// 🔥 Render cell/aksi "Catat Pelanggaran" yang otomatis berubah:
+// - Kalau sudah ada catatan pelanggaran → badge "Ada / <status>" (klik = buka detail di menu Pelanggaran)
+// - Kalau belum ada & eligible=true → tombol "Catat Pelanggaran"
+// - Kalau belum ada & eligible=false → teks "Tidak ada" (non-aktif, dipakai utamanya di kolom Aksi Semua Pesanan
+//   untuk pesanan yang statusnya Pending/Rejected/Cancelled, karena asetnya tidak pernah benar-benar dipakai)
+window.violationActionCellHTML = (bookingId, eligible = true, size = 'text-[9px]') => {
+    const latest = window.getLatestBookingViolation(bookingId);
+
+    if (latest) {
+        const statusColor =
+            latest.status === 'Selesai' ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' :
+            latest.status === 'Sudah Diperingatkan' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' :
+            'bg-rose-100 text-rose-600 hover:bg-rose-200';
+
+        return `
+        <button onclick="event.stopPropagation(); window.goToViolationDetail('${bookingId}')"
+            class="px-2 py-1 ${size} font-black rounded-lg transition whitespace-nowrap ${statusColor}">
+            Ada / ${latest.status}
+        </button>`;
+    }
+
+    if (!eligible) {
+        return `<span class="px-2 py-1 ${size} font-bold text-slate-400 whitespace-nowrap">Tidak ada</span>`;
+    }
+
+    return `
+    <button onclick="event.stopPropagation(); window.openViolationModal('${bookingId}')"
+        class="px-2 py-1 ${size} font-bold bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition whitespace-nowrap">
+        ⚠ Catat Pelanggaran
+    </button>`;
+};
+
+// 🔥 Loncat ke detail pelanggaran (menu Pelanggaran) dari badge "Ada / status"
+window.goToViolationDetail = (bookingId) => {
+    const latest = window.getLatestBookingViolation(bookingId);
+    if (!latest) return;
+
+    window.__pelanggaranLevelFilter = null;
+    const searchInput = document.getElementById('search-pelanggaran');
+    if (searchInput) searchInput.value = '';
+
+    window.showView('pelanggaran', 'Pelanggaran Peminjaman');
+
+    setTimeout(() => {
+        if (typeof renderPelanggaran === 'function') renderPelanggaran();
+
+        setTimeout(() => {
+            const card = document.getElementById(`violation-card-${latest.id}`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.classList.add('ring-4', 'ring-rose-400');
+                setTimeout(() => card.classList.remove('ring-4', 'ring-rose-400'), 2000);
+            }
+        }, 100);
+    }, 50);
+};
+
 // 🔥 Bikin id form yang unik & aman dipakai di HTML per kombinasi tipe+id aset
 function assetRatingFormId(type, id) {
     return `asset_${type}_${String(id).replace(/[^a-zA-Z0-9_-]/g, '')}`;
@@ -9209,6 +9322,12 @@ window.submitViolationResolution = async () => {
 
         alert('✅ Pelanggaran berhasil ditandai selesai dengan bukti penyelesaian');
         window.closeModal('modal-violation-resolve');
+
+        // 🔥 Tawarkan kirim notifikasi penyelesaian (detail pesanan, konsekuensi,
+        // himbauan tidak mengulangi, & peringatan akumulasi rating) ke peminjam
+        if (confirm('Kirim notifikasi penyelesaian pelanggaran ke peminjam sekarang?')) {
+            window.sendViolationEmail(id);
+        }
     } catch (err) {
         console.error('Submit violation resolution error:', err);
         alert('Gagal menyimpan penyelesaian: ' + err.message);
@@ -9281,9 +9400,10 @@ window.sendViolationEmail = (id) => {
     // 🔥 CARI EMAIL: dari data pelanggaran, lalu dari booking terkait, lalu dari data user
     let email = (v.email || '').trim();
 
-    if (!email && v.bookingId) {
-        const b = localState.bookings.find(x => x.id === v.bookingId);
-        if (b) email = findUserEmailForBooking(b);
+    const b = v.bookingId ? localState.bookings.find(x => x.id === v.bookingId) : null;
+
+    if (!email && b) {
+        email = findUserEmailForBooking(b);
     }
 
     if (!email && localState.users) {
@@ -9300,9 +9420,65 @@ window.sendViolationEmail = (id) => {
         if (!email) return;
     }
 
-    const subject = `Peringatan Pelanggaran Ketentuan Peminjaman Ruangan/Alat Training`;
+    // 🔥 DETAIL PESANAN TERKAIT (kalau ada)
+    const room = b?.roomId ? localState.rooms.find(r => String(r.id) === String(b.roomId)) : null;
+    const roomName = room ? room.name : (b ? '-' : null);
+    const toolsText = (b?.tools || []).map(t => t.name).join(', ') || (b ? '-' : null);
 
-    const body =
+    const bookingDetailText = b
+        ? `📅 Tanggal Pesanan : ${b.date} (${b.start} - ${b.end})
+📍 Ruangan : ${roomName}
+🧰 Alat : ${toolsText}
+📝 Agenda : ${b.goal || '-'}`
+        : `📌 Aset : ${v.assetLabel}`;
+
+    // 🔥 INFO RATING PEMINJAM (akumulasi pelanggaran & risiko pemblokiran pemesanan)
+    const ratingInfo = window.getUserObjectiveRating ? window.getUserObjectiveRating(v.userName) : null;
+    const ratingWarning = ratingInfo
+        ? `
+
+⭐ Info Rating Peminjam Anda saat ini: ${ratingInfo.stars}/${ratingInfo.maxViolations} (tercatat ${ratingInfo.violationCount}x pelanggaran).
+${ratingInfo.blocked
+    ? 'Rating Anda sudah mencapai batas minimum, sehingga akun Anda saat ini TIDAK BISA mengajukan peminjaman baru. Silakan hubungi Admin Training untuk info lebih lanjut.'
+    : 'Setiap pelanggaran akan mengurangi rating ini. Apabila rating mencapai 0, Anda akan DIBLOKIR dari sistem pemesanan ruangan/alat Training hingga menghubungi Admin Training.'}`
+        : '';
+
+    let subject, body;
+
+    if (v.status === 'Selesai') {
+
+        // 🔥 PEMBERITAHUAN STATUS PENYELESAIAN PELANGGARAN
+        subject = `Konfirmasi Penyelesaian Pelanggaran Peminjaman Ruangan/Alat Training`;
+
+        body =
+`Yth. ${v.userName},
+
+Bersama ini kami informasikan bahwa tindak lanjut atas pelanggaran peminjaman yang Anda lakukan telah dinyatakan SELESAI ditindaklanjuti oleh Admin Training.
+
+Detail Pesanan Terkait:
+${bookingDetailText}
+
+Detail Pelanggaran:
+📌 Jenis Pelanggaran : ${v.type}
+📌 Tingkat Pelanggaran : ${v.level}
+📝 Kronologi/Keterangan : ${v.description}
+
+Konsekuensi / Tindak Lanjut yang Telah Diselesaikan:
+${v.consequence}
+${v.resolutionNote ? `\nCatatan Penyelesaian dari Admin: ${v.resolutionNote}` : ''}
+
+Mohon agar hal ini menjadi perhatian dan TIDAK TERULANG kembali di kemudian hari.${ratingWarning}
+
+Terima kasih atas perhatian dan kerjasamanya.
+
+- Admin TrainingHub`;
+
+    } else {
+
+        // 🔥 PERINGATAN PELANGGARAN (BELUM SELESAI)
+        subject = `Peringatan Pelanggaran Ketentuan Peminjaman Ruangan/Alat Training`;
+
+        body =
 `Yth. ${v.userName},
 
 Sehubungan dengan penggunaan ${v.assetLabel} pada peminjaman ruangan/alat Training, kami informasikan bahwa tercatat pelanggaran terhadap ketentuan peminjaman yang berlaku:
@@ -9316,9 +9492,13 @@ Sesuai ketentuan peminjaman ruangan/alat Training, peminjam wajib merawat dan me
 Konsekuensi / Tindak Lanjut:
 ${v.consequence}
 
-Mohon agar hal ini menjadi perhatian dan tidak terulang kembali di kemudian hari. Terima kasih atas kerjasamanya.
+Mohon agar hal ini menjadi perhatian dan tidak terulang kembali di kemudian hari.${ratingWarning}
+
+Terima kasih atas kerjasamanya.
 
 - Admin TrainingHub`;
+
+    }
 
     window.location.href =
         `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -9442,7 +9622,7 @@ function renderPelanggaran() {
         const repeatCount = window.getUserViolationCount(v.userName);
 
         return `
-        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div id="violation-card-${v.id}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm transition-all">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <div>
                     <p class="font-bold text-sm text-slate-800">
@@ -9475,7 +9655,7 @@ function renderPelanggaran() {
             <div class="flex flex-wrap gap-2">
                 <button onclick="window.sendViolationEmail('${v.id}')"
                     class="px-3 py-1.5 text-[10px] font-bold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1">
-                    <i class="fas fa-envelope"></i> Kirim Peringatan Email
+                    <i class="fas fa-envelope"></i> ${v.status === 'Selesai' ? 'Kirim Notifikasi Penyelesaian' : 'Kirim Peringatan Email'}
                 </button>
                 ${v.status !== 'Selesai' ? `
                 <button onclick="window.sendViolationReminder('${v.id}')"
