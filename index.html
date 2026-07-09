@@ -1709,6 +1709,28 @@ window.downloadQR = function () {
 
 
 <div id="view-approval" class="view hide">
+
+    <!-- ================= 🔥 STATISTIK APPROVAL SEMUA PESANAN (SESUAI FILTER GLOBAL) ================= -->
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 mb-6">
+
+        <h4 class="font-black text-sm text-slate-700 mb-4 flex items-center gap-2">
+            <i class="fas fa-chart-pie text-indigo-500"></i>
+            Statistik Approval Semua Pesanan
+        </h4>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 items-center">
+
+            <div class="h-[220px] flex items-center justify-center">
+                <canvas id="approvalStatusChart"></canvas>
+            </div>
+
+            <div id="approval-stat-legend" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+
+        </div>
+
+    </div>
+
+    <p class="text-[10px] font-black uppercase text-slate-400 mb-2">Antrean Persetujuan</p>
     <div id="approval-list" class="space-y-4"></div>
 </div>
 
@@ -3510,6 +3532,7 @@ let trendChartUser = null;
 let trendChartMine = null;
 let statusChartMine = null;
 let assetChartMine = null;
+let approvalStatusChart = null;
 let html5QrCode = null;
 
 let localState = {
@@ -6831,7 +6854,12 @@ setTimeout(() => {
             window.approvalGroups = {};
             groups.forEach(g => { window.approvalGroups[g.key] = g.items.map(x => x.id); });
 
-            if(groups.length === 0) container.innerHTML = `<div class="py-10 text-center text-slate-400 italic">Tidak ada antrean persetujuan</div>`;
+            if(groups.length === 0) container.innerHTML = `
+                <div class="py-10 text-center bg-white rounded-2xl border border-slate-100">
+                    <i class="fas fa-circle-check text-emerald-400 text-2xl mb-2"></i>
+                    <p class="text-slate-600 font-bold text-sm">Tidak ada antrean persetujuan</p>
+                    <p class="text-slate-400 text-xs mt-1">Belum ada pesanan yang menunggu approval saat ini</p>
+                </div>`;
             else container.innerHTML = groups.map(({ key, items }) => {
                 const b = items[0]; // representatif: ruangan/alat sama untuk tiap hari dalam 1 grup
                 const room = b.roomId ? localState.rooms.find(r => r.id === b.roomId) : null;
@@ -6913,7 +6941,92 @@ return `
                     </div>
                 `;
             }).join('');
+
+            renderApprovalStatusChart();
         }
+
+        // 🔥 PIE CHART STATISTIK APPROVAL — SEMUA PESANAN SESUAI FILTERAN GLOBAL
+        // (bukan cuma yang Pending, tapi seluruh status: Pending/Approved/Ongoing/
+        // Completed/Rejected/Cancelled — biar admin lihat gambaran approval secara umum)
+        function renderApprovalStatusChart() {
+            const all = getFilteredBookings();
+
+            const statusMeta = [
+                { key: 'Pending',   label: 'Pending',   color: '#f59e0b' },
+                { key: 'Approved',  label: 'Approved',  color: '#6366f1' },
+                { key: 'Ongoing',   label: 'Ongoing',   color: '#06b6d4' },
+                { key: 'Completed', label: 'Completed', color: '#10b981' },
+                { key: 'Rejected',  label: 'Rejected',  color: '#ef4444' },
+                { key: 'Cancelled', label: 'Cancelled', color: '#64748b' }
+            ];
+
+            const counts = statusMeta.map(s => all.filter(b => b.status === s.key).length);
+            const total = counts.reduce((a, c) => a + c, 0);
+
+            const ctx = document.getElementById('approvalStatusChart');
+            const legendEl = document.getElementById('approval-stat-legend');
+
+            if (!ctx || !legendEl) return;
+
+            if (total === 0) {
+                if (approvalStatusChart) { approvalStatusChart.destroy(); approvalStatusChart = null; }
+                legendEl.innerHTML = `
+                    <div class="col-span-2 sm:col-span-3 py-6 text-center bg-slate-50 rounded-2xl border border-slate-100">
+                        <i class="fas fa-chart-pie text-slate-300 text-xl mb-2"></i>
+                        <p class="text-slate-500 font-semibold text-xs">Belum ada data pesanan</p>
+                        <p class="text-slate-400 text-[10px] mt-1">untuk periode / filter yang sedang dipilih</p>
+                    </div>`;
+                return;
+            }
+
+            if (approvalStatusChart) approvalStatusChart.destroy();
+            approvalStatusChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: statusMeta.map(s => s.label),
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: statusMeta.map(s => s.color),
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => {
+                                    const val = item.raw || 0;
+                                    const pct = total ? Math.round((val / total) * 100) : 0;
+                                    return ` ${item.label}: ${val} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 🔥 LEGEND KUSTOM (teks lebih besar & kontras dibanding legend bawaan Chart.js)
+            legendEl.innerHTML = statusMeta.map((s, i) => {
+                const val = counts[i];
+                const pct = total ? Math.round((val / total) * 100) : 0;
+                return `
+                <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
+                    <span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${s.color}"></span>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black uppercase text-slate-500 truncate">${s.label}</p>
+                        <p class="text-sm font-black text-slate-800">${val} <span class="text-[10px] font-bold text-slate-400">(${pct}%)</span></p>
+                    </div>
+                </div>`;
+            }).join('') + `
+                <div class="col-span-2 sm:col-span-3 text-[10px] font-bold text-slate-400 text-right mt-1">
+                    Total ${total} pesanan sesuai filter yang aktif
+                </div>`;
+        }
+        window.renderApprovalStatusChart = renderApprovalStatusChart;
 		// ================= MASTER DATA RENDER =================
 function renderMaster(){
 
