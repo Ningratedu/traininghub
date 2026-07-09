@@ -6016,10 +6016,42 @@ const listenToData = () => {
 
             return `
 
-            <div class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group">
+            <div class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group overflow-hidden">
+
+    ${(() => {
+
+        const statusColor =
+            b.status === 'Pending' ? 'bg-amber-400 text-amber-900' :
+            b.status === 'Approved' ? 'bg-emerald-500 text-white' :
+            b.status === 'Ongoing' ? 'bg-blue-500 text-white' :
+            b.status === 'Completed' ? 'bg-indigo-500 text-white' :
+            b.status === 'Rejected' ? 'bg-rose-500 text-white' :
+            'bg-slate-400 text-white';
+
+        const statusIcon =
+            b.status === 'Pending' ? '⏳' :
+            b.status === 'Approved' ? '✅' :
+            b.status === 'Ongoing' ? '🟢' :
+            b.status === 'Completed' ? '🏁' :
+            b.status === 'Rejected' ? '✖' :
+            '⛔';
+
+        return `
+        <div class="absolute top-0 left-0 z-10">
+            <div class="${statusColor} text-[8px] font-black uppercase px-2.5 py-[3px]
+            rounded-tl-2xl rounded-br-lg shadow-md relative tracking-wide flex items-center gap-1">
+                <span>${statusIcon}</span><span>${b.status}</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0
+                border-t-[6px] border-t-black/20
+                border-r-[6px] border-r-transparent"></span>
+            </div>
+        </div>
+        `;
+
+    })()}
 
     <!-- 📅 TANGGAL -->
-    <div class="text-center min-w-[45px] leading-tight">
+    <div class="text-center min-w-[45px] leading-tight mt-4">
         <p class="text-xl font-black text-slate-900">
             ${b.date ? b.date.split('-')[2] : '-'}
         </p>
@@ -6029,7 +6061,7 @@ const listenToData = () => {
     </div>
 
     <!-- 📋 CONTENT -->
-    <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0 flex flex-col gap-1">
+    <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0 flex flex-col gap-1 mt-4">
 
         <p class="font-bold text-sm text-slate-800 truncate">
             ${b.goal}
@@ -6057,14 +6089,7 @@ const listenToData = () => {
     </div>
 
     <!-- 👉 ACTION -->
-    <div class="flex flex-col items-end gap-2 shrink-0">
-
-    <!-- STATUS -->
-    <span 
-    onclick="window.openDetail('${b.id}')"
-    class="text-[9px] font-bold uppercase px-3 py-1 rounded-full whitespace-nowrap ${getStatusClass(b.status)}">
-        ${b.status}
-    </span>
+    <div class="flex flex-col items-end gap-2 shrink-0 mt-4">
 
    <!-- ICON ACTION -->
 <div class="flex gap-2">
@@ -7610,10 +7635,42 @@ function renderJadwal() {
 
 <div 
 onclick="window.openDetail('${b.id}')" 
-class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group cursor-pointer">
+class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group cursor-pointer overflow-hidden">
+
+    ${(() => {
+
+        const statusColor =
+            b.status === 'Pending' ? 'bg-amber-400 text-amber-900' :
+            b.status === 'Approved' ? 'bg-emerald-500 text-white' :
+            b.status === 'Ongoing' ? 'bg-blue-500 text-white' :
+            b.status === 'Completed' ? 'bg-indigo-500 text-white' :
+            b.status === 'Rejected' ? 'bg-rose-500 text-white' :
+            'bg-slate-400 text-white';
+
+        const statusIcon =
+            b.status === 'Pending' ? '⏳' :
+            b.status === 'Approved' ? '✅' :
+            b.status === 'Ongoing' ? '🟢' :
+            b.status === 'Completed' ? '🏁' :
+            b.status === 'Rejected' ? '✖' :
+            '⛔';
+
+        return `
+        <div class="absolute top-0 left-0 z-10">
+            <div class="${statusColor} text-[8px] font-black uppercase px-2.5 py-[3px]
+            rounded-tl-2xl rounded-br-lg shadow-md relative tracking-wide flex items-center gap-1">
+                <span>${statusIcon}</span><span>${b.status}</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0
+                border-t-[6px] border-t-black/20
+                border-r-[6px] border-r-transparent"></span>
+            </div>
+        </div>
+        `;
+
+    })()}
 
     <!-- 📅 TANGGAL -->
-    <div class="text-center min-w-[45px] leading-tight">
+    <div class="text-center min-w-[45px] leading-tight mt-4">
         <p class="text-xl font-black text-slate-900">
             ${b.date.split('-')[2]}
         </p>
@@ -7623,7 +7680,7 @@ class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 fle
     </div>
 
     <!-- 📋 CONTENT -->
-    <div class="flex-1 min-w-0 flex flex-col gap-1">
+    <div class="flex-1 min-w-0 flex flex-col gap-1 mt-4">
 
         ${(() => {
 
@@ -7689,14 +7746,7 @@ class="card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 fle
     </div>
 
     <!-- 👉 ACTION -->
-    <div class="flex flex-col items-end gap-2 shrink-0">
-
-        <!-- STATUS -->
-        <span 
-        onclick="event.stopPropagation(); window.openDetail('${b.id}')"
-        class="text-[9px] font-bold uppercase px-3 py-1 rounded-full whitespace-nowrap ${getStatusClass(b.status)}">
-            ${b.status}
-        </span>
+    <div class="flex flex-col items-end gap-2 shrink-0 mt-4">
 
         <!-- ICON ACTION -->
         <div class="flex flex-wrap justify-end gap-2">
@@ -10796,7 +10846,7 @@ ${b.status}
                         <option value="Berat">Berat</option>
                     </select>
                 </div>
-            </div> 
+            </div>
 
             <div>
                 <label class="text-[10px] font-bold uppercase text-slate-400">Deskripsi Pelanggaran</label>
