@@ -11,19 +11,19 @@
   "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png",
+      "src": "https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Logo%20RN%20PNG.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png",
+      "src": "https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Logo%20RN%20PNG.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Desain%20tanpa%20judul%20(3).png",
+      "src": "https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/Logo%20RN%20PNG.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
