@@ -7740,7 +7740,7 @@ ${
         : b.status === 'Completed'
         ? (
             window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
+            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Dinilai</span>`
             : `
             <button
             onclick="event.stopPropagation(); window.openUserRatingModal('${b.id}')"
@@ -9133,6 +9133,8 @@ window.violationActionCellHTML = (bookingId, eligible = true, size = 'text-[9px]
 window.goToViolationDetail = (bookingId) => {
     const latest = window.getLatestBookingViolation(bookingId);
     if (!latest) return;
+
+    window.closeModal('modal-detail');
 
     window.__pelanggaranLevelFilter = null;
     const searchInput = document.getElementById('search-pelanggaran');
