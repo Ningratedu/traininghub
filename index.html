@@ -6952,16 +6952,26 @@ return `
             const all = getFilteredBookings();
 
             const statusMeta = [
-                { key: 'Pending',   label: 'Pending',   color: '#f59e0b' },
-                { key: 'Approved',  label: 'Approved',  color: '#6366f1' },
-                { key: 'Ongoing',   label: 'Ongoing',   color: '#06b6d4' },
-                { key: 'Completed', label: 'Completed', color: '#10b981' },
-                { key: 'Rejected',  label: 'Rejected',  color: '#ef4444' },
-                { key: 'Cancelled', label: 'Cancelled', color: '#64748b' }
+                { key: 'Pending',   label: 'Pending',              color: '#f59e0b' },
+                { key: 'Approved',  label: 'Approved (Belum Mulai)', color: '#6366f1' },
+                { key: 'Ongoing',   label: 'Ongoing',              color: '#06b6d4' },
+                { key: 'Completed', label: 'Completed',            color: '#10b981' },
+                { key: 'Rejected',  label: 'Rejected',             color: '#ef4444' },
+                { key: 'Cancelled', label: 'Cancelled',            color: '#64748b' }
             ];
 
             const counts = statusMeta.map(s => all.filter(b => b.status === s.key).length);
             const total = counts.reduce((a, c) => a + c, 0);
+
+            // 🔥 Total "Disetujui" secara keseluruhan = Approved + Ongoing + Completed,
+            // karena Ongoing & Completed juga sudah pasti melewati tahap approval,
+            // cuma beda tahap pemakaiannya saja. Dipakai buat ringkasan tambahan,
+            // BUKAN buat ganti pie chart (biar tiap slice tetap saling eksklusif & totalnya 100%).
+            const approvedIdx = statusMeta.findIndex(s => s.key === 'Approved');
+            const ongoingIdx = statusMeta.findIndex(s => s.key === 'Ongoing');
+            const completedIdx = statusMeta.findIndex(s => s.key === 'Completed');
+            const totalApprovedAll = counts[approvedIdx] + counts[ongoingIdx] + counts[completedIdx];
+            const totalApprovedPct = total ? Math.round((totalApprovedAll / total) * 100) : 0;
 
             const ctx = document.getElementById('approvalStatusChart');
             const legendEl = document.getElementById('approval-stat-legend');
@@ -7022,6 +7032,12 @@ return `
                     </div>
                 </div>`;
             }).join('') + `
+                <div class="col-span-2 sm:col-span-3 flex items-center justify-between gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 mt-1">
+                    <p class="text-[10px] font-black uppercase text-emerald-700">
+                        ✅ Total Disetujui (Approved + Ongoing + Completed)
+                    </p>
+                    <p class="text-sm font-black text-emerald-700">${totalApprovedAll} <span class="text-[10px] font-bold text-emerald-500">(${totalApprovedPct}%)</span></p>
+                </div>
                 <div class="col-span-2 sm:col-span-3 text-[10px] font-bold text-slate-400 text-right mt-1">
                     Total ${total} pesanan sesuai filter yang aktif
                 </div>`;
