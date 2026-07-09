@@ -7643,12 +7643,20 @@ class="relative bg-white p-4 rounded-2xl border-l-4 border-indigo-500 shadow-sm 
             ${
                 window.getBookingViolations && window.getBookingViolations(b.id).length > 0
                 ? (
-                    isAdmin
-                    ? `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
-                    : `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
+                    (
+                        !isAdmin &&
+                        currentUser &&
+                        (
+                            String(b.userUid) === String(currentUser.uid)
+                            ||
+                            b.userName === currentUser.username
+                        )
+                    )
+                    ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
                         class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
                         ⚠ Lihat Penyelesaian
                         </button>`
+                    : `<span class="ml-1 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
                   )
                 : ''
             }
@@ -8175,7 +8183,14 @@ ${(() => {
             const vDate = v.createdAt?.seconds
                 ? new Date(v.createdAt.seconds * 1000).toLocaleDateString('id-ID')
                 : '-';
-            const showWaBtn = currentUser.role !== 'admin' && v.status !== 'Selesai';
+            const isBookingOwner =
+                currentUser &&
+                (
+                    String(b.userUid) === String(currentUser.uid)
+                    ||
+                    b.userName === currentUser.username
+                );
+            const showWaBtn = currentUser.role !== 'admin' && isBookingOwner && v.status !== 'Selesai';
             const waTextDetail = encodeURIComponent(
                 `Halo Admin TrainingHub, saya ${currentUser.username || '-'} ingin menindaklanjuti penyelesaian pelanggaran peminjaman:\n` +
                 `• Aset: ${v.assetLabel || '-'}\n` +
