@@ -7818,6 +7818,41 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
             : ''
         }
 
+        ${
+            // 🔥 Tombol/badge "Catat Pelanggaran" (admin) DIPINDAH ke sini,
+            // di bawah rincian pesanan, biar gak numpuk sama tombol aksi lain
+            // (Reminder / Akhiri / Kirim QR) di pojok kanan kartu.
+            isAdmin
+            ? (() => {
+                const latestViolation = window.getLatestBookingViolation ? window.getLatestBookingViolation(b.id) : null;
+                const eligible = started && b.status !== 'Completed';
+
+                if (latestViolation) {
+                    const vStatusColor =
+                        latestViolation.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100' :
+                        latestViolation.status === 'Sudah Diperingatkan' ? 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100' :
+                        'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100';
+
+                    return `
+                    <button onclick="event.stopPropagation(); window.goToViolationDetail('${b.id}')"
+                    class="w-full mt-2 ${vStatusColor} border py-2 rounded-xl font-bold text-[11px] transition">
+                    ⚠ Ada Pelanggaran / ${latestViolation.status}
+                    </button>`;
+                }
+
+                if (eligible) {
+                    return `
+                    <button onclick="event.stopPropagation(); window.openViolationModal('${b.id}')"
+                    class="w-full mt-2 bg-rose-50 text-rose-600 border border-rose-200 py-2 rounded-xl font-bold text-[11px] hover:bg-rose-100 transition">
+                    ⚠ Catat Pelanggaran Peminjaman
+                    </button>`;
+                }
+
+                return '';
+            })()
+            : ''
+        }
+
                 `;
 
         })()}
@@ -7939,12 +7974,6 @@ isAdmin
     📩 Kirim QR
     </button>
     `
-    : ``
-}
-
-    ${
-    (started && b.status !== 'Completed') || (window.getLatestBookingViolation && window.getLatestBookingViolation(b.id))
-    ? window.violationActionCellHTML(b.id, started && b.status !== 'Completed', 'text-[10px]')
     : ``
 }
 
