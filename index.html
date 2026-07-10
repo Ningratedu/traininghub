@@ -1544,6 +1544,7 @@ window.downloadQR = function () {
 </div>
 
 <div id="view-riwayat" class="view hide">
+    <div id="riwayat-filter-bar" class="mb-4"></div>
     <div id="my-booking-list" class="space-y-4"></div>
 </div>
 
@@ -1553,43 +1554,43 @@ window.downloadQR = function () {
     <!-- SUMMARY CARDS -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
 
-        <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.showMyStatTable('all')">
+        <div class="stat-card card-pop p-4 border-t-4 border-slate-500" onclick="window.filterMyBookingsByStatus('all')">
             <p class="text-slate-500 text-[9px] font-black uppercase">Total Pesanan Saya</p>
             <h3 class="text-xl font-black mt-1" id="mystat-total">0</h3>
             <p class="text-[8px] text-slate-400 mt-2">Klik lihat semua</p>
         </div>
 
-        <div class="stat-card card-pop p-4 border-t-4 border-amber-500" onclick="window.showMyStatTable('Pending')">
+        <div class="stat-card card-pop p-4 border-t-4 border-amber-500" onclick="window.filterMyBookingsByStatus('Pending')">
             <p class="text-amber-500 text-[9px] font-black uppercase">Pending</p>
             <h3 class="text-xl font-black mt-1" id="mystat-pending">0</h3>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-pending-pct">0%</p>
         </div>
 
-        <div class="stat-card card-pop p-4 border-t-4 border-indigo-500" onclick="window.showMyStatTable('Approved')">
+        <div class="stat-card card-pop p-4 border-t-4 border-indigo-500" onclick="window.filterMyBookingsByStatus('Approved')">
             <p class="text-indigo-500 text-[9px] font-black uppercase">Approved</p>
             <h3 class="text-xl font-black mt-1" id="mystat-approved">0</h3>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-approved-pct">0%</p>
         </div>
 
-        <div class="stat-card card-pop p-4 border-t-4 border-cyan-500" onclick="window.showMyStatTable('Ongoing')">
+        <div class="stat-card card-pop p-4 border-t-4 border-cyan-500" onclick="window.filterMyBookingsByStatus('Ongoing')">
             <p class="text-cyan-500 text-[9px] font-black uppercase">Ongoing</p>
             <h3 class="text-xl font-black mt-1" id="mystat-ongoing">0</h3>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-ongoing-pct">0%</p>
         </div>
 
-        <div class="stat-card card-pop p-4 border-t-4 border-green-500" onclick="window.showMyStatTable('Completed')">
+        <div class="stat-card card-pop p-4 border-t-4 border-green-500" onclick="window.filterMyBookingsByStatus('Completed')">
             <p class="text-green-500 text-[9px] font-black uppercase">Completed</p>
             <h3 class="text-xl font-black mt-1" id="mystat-completed">0</h3>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-completed-pct">0%</p>
         </div>
 
-        <div class="stat-card card-pop p-4 border-t-4 border-rose-500" onclick="window.showMyStatTable('Rejected')">
+        <div class="stat-card card-pop p-4 border-t-4 border-rose-500" onclick="window.filterMyBookingsByStatus('Rejected')">
             <p class="text-rose-500 text-[9px] font-black uppercase">Rejected</p>
             <h3 class="text-xl font-black mt-1" id="mystat-rejected">0</h3>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-rejected-pct">0%</p>
         </div>
 
-        <div class="stat-card card-pop p-4 border-t-4 border-slate-400" onclick="window.showMyStatTable('Cancelled')">
+        <div class="stat-card card-pop p-4 border-t-4 border-slate-400" onclick="window.filterMyBookingsByStatus('Cancelled')">
             <p class="text-slate-500 text-[9px] font-black uppercase">Cancelled</p>
             <h3 class="text-xl font-black mt-1" id="mystat-cancelled">0</h3>
             <p class="text-[8px] text-slate-400 mt-2" id="mystat-cancelled-pct">0%</p>
@@ -3887,7 +3888,10 @@ window.showStatTable = (category) => {
 // ================= 🔥 STATISTIK SAYA (USER) ================= //
 function getMyBookings() {
     if (!currentUser) return [];
-    return (localState.bookings || []).filter(b => b.userUid === currentUser.uid);
+    // 🔥 FIX: ikut filter waktu global (Bulan Ini / Hari Ini / Kustom, dll),
+    // sebelumnya statistik saya selalu menghitung SEMUA pesanan tanpa peduli filter global.
+    const source = typeof getFilteredBookings === 'function' ? getFilteredBookings() : (localState.bookings || []);
+    return source.filter(b => b.userUid === currentUser.uid);
 }
 
 window.showMyStatTable = (category) => {
@@ -5427,6 +5431,13 @@ if(id){
     .getElementById('view-' + id)
     .classList.remove('hide');
 
+// 🔥 Kalau masuk "Pesanan Saya" lewat menu biasa (title generik, bukan dari
+// kartu Statistik Saya yang sudah nyertain nama status), reset filter status
+// biar nunjukin semua pesanan seperti biasa.
+if (id === 'riwayat' && titleText === 'Pesanan Saya' && typeof riwayatStatusFilter !== 'undefined') {
+    riwayatStatusFilter = 'all';
+}
+
 // 🔥 simpan view terakhir
 localStorage.setItem("lastView", id);
 
@@ -5976,11 +5987,67 @@ const listenToData = () => {
             if(badge) { badge.innerText = count; badge.classList.toggle('hide', count === 0); }
         }
 
+        // 🔥 STATUS FILTER UNTUK "PESANAN SAYA" (dipicu dari kartu Statistik Saya
+        // atau dipilih langsung lewat pill filter di halaman ini)
+        let riwayatStatusFilter = 'all';
+
+        window.filterMyBookingsByStatus = (status, navigate = true) => {
+            riwayatStatusFilter = status || 'all';
+
+            if (navigate) {
+                const label =
+                    riwayatStatusFilter === 'all'
+                        ? 'Pesanan Saya'
+                        : `Pesanan Saya - ${riwayatStatusFilter}`;
+                window.showView('riwayat', label);
+            } else {
+                renderRiwayat();
+            }
+        };
+
+        function renderRiwayatFilterBar() {
+            const bar = document.getElementById('riwayat-filter-bar');
+            if (!bar) return;
+
+            const options = [
+                { key: 'all', label: 'Semua' },
+                { key: 'Pending', label: 'Pending' },
+                { key: 'Approved', label: 'Approved' },
+                { key: 'Ongoing', label: 'Ongoing' },
+                { key: 'Completed', label: 'Completed' },
+                { key: 'Rejected', label: 'Rejected' },
+                { key: 'Cancelled', label: 'Cancelled' },
+            ];
+
+            const active = riwayatStatusFilter || 'all';
+
+            bar.innerHTML = `
+                <div class="flex flex-wrap gap-2">
+                    ${options.map(o => `
+                        <button onclick="window.filterMyBookingsByStatus('${o.key}', false)"
+                            class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase border transition
+                            ${active === o.key
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow'
+                                : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300'}">
+                            ${o.label}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
         function renderRiwayat() {
+
+    renderRiwayatFilterBar();
 
     const my =
     getFilteredBookings()
     .filter(b => b.userUid === currentUser.uid)
+    .filter(b =>
+        !riwayatStatusFilter ||
+        riwayatStatusFilter === 'all' ||
+        (b.status || '').toLowerCase() === riwayatStatusFilter.toLowerCase()
+    )
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const container =
@@ -6032,7 +6099,7 @@ const listenToData = () => {
         const statusColor =
             b.status === 'Pending' ? 'bg-amber-400 text-amber-900' :
             b.status === 'Approved' ? 'bg-emerald-500 text-white' :
-            b.status === 'Ongoing' ? 'bg-blue-500 text-white' :
+            b.status === 'Ongoing' ? 'bg-orange-500 text-white' :
             b.status === 'Completed' ? 'bg-indigo-500 text-white' :
             b.status === 'Rejected' ? 'bg-rose-500 text-white' :
             'bg-slate-400 text-white';
@@ -6040,7 +6107,7 @@ const listenToData = () => {
         const statusIcon =
             b.status === 'Pending' ? '⏳' :
             b.status === 'Approved' ? '✅' :
-            b.status === 'Ongoing' ? '🟢' :
+            b.status === 'Ongoing' ? '🟠' :
             b.status === 'Completed' ? '🏁' :
             b.status === 'Rejected' ? '✖' :
             '⛔';
@@ -7653,7 +7720,7 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
         const statusColor =
             b.status === 'Pending' ? 'bg-amber-400 text-amber-900' :
             b.status === 'Approved' ? 'bg-emerald-500 text-white' :
-            b.status === 'Ongoing' ? 'bg-blue-500 text-white' :
+            b.status === 'Ongoing' ? 'bg-orange-500 text-white' :
             b.status === 'Completed' ? 'bg-indigo-500 text-white' :
             b.status === 'Rejected' ? 'bg-rose-500 text-white' :
             'bg-slate-400 text-white';
@@ -7661,7 +7728,7 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
         const statusIcon =
             b.status === 'Pending' ? '⏳' :
             b.status === 'Approved' ? '✅' :
-            b.status === 'Ongoing' ? '🟢' :
+            b.status === 'Ongoing' ? '🟠' :
             b.status === 'Completed' ? '🏁' :
             b.status === 'Rejected' ? '✖' :
             '⛔';
