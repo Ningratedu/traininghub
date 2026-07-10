@@ -7800,20 +7800,27 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
         ${
             window.getBookingViolations && window.getBookingViolations(b.id).length > 0
             ? (
-                (
-                    !isAdmin &&
-                    currentUser &&
+                isAdmin
+                // 🔥 Admin sudah punya tombol "Catat Pelanggaran" / badge
+                // "Ada Pelanggaran / status" di bawah rincian pesanan (dengan
+                // aksi update status sekaligus), jadi badge info ini gak perlu
+                // dobel muncul lagi khusus untuk admin.
+                ? ''
+                : (
                     (
-                        String(b.userUid) === String(currentUser.uid)
-                        ||
-                        b.userName === currentUser.username
+                        currentUser &&
+                        (
+                            String(b.userUid) === String(currentUser.uid)
+                            ||
+                            b.userName === currentUser.username
+                        )
                     )
-                )
-                ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
-                    class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
-                    ⚠ Lihat Penyelesaian
-                    </button>`
-                : `<span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
+                    ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
+                        class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
+                        ⚠ Lihat Penyelesaian Pelanggaran
+                        </button>`
+                    : `<span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Ada Pelanggaran</span>`
+                  )
               )
             : ''
         }
