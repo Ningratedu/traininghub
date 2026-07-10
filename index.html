@@ -39,9 +39,23 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
+
+    /* 🔧 FIX FREEZE SAAT SCROLL:
+       "background-attachment: fixed" memaksa browser re-paint background
+       tiap frame scroll, dan itu jadi SANGAT berat kalau digabung sama
+       "backdrop-filter: blur()" di header sticky (.glass-header) + list
+       panjang (Pesanan Saya / Kalender) -> hasilnya scroll patah-patah/
+       freeze, terutama di HP. Solusi: "fixed" cuma dipakai di device yang
+       pointer-nya presisi (desktop/mouse), di HP/touch pakai "scroll". */
+    background-attachment: scroll;
 
     overflow-x: hidden;
+}
+
+@media (pointer: fine) {
+    body {
+        background-attachment: fixed;
+    }
 }
 
 /* ================= UI EXISTING ================= */
@@ -174,6 +188,11 @@ body {
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(14px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+    /* 🔧 FIX FREEZE: header ini "sticky" & blur-nya dihitung ulang tiap
+       scroll. will-change kasih tau browser buat siapin layer render-nya
+       dari awal, jadi gak dadakan berat pas mulai scroll ke bawah. */
+    will-change: transform;
 }
 
 .modal-overlay {
@@ -183,6 +202,43 @@ body {
 
 .hide {
     display: none !important;
+}
+
+/* 🔧 FIX FREEZE UTAMA: chip filter status (Pesanan Saya & Kalender) ini
+   scroll HORIZONTAL (overflow-x-auto) tapi ada DI DALAM halaman yang
+   scroll VERTIKAL. Tanpa "touch-action" yang jelas, browser (terutama
+   di HP) harus nebak dulu arah gesture-nya tiap kali jari nyentuh area
+   ini -> keliatan kayak nge-freeze/macet pas mau scroll ke bawah lewat
+   situ. Dengan "touch-action: pan-x", browser langsung tau: elemen ini
+   cuma handle geser horizontal, geser vertikal langsung diteruskan ke
+   scroll halaman tanpa delay/nebak-nebak lagi.
+   "overscroll-behavior-x: contain" biar scroll horizontalnya juga gak
+   "nyeret" ganggu scroll halaman pas mentok di ujung kiri/kanan. */
+.status-chip-scroller {
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 🔥 FILTER STATUS "NEMPEL" (STICKY) PAS DISCROLL — kayak header tabel.
+   Container scroll-nya itu #content-area (overflow-y-auto), bukan
+   window, jadi "position: sticky; top: 0" ini nempelnya relatif ke situ.
+   Sengaja TANPA background/blur — transparan aja, cuma numpuk di atas
+   (z-index) pas ada card yang lewat di baliknya. */
+.status-filter-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+
+/* 🔧 Optimasi tambahan buat list panjang (Pesanan Saya / Kalender):
+   card yang lagi di luar layar gak usah dirender detailnya dulu,
+   baru dirender pas mau kelihatan waktu discroll -> scroll jadi lebih
+   ringan kalau datanya banyak. */
+#my-booking-list > div,
+#calendar-list > div {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 180px;
 }
 
 .tab-active {
@@ -1540,11 +1596,12 @@ window.downloadQR = function () {
 </div>
 				
                 <div id="view-jadwal" class="view hide">
+    <div id="jadwal-filter-bar" class="mb-4 status-filter-sticky"></div>
     <div id="calendar-list" class="space-y-4"></div>
 </div>
 
 <div id="view-riwayat" class="view hide">
-    <div id="riwayat-filter-bar" class="mb-4"></div>
+    <div id="riwayat-filter-bar" class="mb-4 status-filter-sticky"></div>
     <div id="my-booking-list" class="space-y-4"></div>
 </div>
 
@@ -5987,8 +6044,60 @@ const listenToData = () => {
             if(badge) { badge.innerText = count; badge.classList.toggle('hide', count === 0); }
         }
 
-        // 🔥 STATUS FILTER UNTUK "PESANAN SAYA" (dipicu dari kartu Statistik Saya
-        // atau dipilih langsung lewat pill filter di halaman ini)
+        // 🔥 STATUS FILTER (dipakai bareng di "Pesanan Saya" & "Kalender")
+        // Desain: chip bulat isi jumlah pesanan + label status di bawahnya,
+        // SELALU sebaris (scroll horizontal) baik di HP maupun laptop, biar
+        // konsisten & gak numpuk ke bawah walau layar sempit.
+        // 🔧 FIX KONTRAS: sebelumnya "Cancelled" pas dipilih pakai
+        // activeBg bg-slate-400 (abu-abu medium) + activeText text-white,
+        // kontrasnya kurang jadi teksnya nyaru/susah kebaca di atas
+        // background-nya sendiri. Diganti activeBg jadi lebih gelap
+        // (slate-600) biar teks putihnya tetap jelas kebaca.
+        const STATUS_CHIP_META = [
+            { key: 'all',       label: 'Semua',     activeBg: 'bg-slate-800',  activeText: 'text-white',       idleBg: 'bg-slate-100',  idleText: 'text-slate-500' },
+            { key: 'Pending',   label: 'Pending',   activeBg: 'bg-amber-400',  activeText: 'text-amber-900',   idleBg: 'bg-amber-50',   idleText: 'text-amber-600' },
+            { key: 'Approved',  label: 'Approved',  activeBg: 'bg-emerald-500',activeText: 'text-white',       idleBg: 'bg-emerald-50', idleText: 'text-emerald-600' },
+            { key: 'Ongoing',   label: 'Ongoing',   activeBg: 'bg-orange-500', activeText: 'text-white',       idleBg: 'bg-orange-50',  idleText: 'text-orange-600' },
+            { key: 'Completed', label: 'Completed', activeBg: 'bg-indigo-500', activeText: 'text-white',       idleBg: 'bg-indigo-50',  idleText: 'text-indigo-600' },
+            { key: 'Rejected',  label: 'Rejected',  activeBg: 'bg-rose-500',   activeText: 'text-white',       idleBg: 'bg-rose-50',    idleText: 'text-rose-600' },
+            { key: 'Cancelled', label: 'Cancelled', activeBg: 'bg-slate-600',  activeText: 'text-white',       idleBg: 'bg-slate-100',  idleText: 'text-slate-500' },
+        ];
+
+        // list: array booking yang JADI DASAR HITUNGAN (biasanya sudah kena filter waktu
+        // global, tapi BELUM kena filter status, biar angka di tiap chip tetap total asli).
+        // buildOnClick: (statusKey) => string onclick, biar reusable buat 2 halaman berbeda.
+        function buildStatusChipBarHTML(list, activeKey, buildOnClick, excludeKeys = []) {
+            const counts = { all: list.length };
+            list.forEach(b => {
+                const s = b.status || '';
+                counts[s] = (counts[s] || 0) + 1;
+            });
+
+            const active = activeKey || 'all';
+            const meta = STATUS_CHIP_META.filter(m => !excludeKeys.includes(m.key));
+
+            return `
+                <div class="flex flex-nowrap items-start gap-4 overflow-x-auto pb-1 -mx-1 px-1 status-chip-scroller">
+                    ${meta.map(m => {
+                        const count = counts[m.key] || 0;
+                        const isActive = active === m.key;
+                        return `
+                        <button type="button" onclick="${buildOnClick(m.key)}"
+                            class="flex flex-col items-center gap-1 shrink-0 focus:outline-none">
+                            <span class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-black transition-transform
+                                ${isActive ? `${m.activeBg} ${m.activeText} scale-110 shadow-sm` : `${m.idleBg} ${m.idleText}`}">
+                                ${count}
+                            </span>
+                            <span class="text-[9px] font-bold uppercase whitespace-nowrap px-1.5 py-0.5 rounded-full ${isActive ? 'text-white bg-slate-800/80' : 'text-slate-500 bg-white/70'}">
+                                ${m.label}
+                            </span>
+                        </button>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
         let riwayatStatusFilter = 'all';
 
         window.filterMyBookingsByStatus = (status, navigate = true) => {
@@ -6008,32 +6117,15 @@ const listenToData = () => {
         function renderRiwayatFilterBar() {
             const bar = document.getElementById('riwayat-filter-bar');
             if (!bar) return;
+            if (!currentUser) { bar.innerHTML = ''; return; }
 
-            const options = [
-                { key: 'all', label: 'Semua' },
-                { key: 'Pending', label: 'Pending' },
-                { key: 'Approved', label: 'Approved' },
-                { key: 'Ongoing', label: 'Ongoing' },
-                { key: 'Completed', label: 'Completed' },
-                { key: 'Rejected', label: 'Rejected' },
-                { key: 'Cancelled', label: 'Cancelled' },
-            ];
+            const mineAll = getFilteredBookings().filter(b => b.userUid === currentUser.uid);
 
-            const active = riwayatStatusFilter || 'all';
-
-            bar.innerHTML = `
-                <div class="flex flex-wrap gap-2">
-                    ${options.map(o => `
-                        <button onclick="window.filterMyBookingsByStatus('${o.key}', false)"
-                            class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase border transition
-                            ${active === o.key
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow'
-                                : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300'}">
-                            ${o.label}
-                        </button>
-                    `).join('')}
-                </div>
-            `;
+            bar.innerHTML = buildStatusChipBarHTML(
+                mineAll,
+                riwayatStatusFilter,
+                (key) => `window.filterMyBookingsByStatus('${key}', false)`
+            );
         }
 
         function renderRiwayat() {
@@ -7673,10 +7765,37 @@ function isBookingStarted(b){
 		
 // ================= RENDER JADWAL =================
 
+let jadwalStatusFilter = 'all';
+
+window.filterJadwalByStatus = (status) => {
+    jadwalStatusFilter = status || 'all';
+    renderJadwal();
+};
+
 function renderJadwal() {
 
-    const approved = getFilteredBookings()
-        .filter(b => b.status !== 'Cancelled')
+    // 🔥 Basis hitungan chip: ikut filter waktu global, TIDAK termasuk
+    // Cancelled (memang gak pernah ditampilkan di Kalender), tapi BELUM
+    // kena filter status aktif, biar angka di tiap chip tetap total asli.
+    const baseForCount = getFilteredBookings()
+        .filter(b => b.status !== 'Cancelled');
+
+    const filterBar = document.getElementById('jadwal-filter-bar');
+    if (filterBar) {
+        filterBar.innerHTML = buildStatusChipBarHTML(
+            baseForCount,
+            jadwalStatusFilter,
+            (key) => `window.filterJadwalByStatus('${key}')`,
+            ['Cancelled']
+        );
+    }
+
+    const approved = baseForCount
+        .filter(b =>
+            jadwalStatusFilter === 'all' ||
+            !jadwalStatusFilter ||
+            (b.status || '') === jadwalStatusFilter
+        )
         .sort((a,b) =>
             a.date.localeCompare(b.date)
         );
