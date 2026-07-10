@@ -6170,7 +6170,7 @@ const listenToData = () => {
     <div class="flex flex-col items-end gap-2 shrink-0 mt-4">
 
    <!-- ICON ACTION -->
-<div class="flex gap-2">
+<div class="flex flex-col items-end gap-2">
 
 ${b.status === 'Pending' ? `
 <button onclick="window.editBooking('${b.id}')"
@@ -6180,7 +6180,7 @@ class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transi
 ` : ``}
 
 ${b.status === 'Approved' ? `
-<div class="flex gap-2">
+<div class="flex flex-col gap-2">
 
 <button onclick="window.openDetail('${b.id}')"
 class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
@@ -6194,7 +6194,7 @@ class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:b
 
 </div>
 ` : b.status === 'Ongoing' ? `
-<div class="flex gap-2">
+<div class="flex flex-col gap-2">
 
 <button onclick="window.openDetail('${b.id}')"
 class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
@@ -7817,9 +7817,9 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
                     )
                     ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
                         class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
-                        ⚠ Lihat Penyelesaian Pelanggaran
+                        ⚠ Lihat Penyelesaian
                         </button>`
-                    : `<span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Ada Pelanggaran</span>`
+                    : `<span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
                   )
               )
             : ''
@@ -7870,7 +7870,7 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
     <div class="flex flex-col items-end gap-2 shrink-0 mt-4">
 
         <!-- ICON ACTION -->
-        <div class="flex flex-wrap justify-end gap-2">
+        <div class="flex flex-col items-end gap-2">
 
 ${
 (
