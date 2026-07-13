@@ -4272,6 +4272,11 @@ transition-all p-3 rounded-2xl cursor-pointer flex items-center gap-3 group">
             Terakhir: ${lastUser}
         </p>
 
+        <!-- ⭐ RATING & FEEDBACK ASET (klik untuk lihat detail) -->
+        <div class="mt-1">
+            ${window.ratingBadgeButtonHTML ? window.ratingBadgeButtonHTML('room', room.id, room.name) : ''}
+        </div>
+
     </div>
 
 </div>
@@ -4362,6 +4367,11 @@ transition-all p-3 rounded-2xl flex items-center gap-3 group cursor-pointer">
         <p class="text-[10px] text-slate-400">
             Terakhir: ${lastUser}
         </p>
+
+        <!-- ⭐ RATING & FEEDBACK ASET (klik untuk lihat detail) -->
+        <div class="mt-1">
+            ${window.ratingBadgeButtonHTML ? window.ratingBadgeButtonHTML('tool', tool.id, tool.name) : ''}
+        </div>
 
     </div>
 
@@ -7320,6 +7330,8 @@ function renderMaster(){
             👥 ${r.capacity || 0} Orang
         </p>
 
+        ${window.assetLastUsedLineHTML ? window.assetLastUsedLineHTML('room', r.id) : ''}
+
         <div class="mt-1">
             ${window.ratingBadgeHTML ? window.ratingBadgeHTML('room', r.id) : ''}
         </div>
@@ -7399,6 +7411,8 @@ function renderMaster(){
         <p class="text-[10px] text-indigo-500 font-bold">
             📍 ${t.pos || '-'}
         </p>
+
+        ${window.assetLastUsedLineHTML ? window.assetLastUsedLineHTML('tool', t.id) : ''}
 
         <div class="mt-1">
             ${window.ratingBadgeHTML ? window.ratingBadgeHTML('tool', t.id) : ''}
@@ -9294,6 +9308,54 @@ window.ratingBadgeHTML = function (type, id) {
     }
     return `<span class="text-[10px] font-black text-amber-500">⭐ ${avg.toFixed(1)}
         <span class="text-slate-400 font-normal">(${count} ulasan)</span></span>`;
+};
+
+// 🔥 Versi rating badge yang BISA DIKLIK — dipakai di popup "Total Ruangan" / "Total Alat"
+// pada dashboard admin & di list Database Aset, supaya average rating tiap aset bisa langsung
+// diklik untuk melihat rincian rating & feedback-nya (window.openAssetRating).
+window.ratingBadgeButtonHTML = function (type, id, name) {
+    const badge = window.ratingBadgeHTML(type, id);
+    const safeName = encodeURIComponent(name || '');
+    return `
+    <button type="button"
+        onclick="event.stopPropagation(); window.openAssetRating('${type}','${id}', decodeURIComponent('${safeName}'))"
+        class="inline-flex items-center gap-1 hover:underline decoration-dotted underline-offset-2"
+        title="Klik untuk lihat detail rating & feedback">
+        ${badge}
+    </button>`;
+};
+
+// 🔥 Info "Terakhir digunakan" per aset (ruangan/alat) — dipakai di popup Total Ruangan/Total Alat
+// (dashboard admin) & di list Database Aset, diambil dari pesanan Approved/Completed/Ongoing
+// TERBARU yang memakai aset tsb.
+window.getAssetLastUsedInfo = function (type, id) {
+    if (!window.localState || !Array.isArray(localState.bookings)) return null;
+
+    const relevantStatuses = ['Approved', 'Completed', 'Ongoing'];
+
+    const list = localState.bookings
+        .filter(b => {
+            const usesAsset =
+                type === 'room'
+                    ? String(b.roomId) === String(id)
+                    : (b.tools || []).some(t => String(t.id) === String(id));
+            return usesAsset && relevantStatuses.includes(b.status);
+        })
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    const last = list[0];
+    if (!last) return null;
+
+    return {
+        text: `${last.userName || '-'} (${last.dept || '-'}) • ${last.date || '-'}`,
+        booking: last
+    };
+};
+
+// 🔥 Baris teks siap-pakai "Terakhir digunakan: ..." (atau "Belum pernah digunakan")
+window.assetLastUsedLineHTML = function (type, id) {
+    const info = window.getAssetLastUsedInfo(type, id);
+    return `<p class="text-[10px] text-slate-400 mt-0.5">Terakhir digunakan: ${info ? info.text : 'Belum pernah digunakan'}</p>`;
 };
 
 function starsRowHTML(formId, value) {
