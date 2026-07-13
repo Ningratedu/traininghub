@@ -10295,7 +10295,10 @@ function getAssetFollowUpHistory(type, id) {
         .sort((a, b) => (b.resolvedAt?.seconds || 0) - (a.resolvedAt?.seconds || 0));
 }
 
-// 🔥 Buka modal berisi seluruh riwayat tindak lanjut/perbaikan untuk 1 aset
+// 🔥 Buka modal berisi seluruh riwayat tindak lanjut/perbaikan untuk 1 aset,
+// masing-masing dilengkapi kutipan feedback/rating "kurang baik" (≤3) yang jadi
+// alasan tindak lanjut tsb dicatat (rating yang masuk sebelum & belum "ketutup"
+// oleh tindak lanjut sebelumnya).
 window.openAssetFollowUpHistory = (type, id, name) => {
     const nameEl = document.getElementById('followup-history-asset-name');
     if (nameEl) nameEl.innerText = `${type === 'room' ? '🏠' : '🧰'} ${name}`;
@@ -10303,12 +10306,33 @@ window.openAssetFollowUpHistory = (type, id, name) => {
     const listEl = document.getElementById('followup-history-list');
     if (!listEl) return;
 
-    const history = getAssetFollowUpHistory(type, id);
+    const history = getAssetFollowUpHistory(type, id); // terbaru dulu
+    const historyAsc = history.slice().reverse(); // dari yang paling lama dulu, buat hitung rentang waktu
+
+    // Semua rating "kurang baik" (≤3: negatif ATAU rating 3/cukup) untuk aset ini
+    const badRatings = getAssetRatings(type, id)
+        .filter(r => Number(r.rating) <= 3)
+        .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+    // Untuk tiap entri tindak lanjut (urut lama→baru), ambil rating kurang baik yang masuk
+    // SETELAH tindak lanjut sebelumnya tapi SEBELUM/SAAT tindak lanjut ini dicatat.
+    const feedbackByFollowUpId = {};
+    let windowStart = 0;
+    historyAsc.forEach(f => {
+        const windowEnd = f.resolvedAt?.seconds || Infinity;
+        feedbackByFollowUpId[f.id] = badRatings.filter(r => {
+            const t = r.createdAt?.seconds || 0;
+            return t > windowStart && t <= windowEnd;
+        });
+        windowStart = windowEnd;
+    });
 
     if (history.length === 0) {
         listEl.innerHTML = `<div class="py-8 text-center text-xs text-slate-400 italic">Belum ada riwayat tindak lanjut untuk aset ini.</div>`;
     } else {
-        listEl.innerHTML = history.map((f, idx) => `
+        listEl.innerHTML = history.map((f, idx) => {
+            const relatedFeedback = feedbackByFollowUpId[f.id] || [];
+            return `
         <div class="p-3 rounded-xl border ${idx === 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100'}">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
                 <span class="text-[10px] font-black uppercase ${idx === 0 ? 'text-emerald-600' : 'text-slate-400'}">
@@ -10318,9 +10342,24 @@ window.openAssetFollowUpHistory = (type, id, name) => {
                     ${f.resolvedBy ? 'oleh ' + f.resolvedBy : ''}${f.resolvedAt?.seconds ? ' • ' + new Date(f.resolvedAt.seconds * 1000).toLocaleString('id-ID') : ''}
                 </span>
             </div>
-            <p class="text-[11px] text-slate-600 italic">${f.note ? `"${f.note}"` : 'Tidak ada catatan.'}</p>
+            <p class="text-[11px] text-slate-600 italic mb-2">${f.note ? `"${f.note}"` : 'Tidak ada catatan.'}</p>
+            ${relatedFeedback.length ? `
+            <div class="bg-white/70 rounded-xl p-2 space-y-1.5 border border-rose-100">
+                <p class="text-[9px] font-black uppercase text-rose-500">📋 Feedback Kurang Baik Penyebabnya:</p>
+                ${relatedFeedback.map(r => `
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <p class="text-[11px] text-slate-600 italic truncate">${r.comment ? `"${r.comment}"` : 'Tidak ada komentar'}</p>
+                        <p class="text-[9px] text-slate-400">${r.userName || '-'} ${r.dept ? `(${r.dept})` : ''}</p>
+                    </div>
+                    <span class="text-amber-400 text-[10px] flex-shrink-0">${'★'.repeat(Number(r.rating) || 0)}${'☆'.repeat(5 - (Number(r.rating) || 0))}</span>
+                </div>
+                `).join('')}
+            </div>` : `
+            <p class="text-[10px] text-slate-400 italic">Tidak ada feedback rating rendah/cukup yang tercatat sebelum tindak lanjut ini.</p>`}
         </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     document.getElementById('modal-followup-history').classList.remove('hide');
