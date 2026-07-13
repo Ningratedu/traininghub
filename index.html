@@ -330,29 +330,43 @@ body {
 
 <body class="text-slate-700">
 
-<!-- ================= QR PUBLIC FULLSCREEN ================= -->
+<!-- ================= QR PUBLIC FULLSCREEN (Halaman Download QR Serah Terima) ================= -->
+<!-- 🔥 Halaman mandiri: dibuka dari link QR yang dikirim lewat email (window.sendQrEmail).
+     Menampilkan QR Serah Terima, bisa didownload, dan ada tombol kembali ke Pesanan Saya. -->
 
 <div id="qr-page"
-     class="hide fixed inset-0 z-[9999] flex items-center justify-center bg-slate-100">
+     class="hide fixed inset-0 z-[9999] flex items-center justify-center bg-slate-100 p-4">
 
     <div class="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm w-full">
 
-        <h2 class="text-lg font-black mb-4">
+        <h2 class="text-lg font-black mb-1">
             QR Serah Terima
         </h2>
+        <p class="text-[11px] text-slate-400 mb-4">
+            Tunjukkan / scan QR ini ke Admin Training untuk menyelesaikan pesanan.
+        </p>
 
-        <div id="qr-public" class="mb-6 flex justify-center"></div>
+        <!-- Ringkasan pesanan (diisi otomatis begitu data pesanan tersedia) -->
+        <div id="qr-booking-info"
+             class="mb-4 text-left bg-slate-50 border border-slate-100 rounded-2xl p-3 text-[11px] text-slate-500 hide">
+            <p class="font-black text-slate-700 text-xs mb-1" id="qr-booking-room">-</p>
+            <p id="qr-booking-agenda">-</p>
+            <p id="qr-booking-datetime">-</p>
+        </div>
+
+        <div id="qr-public" class="mb-2 flex justify-center min-h-[200px] items-center"></div>
+        <p id="qr-loading-text" class="text-[10px] text-slate-400 mb-4">Menyiapkan QR Code...</p>
 
         <div class="flex flex-col gap-3">
 
-            <button onclick="downloadQR()" 
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold">
-                Download QR
+            <button onclick="window.downloadQR()"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition">
+                <i class="fas fa-download mr-1"></i> Download QR
             </button>
 
-            <button onclick="goToMyOrders()" 
-                class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-5 py-3 rounded-xl text-sm font-bold">
-                Kembali ke Pesanan Saya
+            <button onclick="window.goToMyOrders()"
+                class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-5 py-3 rounded-xl text-sm font-bold transition">
+                <i class="fas fa-arrow-left mr-1"></i> Kembali ke Pesanan Saya
             </button>
 
         </div>
@@ -362,149 +376,163 @@ body {
 </div>
 
 <script>
+/* =====================================================================
+   QR SERAH TERIMA — HALAMAN PUBLIK
+   Satu-satunya implementasi (jangan digandakan di bagian lain file ini).
+   Diaktifkan lewat URL: ?qr=finish-booking-<bookingId>
+   - Menampilkan QR + ringkasan pesanan
+   - Tombol Download QR
+   - Tombol "Kembali ke Pesanan Saya" -> redirect ke ?openDetail=<bookingId>
+     yang otomatis membuka detail pesanan tsb setelah user login
+     (lihat blok AUTO OPEN DETAIL di bawah).
+===================================================================== */
+
+// Simpan bookingId QR yang sedang aktif, dipakai oleh downloadQR() & goToMyOrders()
+window.__qrActiveBookingId = null;
 
 window.goToMyOrders = function () {
 
-    const params =
-        new URLSearchParams(window.location.search);
-
-    const qrCode =
-        params.get("qr");
-
-    // Kalau tidak ada QR → balik login normal
-    if (!qrCode) {
-
-        window.location.replace(
-            window.location.origin +
-            window.location.pathname
-        );
-
-        return;
-
-    }
-
-    // Ambil ID booking
-    const bookingId =
-        qrCode.replace("finish-booking-", "");
+    const bookingId = window.__qrActiveBookingId;
 
     const baseURL =
         window.location.origin +
         window.location.pathname;
 
-    console.log(
-        "Redirect to openDetail:",
-        bookingId
-    );
+    // Kalau tidak ada QR aktif → balik ke login normal
+    if (!bookingId) {
+        window.location.replace(baseURL);
+        return;
+    }
 
-    // Redirect buka detail
+    console.log("Redirect to openDetail:", bookingId);
+
+    // Redirect buka detail pesanan (bukan sekadar login biasa)
     window.location.replace(
-        baseURL +
-        "?openDetail=" +
-        bookingId
+        baseURL + "?openDetail=" + encodeURIComponent(bookingId)
     );
 
 };
-
-
-
-/* ===============================
-   QR MODE DETECT
-=============================== */
-
-(function () {
-
-    const params =
-        new URLSearchParams(window.location.search);
-
-    const qrCode =
-        params.get("qr");
-
-    const openDetailParam =
-        params.get("openDetail");
-
-    // HANYA aktif jika ?qr ada
-    // dan tidak sedang openDetail
-    if (qrCode && !openDetailParam) {
-
-        console.log(
-            "QR MODE ACTIVE:",
-            qrCode
-        );
-
-        window.addEventListener(
-            "load",
-            function () {
-
-                const qrPage =
-                    document.getElementById("qr-page");
-
-                if (qrPage)
-                    qrPage.classList.remove("hide");
-
-                // Hide layout utama
-                document.querySelectorAll(
-                    "#login-screen, #mobile-sidebar, header, #content-area"
-                ).forEach(el => {
-
-                    if (el)
-                        el.style.display = "none";
-
-                });
-
-                const qrContainer =
-                    document.getElementById("qr-public");
-
-                if (!qrContainer) return;
-
-                // Reset isi QR
-                qrContainer.innerHTML = "";
-
-                // Delay supaya layout stabil
-                setTimeout(() => {
-
-                    new QRCode(
-                        qrContainer,
-                        {
-                            text: qrCode,
-                            width: 240,
-                            height: 240
-                        }
-                    );
-
-                }, 150);
-
-            }
-        );
-
-    }
-
-})();
-
-
 
 /* ===============================
    DOWNLOAD QR
 =============================== */
-
 window.downloadQR = function () {
 
-    const img =
-        document.querySelector(
-            "#qr-public img"
-        );
+    const img = document.querySelector("#qr-public img, #qr-public canvas");
 
-    if (!img) return;
+    if (!img) {
+        alert("QR belum siap, mohon tunggu sebentar lalu coba lagi.");
+        return;
+    }
 
-    const link =
-        document.createElement("a");
+    const dataUrl =
+        img.tagName === "CANVAS" ? img.toDataURL("image/png") : img.src;
 
-    link.href = img.src;
+    const link = document.createElement("a");
+    link.href = dataUrl;
     link.download =
-        "qr-serah-terima.png";
+        `QR-SerahTerima-${window.__qrActiveBookingId || "booking"}.png`;
 
+    document.body.appendChild(link);
     link.click();
+    link.remove();
 
 };
+
+/* ===============================
+   QR MODE DETECT + RENDER
+=============================== */
+(function () {
+
+    const params = new URLSearchParams(window.location.search);
+    const qrCode = params.get("qr");
+    const openDetailParam = params.get("openDetail");
+
+    // HANYA aktif jika ?qr ada dan tidak sedang openDetail
+    if (!qrCode || openDetailParam) return;
+
+    console.log("QR MODE ACTIVE:", qrCode);
+
+    const bookingId = qrCode.replace("finish-booking-", "");
+    window.__qrActiveBookingId = bookingId;
+
+    function renderBookingInfo() {
+
+        if (!window.localState || !Array.isArray(localState.bookings)) return false;
+
+        const b = localState.bookings.find(x => String(x.id) === String(bookingId));
+        if (!b) return false;
+
+        let roomName = "-";
+        const validRoomId = b.roomId && b.roomId !== "null";
+        if (validRoomId && localState.rooms) {
+            const room = localState.rooms.find(r => String(r.id) === String(b.roomId));
+            if (room) roomName = room.name;
+        }
+
+        const toolsText =
+            (b.tools && b.tools.length > 0)
+                ? b.tools.map(t => t.name).join(", ")
+                : null;
+
+        const agendaText = b.agenda || b.goals || b.goal || b.purpose || b.description || "-";
+
+        const roomLabel = toolsText ? `${roomName} + ${toolsText}` : roomName;
+
+        const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+        setTxt("qr-booking-room", roomLabel);
+        setTxt("qr-booking-agenda", `Agenda: ${agendaText}`);
+        setTxt("qr-booking-datetime", `${b.date || "-"} • ${b.start || "-"} - ${b.end || "-"}`);
+
+        const infoBox = document.getElementById("qr-booking-info");
+        if (infoBox) infoBox.classList.remove("hide");
+
+        return true;
+    }
+
+    function showQrPage() {
+
+        const qrPage = document.getElementById("qr-page");
+        if (qrPage) qrPage.classList.remove("hide");
+
+        // Sembunyikan seluruh layout aplikasi utama supaya halaman QR benar-benar mandiri
+        document.querySelectorAll(
+            "#login-screen, #mobile-sidebar, header, #content-area, .view"
+        ).forEach(el => { if (el) el.style.display = "none"; });
+
+        const qrContainer = document.getElementById("qr-public");
+        if (!qrContainer) return;
+
+        qrContainer.innerHTML = "";
+
+        if (typeof QRCode === "undefined") {
+            console.error("QRCode library belum termuat");
+            const loadingText = document.getElementById("qr-loading-text");
+            if (loadingText) loadingText.innerText = "Gagal memuat QR Code. Coba muat ulang halaman.";
+            return;
+        }
+
+        new QRCode(qrContainer, { text: qrCode, width: 220, height: 220 });
+
+        const loadingText = document.getElementById("qr-loading-text");
+        if (loadingText) loadingText.innerText = "QR siap — silakan download atau tunjukkan ke Admin.";
+
+        // Coba tampilkan ringkasan pesanan; kalau data belum sampai, retry beberapa kali
+        if (!renderBookingInfo()) {
+            let tries = 0;
+            const interval = setInterval(() => {
+                tries++;
+                if (renderBookingInfo() || tries > 15) clearInterval(interval);
+            }, 400);
+        }
+    }
+
+    window.addEventListener("load", function () {
+        // Delay singkat supaya layout & library QR sudah stabil
+        setTimeout(showQrPage, 150);
+    });
+
+})();
 
 
 
@@ -3425,10 +3453,14 @@ ${detail}
 Tanggal : ${b.date}
 Jam     : ${b.start} - ${b.end}
 
-Silakan buka link berikut untuk melihat dan download QR:
+Silakan buka link berikut untuk melihat & mendownload QR Serah Terima Anda:
 ${qrLink}
 
-Gunakan QR tersebut untuk menyelesaikan pesanan.
+Di halaman tersebut Anda bisa:
+1. Melihat & mendownload QR Code untuk ditunjukkan/discan oleh Admin Training.
+2. Menekan tombol "Kembali ke Pesanan Saya" untuk login & langsung membuka detail pesanan ini setelah proses serah terima selesai.
+
+Pesanan akan otomatis berstatus "Selesai" setelah QR ini discan oleh Admin Training.
 
 Terima kasih.
 
@@ -3441,53 +3473,10 @@ Admin Ruang Training Rumah Ningrat`;
 
 };
 
-		window.downloadQR = () => {
+// 🔥 Catatan: window.downloadQR dan generate QR untuk halaman publik QR Serah Terima
+// SUDAH didefinisikan sekali saja di blok <div id="qr-page"> dekat awal <body>.
+// Jangan didefinisikan ulang di sini supaya tidak tabrakan/duplikat logic.
 
-    const img = document.querySelector("#qr-public img");
-
-    if(!img){
-        alert("QR belum tersedia");
-        return;
-    }
-
-    const link = document.createElement('a');
-    link.href = img.src;
-    link.download = `QR-Booking-${window.currentQrId}.png`;
-    link.click();
-};
-
-		// ================= GENERATE PUBLIC QR =================
-
-function generatePublicQR(qrText){
-
-    const qrContainer =
-    document.getElementById("qr-public");
-
-    if(!qrContainer){
-        console.error("qr-public tidak ditemukan");
-        return;
-    }
-
-    if(typeof QRCode === "undefined"){
-        console.error("QRCode library belum load");
-        return;
-    }
-
-    qrContainer.innerHTML = "";
-
-    new QRCode(
-        qrContainer,
-        {
-            text: qrText,
-            width: 200,
-            height: 200
-        }
-    );
-
-    window.currentQrId = qrText;
-}
-		
-// 🔥 RESTORE SESSION SAAT REFRESH
 // 🔥 RESTORE SESSION SAAT REFRESH
 window.addEventListener("DOMContentLoaded", () => {
 
@@ -3495,37 +3484,10 @@ window.addEventListener("DOMContentLoaded", () => {
     const qrId = params.get("qr");
 
     // ================= QR MODE =================
-    if(qrId){
-
-        console.log("QR MODE:", qrId);
-
-        // 🔥 sembunyikan SEMUA view
-        document.querySelectorAll('.view')
-            .forEach(v => v.classList.add('hide'));
-
-        // 🔥 sembunyikan login
-        const loginScreen =
-        document.getElementById('login-screen');
-
-        if(loginScreen){
-            loginScreen.classList.add('hide');
-        }
-
-        // 🔥 tampilkan QR PAGE
-        const qrPage =
-        document.getElementById('qr-page');
-
-        if(qrPage){
-            qrPage.classList.remove('hide');
-        }
-
-        // 🔥 generate QR
-        setTimeout(()=>{
-            generatePublicQR(qrId);
-        },200);
-
-        return;
-    }
+    // Mode QR (?qr=...) sudah ditangani sepenuhnya oleh blok IIFE di dekat
+    // awal <body> (lihat "QR MODE DETECT + RENDER"), jadi di sini cukup
+    // dihentikan supaya proses restore sesi normal di bawah tidak menimpanya.
+    if (qrId) return;
 
     // ================= NORMAL SESSION =================
 
@@ -10201,6 +10163,8 @@ window.renderViolationMonitoring = renderViolationMonitoring;
 // berdasarkan rata-rata rating tiap aset -- jadi bahan evaluasi/perbaikan tim TrainingHub,
 // TERPISAH dari rating objektif peminjam (yang berdasarkan pelanggaran).
 const RATING_ATTENTION_THRESHOLD = 3.5; // di bawah nilai ini dianggap "perlu tindak lanjut"
+const RATING_WATCH_VALUE = 3; // 🔥 setiap rating bernilai 3 (cukup/netral) tetap masuk daftar tindak lanjut,
+                               // walaupun rata-rata aset tsb masih di atas ambang batas di atas
 
 function getAllAssetRatingSummaries() {
     const assets = [
@@ -10211,12 +10175,24 @@ function getAllAssetRatingSummaries() {
         const list = getAssetRatings(a.type, a.id);
         const summary = getAssetRatingSummary(a.type, a.id);
         const negativeComments = list.filter(r => Number(r.rating) <= 2 && r.comment).map(r => r.comment);
+        // 🔥 Setiap rating bernilai 3 (cukup) dikumpulkan terpisah — dianggap sinyal awal
+        // yang tetap perlu ditindaklanjuti walau rata-rata keseluruhan aset masih bagus.
+        const watchRatings = list.filter(r => Number(r.rating) === RATING_WATCH_VALUE);
+        const watchComments = watchRatings.filter(r => r.comment).map(r => r.comment);
         const latestRatingAt = list.reduce((max, r) => Math.max(max, r.createdAt?.seconds || 0), 0);
-        return { ...a, count: summary.count, avg: summary.avg, list, negativeComments, latestRatingAt };
+        const latestWatchRatingAt = watchRatings.reduce((max, r) => Math.max(max, r.createdAt?.seconds || 0), 0);
+        return {
+            ...a, count: summary.count, avg: summary.avg, list,
+            negativeComments, latestRatingAt,
+            hasWatchRating: watchRatings.length > 0,
+            watchCount: watchRatings.length,
+            watchComments,
+            latestWatchRatingAt
+        };
     });
 }
 
-function ratingRecommendationLevel(avg, count) {
+function ratingRecommendationLevel(avg, count, hasWatchRating) {
     if (!count) return null;
     if (avg < 2.5) return {
         label: '🔴 Prioritas Tinggi',
@@ -10227,6 +10203,13 @@ function ratingRecommendationLevel(avg, count) {
         label: '🟠 Perlu Perhatian',
         desc: 'Rating cenderung di bawah rata-rata — pantau kondisi & kumpulkan info tambahan dari pengguna berikutnya.',
         badgeClass: 'bg-amber-100 text-amber-600', cardClass: 'bg-amber-50 border-amber-200'
+    };
+    // 🔥 Rata-rata masih baik (>= 3.5), TAPI ada minimal satu penilai yang memberi rating 3 (cukup).
+    // Tetap dianggap butuh tindak lanjut ringan supaya keluhan/masukan "cukup" tidak terlewat.
+    if (hasWatchRating) return {
+        label: '🟡 Ada Rating 3 — Perlu Ditindaklanjuti',
+        desc: 'Rata-rata masih baik, namun ada pengguna yang memberi rating 3 (cukup) — cek masukannya agar kualitas tetap terjaga.',
+        badgeClass: 'bg-yellow-100 text-yellow-700', cardClass: 'bg-yellow-50 border-yellow-200'
     };
     return null; // kondisi baik, tidak perlu direkomendasikan
 }
@@ -10245,12 +10228,15 @@ function getAssetFollowUp(type, id) {
 function isRecommendationResolved(summary) {
     const followUp = getAssetFollowUp(summary.type, summary.id);
     if (!followUp) return false;
-    return (followUp.resolvedAt?.seconds || 0) >= (summary.latestRatingAt || 0);
+    // 🔥 Ambil rating terbaru yang relevan (termasuk rating 3), jadi kalau ada rating 3
+    // baru masuk SETELAH ditindaklanjuti, rekomendasi otomatis muncul lagi.
+    const relevantLatest = Math.max(summary.latestRatingAt || 0, summary.latestWatchRatingAt || 0);
+    return (followUp.resolvedAt?.seconds || 0) >= relevantLatest;
 }
 
 function updateRatingAttentionBadge() {
     const rated = getAllAssetRatingSummaries().filter(s => s.count > 0);
-    const count = rated.filter(s => ratingRecommendationLevel(s.avg, s.count) && !isRecommendationResolved(s)).length;
+    const count = rated.filter(s => ratingRecommendationLevel(s.avg, s.count, s.hasWatchRating) && !isRecommendationResolved(s)).length;
     const badge = document.getElementById('badge-rating-attention');
     if (badge) {
         badge.innerText = count;
@@ -10318,7 +10304,7 @@ function renderRatingMonitoring() {
     // Rekomendasi tindak lanjut: aset dengan rating rendah, diurutkan dari paling buruk,
     // dipisah antara yang MASIH PERLU tindak lanjut dan yang SUDAH ditindaklanjuti admin.
     const withRec = rated
-        .map(s => ({ ...s, rec: ratingRecommendationLevel(s.avg, s.count) }))
+        .map(s => ({ ...s, rec: ratingRecommendationLevel(s.avg, s.count, s.hasWatchRating) }))
         .filter(s => s.rec)
         .sort((a, b) => a.avg - b.avg);
 
@@ -10349,9 +10335,14 @@ function renderRatingMonitoring() {
                 </div>
                 <p class="text-[11px] text-slate-500 mb-2">${s.rec.desc}</p>
                 ${s.negativeComments.length ? `
-                <div class="bg-white/70 rounded-xl p-2 space-y-1">
+                <div class="bg-white/70 rounded-xl p-2 space-y-1 mb-2">
                     <p class="text-[9px] font-black uppercase text-slate-400">Kutipan Keluhan Pengguna:</p>
                     ${s.negativeComments.slice(0, 3).map(c => `<p class="text-[11px] text-slate-600 italic">"${c}"</p>`).join('')}
+                </div>` : ''}
+                ${s.watchCount ? `
+                <div class="bg-white/70 rounded-xl p-2 space-y-1">
+                    <p class="text-[9px] font-black uppercase text-slate-400">⭐ ${s.watchCount}x Rating 3 (Cukup) Masuk${s.watchComments.length ? ' — Kutipan:' : ''}</p>
+                    ${s.watchComments.slice(0, 3).map(c => `<p class="text-[11px] text-slate-600 italic">"${c}"</p>`).join('')}
                 </div>` : ''}
                 <div class="flex flex-wrap gap-2 mt-2">
                     <button onclick="window.openAssetRating('${s.type}','${s.id}', decodeURIComponent('${encodeURIComponent(s.name)}'))"
