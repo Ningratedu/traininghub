@@ -10287,6 +10287,45 @@ function getAssetFollowUp(type, id) {
     return list[0] || null;
 }
 
+// 🔥 SELURUH riwayat tindak lanjut (bukan cuma yang terbaru) untuk 1 aset,
+// diurutkan dari yang paling baru. Dipakai oleh modal "Riwayat Tindak Lanjut".
+function getAssetFollowUpHistory(type, id) {
+    return (localState.assetFollowUps || [])
+        .filter(f => f.assetType === type && String(f.assetId) === String(id))
+        .sort((a, b) => (b.resolvedAt?.seconds || 0) - (a.resolvedAt?.seconds || 0));
+}
+
+// 🔥 Buka modal berisi seluruh riwayat tindak lanjut/perbaikan untuk 1 aset
+window.openAssetFollowUpHistory = (type, id, name) => {
+    const nameEl = document.getElementById('followup-history-asset-name');
+    if (nameEl) nameEl.innerText = `${type === 'room' ? '🏠' : '🧰'} ${name}`;
+
+    const listEl = document.getElementById('followup-history-list');
+    if (!listEl) return;
+
+    const history = getAssetFollowUpHistory(type, id);
+
+    if (history.length === 0) {
+        listEl.innerHTML = `<div class="py-8 text-center text-xs text-slate-400 italic">Belum ada riwayat tindak lanjut untuk aset ini.</div>`;
+    } else {
+        listEl.innerHTML = history.map((f, idx) => `
+        <div class="p-3 rounded-xl border ${idx === 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100'}">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <span class="text-[10px] font-black uppercase ${idx === 0 ? 'text-emerald-600' : 'text-slate-400'}">
+                    ${idx === 0 ? '✅ Terbaru' : `Riwayat #${history.length - idx}`}
+                </span>
+                <span class="text-[10px] text-slate-400">
+                    ${f.resolvedBy ? 'oleh ' + f.resolvedBy : ''}${f.resolvedAt?.seconds ? ' • ' + new Date(f.resolvedAt.seconds * 1000).toLocaleString('id-ID') : ''}
+                </span>
+            </div>
+            <p class="text-[11px] text-slate-600 italic">${f.note ? `"${f.note}"` : 'Tidak ada catatan.'}</p>
+        </div>
+        `).join('');
+    }
+
+    document.getElementById('modal-followup-history').classList.remove('hide');
+};
+
 function isRecommendationResolved(summary) {
     const followUp = getAssetFollowUp(summary.type, summary.id);
     if (!followUp) return false;
@@ -10422,7 +10461,8 @@ function renderRatingMonitoring() {
             html += `
             <p class="text-[10px] font-black uppercase text-slate-400 mt-4 mb-2">✅ Riwayat Tindak Lanjut Selesai</p>
             ` + resolvedRecs.map(s => `
-            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div onclick="window.openAssetFollowUpHistory('${s.type}','${s.id}', decodeURIComponent('${encodeURIComponent(s.name)}'))"
+                class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 cursor-pointer hover:bg-emerald-100 transition">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
                     <p class="font-bold text-sm text-slate-800">
                         ${s.type === 'room' ? '🏠' : '🧰'} ${s.name}
@@ -10431,6 +10471,7 @@ function renderRatingMonitoring() {
                     <span class="text-[10px] text-slate-400">${s.followUp?.resolvedBy ? 'oleh ' + s.followUp.resolvedBy : ''}${s.followUp?.resolvedAt?.seconds ? ' • ' + new Date(s.followUp.resolvedAt.seconds * 1000).toLocaleDateString('id-ID') : ''}</span>
                 </div>
                 ${s.followUp?.note ? `<p class="text-[11px] text-slate-600 italic">"${s.followUp.note}"</p>` : ''}
+                <p class="text-[10px] font-bold text-emerald-600 mt-2">Lihat riwayat lengkap →</p>
             </div>
             `).join('');
         }
@@ -10984,6 +11025,36 @@ ${b.status}
                 class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-bold text-sm transition">
                 Simpan & Tandai Selesai
             </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: RIWAYAT LENGKAP TINDAK LANJUT PERBAIKAN ASET ================= -->
+<div id="modal-followup-history" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-emerald-50">
+            <div>
+                <h3 class="text-lg font-black text-emerald-600">✅ Riwayat Tindak Lanjut</h3>
+                <p id="followup-history-asset-name" class="text-xs font-bold text-slate-600 mt-0.5">-</p>
+            </div>
+            <button onclick="closeModal('modal-followup-history')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-3">
+
+            <p class="text-[10px] text-slate-400 leading-relaxed mb-1">
+                Seluruh catatan tindak lanjut/perbaikan yang pernah dicatat admin untuk ruangan/alat ini,
+                diurutkan dari yang paling baru.
+            </p>
+
+            <div id="followup-history-list" class="space-y-2"></div>
 
         </div>
 
