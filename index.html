@@ -943,8 +943,8 @@ window.downloadQR = function () {
                         class="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center text-xs transition">
                         <i class="fas fa-times"></i>
                     </button>
-                    <a id="ad-banner-link" href="javascript:void(0)" target="_blank" rel="noopener noreferrer sponsored" class="block">
-                        <img id="ad-banner-img" src="" alt="Iklan" class="w-full max-h-44 object-cover">
+                    <a id="ad-banner-link" href="javascript:void(0)" target="_blank" rel="noopener noreferrer sponsored" class="h-44 bg-slate-100 flex items-center justify-center">
+                        <img id="ad-banner-img" src="" alt="Iklan" class="max-w-full max-h-full object-contain">
                     </a>
                 </div>
             </div>
@@ -11602,7 +11602,9 @@ ${b.status}
 
             <div id="ad-preview-wrap" class="hide">
                 <label class="text-[10px] font-bold uppercase text-slate-400">Pratinjau</label>
-                <img id="ad-preview-img" class="w-full max-h-40 object-cover rounded-xl mt-1 border border-slate-200">
+                                <div class="w-full h-40 bg-slate-100 rounded-xl mt-1 border border-slate-200 flex items-center justify-center overflow-hidden">
+                    <img id="ad-preview-img" class="max-w-full max-h-full object-contain">
+                </div>
             </div>
 
             <button id="btn-save-ad-settings" onclick="window.saveAdSettings()"
