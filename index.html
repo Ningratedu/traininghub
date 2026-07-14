@@ -936,15 +936,20 @@ window.downloadQR = function () {
             </header>
 
             <!-- ================= 🔥 AD BANNER (IKLAN) - Gambar & Link diatur Admin ================= -->
+            <!-- Mobile: lebar mengikuti layar (max-w-4xl). Desktop (md+): 3x lebih panjang lebarnya, tinggi tetap sama (h-44). -->
             <div id="ad-banner-container" class="hide px-4 md:px-8 pt-4">
-                <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white max-w-4xl mx-auto">
+                <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white max-w-4xl md:max-w-[168rem] mx-auto">
+                    <span class="absolute top-2 left-2 z-10 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-md tracking-wider uppercase">
+                        Ads
+                    </span>
                     <button onclick="window.closeAdBanner()"
                         title="Tutup iklan"
                         class="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center text-xs transition">
                         <i class="fas fa-times"></i>
                     </button>
                     <a id="ad-banner-link" href="javascript:void(0)" target="_blank" rel="noopener noreferrer sponsored" class="h-44 bg-slate-100 flex items-center justify-center">
-                        <img id="ad-banner-img" src="" alt="Iklan" class="max-w-full max-h-full object-contain">
+                        <img id="ad-banner-img-mobile" src="" alt="Iklan" class="block md:hidden max-w-full max-h-full object-contain">
+                        <img id="ad-banner-img-desktop" src="" alt="Iklan" class="hidden md:block max-w-full max-h-full object-contain">
                     </a>
                 </div>
             </div>
@@ -2877,27 +2882,32 @@ const appId = "booking-ruang-training";
 	const adBannerRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'adBanner');
 	window.adBannerRef = adBannerRef;
 
+	// 🔥 Ditutup cuma "sementara" (in-memory, bukan sessionStorage/localStorage),
+	// jadi begitu halaman di-refresh, banner iklan MUNCUL LAGI dari awal.
+	let adBannerClosedThisLoad = false;
+	let latestAdBannerData = null;
+
 	function renderAdBanner(data) {
+		latestAdBannerData = data;
+
 		const container = document.getElementById('ad-banner-container');
-		const img = document.getElementById('ad-banner-img');
+		const imgMobile = document.getElementById('ad-banner-img-mobile');
+		const imgDesktop = document.getElementById('ad-banner-img-desktop');
 		const link = document.getElementById('ad-banner-link');
-		if (!container || !img || !link) return;
+		if (!container || !imgMobile || !imgDesktop || !link) return;
 
-		if (!data || !data.enabled || !data.imageUrl) {
+		const hasAnyImage = data && (data.imageUrlMobile || data.imageUrlDesktop);
+
+		if (!data || !data.enabled || !hasAnyImage || adBannerClosedThisLoad) {
 			container.classList.add('hide');
 			return;
 		}
 
-		// 🔥 Kalau user sudah pernah nge-close iklan versi ini (gambar sama persis)
-		// di sesi browser ini, jangan tampilkan lagi sampai sesi baru / iklan diganti.
-		const closedKey = 'ad_banner_closed_' + btoa(unescape(encodeURIComponent(data.imageUrl))).slice(0, 60);
-		if (sessionStorage.getItem(closedKey) === '1') {
-			container.classList.add('hide');
-			return;
-		}
-
-		img.src = data.imageUrl;
-		img.alt = 'Iklan';
+		// Fallback: kalau salah satu versi belum diisi, pakai versi yang ada biar tetap tampil.
+		imgMobile.src = data.imageUrlMobile || data.imageUrlDesktop || '';
+		imgDesktop.src = data.imageUrlDesktop || data.imageUrlMobile || '';
+		imgMobile.alt = 'Iklan';
+		imgDesktop.alt = 'Iklan';
 
 		if (data.linkUrl) {
 			link.href = data.linkUrl;
@@ -2909,16 +2919,13 @@ const appId = "booking-ruang-training";
 			link.style.pointerEvents = 'none';
 		}
 
-		container.dataset.closedKey = closedKey;
 		container.classList.remove('hide');
 	}
 
 	window.closeAdBanner = function () {
+		adBannerClosedThisLoad = true;
 		const container = document.getElementById('ad-banner-container');
-		if (!container) return;
-		const key = container.dataset.closedKey;
-		if (key) sessionStorage.setItem(key, '1');
-		container.classList.add('hide');
+		if (container) container.classList.add('hide');
 	};
 
 	onSnapshot(adBannerRef, (snap) => {
@@ -2935,18 +2942,32 @@ const appId = "booking-ruang-training";
 			const data = snap.exists() ? snap.data() : {};
 
 			document.getElementById('ad-enabled-toggle').checked = !!data.enabled;
-			document.getElementById('ad-image-url').value = data.imageUrl || '';
 			document.getElementById('ad-link-url').value = data.linkUrl || '';
-			document.getElementById('ad-image-file').value = '';
-			document.getElementById('ad-image-upload-progress').style.width = '0%';
 
-			const previewWrap = document.getElementById('ad-preview-wrap');
-			const previewImg = document.getElementById('ad-preview-img');
-			if (data.imageUrl) {
-				previewImg.src = data.imageUrl;
-				previewWrap.classList.remove('hide');
+			document.getElementById('ad-image-url-mobile').value = data.imageUrlMobile || '';
+			document.getElementById('ad-image-file-mobile').value = '';
+			document.getElementById('ad-image-upload-progress-mobile').style.width = '0%';
+
+			document.getElementById('ad-image-url-desktop').value = data.imageUrlDesktop || '';
+			document.getElementById('ad-image-file-desktop').value = '';
+			document.getElementById('ad-image-upload-progress-desktop').style.width = '0%';
+
+			const previewWrapMobile = document.getElementById('ad-preview-wrap-mobile');
+			const previewImgMobile = document.getElementById('ad-preview-img-mobile');
+			if (data.imageUrlMobile) {
+				previewImgMobile.src = data.imageUrlMobile;
+				previewWrapMobile.classList.remove('hide');
 			} else {
-				previewWrap.classList.add('hide');
+				previewWrapMobile.classList.add('hide');
+			}
+
+			const previewWrapDesktop = document.getElementById('ad-preview-wrap-desktop');
+			const previewImgDesktop = document.getElementById('ad-preview-img-desktop');
+			if (data.imageUrlDesktop) {
+				previewImgDesktop.src = data.imageUrlDesktop;
+				previewWrapDesktop.classList.remove('hide');
+			} else {
+				previewWrapDesktop.classList.add('hide');
 			}
 		} catch (err) {
 			console.error('Gagal ambil data iklan:', err);
@@ -2955,41 +2976,56 @@ const appId = "booking-ruang-training";
 		modal.classList.remove('hide');
 	};
 
-	// 🔥 Admin: simpan pengaturan iklan (URL gambar manual ATAU upload file)
+	// 🔥 Admin: simpan pengaturan iklan (URL gambar manual ATAU upload file) — WAJIB 2 versi: HP & Laptop
 	window.saveAdSettings = async function () {
 		const btn = document.getElementById('btn-save-ad-settings');
-		const urlInput = document.getElementById('ad-image-url');
+		const urlInputMobile = document.getElementById('ad-image-url-mobile');
+		const urlInputDesktop = document.getElementById('ad-image-url-desktop');
 		const linkInput = document.getElementById('ad-link-url');
 		const enabledInput = document.getElementById('ad-enabled-toggle');
-		const fileInput = document.getElementById('ad-image-file');
-		const progressBar = document.getElementById('ad-image-upload-progress');
+		const fileInputMobile = document.getElementById('ad-image-file-mobile');
+		const fileInputDesktop = document.getElementById('ad-image-file-desktop');
+		const progressBarMobile = document.getElementById('ad-image-upload-progress-mobile');
+		const progressBarDesktop = document.getElementById('ad-image-upload-progress-desktop');
 
-		let imageUrl = urlInput.value.trim();
+		let imageUrlMobile = urlInputMobile.value.trim();
+		let imageUrlDesktop = urlInputDesktop.value.trim();
 		const linkUrl = linkInput.value.trim();
 		const enabled = enabledInput.checked;
 
 		if (btn) btn.disabled = true;
 
 		try {
-			if (fileInput.files && fileInput.files[0]) {
-				const rawFile = fileInput.files[0];
-				const compressed = await compressImage(rawFile);
-				imageUrl = await uploadToCloudinary(
+			if (fileInputMobile.files && fileInputMobile.files[0]) {
+				const compressed = await compressImage(fileInputMobile.files[0]);
+				imageUrlMobile = await uploadToCloudinary(
 					compressed,
-					'ad-image-upload-progress',
+					'ad-image-upload-progress-mobile',
 					null,
 					'btn-save-ad-settings'
 				);
 			}
 
-			if (!imageUrl) {
-				alert('⚠ Isi URL gambar iklan atau upload gambar terlebih dahulu.');
+			if (fileInputDesktop.files && fileInputDesktop.files[0]) {
+				const compressed = await compressImage(fileInputDesktop.files[0]);
+				imageUrlDesktop = await uploadToCloudinary(
+					compressed,
+					'ad-image-upload-progress-desktop',
+					null,
+					'btn-save-ad-settings'
+				);
+			}
+
+			if (!imageUrlMobile || !imageUrlDesktop) {
+				alert('⚠ Wajib isi/upload 2 gambar iklan: versi HP (Mobile) DAN versi Laptop (Desktop).');
 				if (btn) btn.disabled = false;
+				btn.innerText = 'Simpan Pengaturan Iklan';
 				return;
 			}
 
 			await setDoc(adBannerRef, {
-				imageUrl,
+				imageUrlMobile,
+				imageUrlDesktop,
 				linkUrl,
 				enabled,
 				updatedAt: serverTimestamp()
@@ -3005,7 +3041,8 @@ const appId = "booking-ruang-training";
 				btn.disabled = false;
 				btn.innerText = 'Simpan Pengaturan Iklan';
 			}
-			progressBar.style.width = '0%';
+			progressBarMobile.style.width = '0%';
+			progressBarDesktop.style.width = '0%';
 		}
 	};
 
@@ -11578,19 +11615,62 @@ ${b.status}
                 </label>
             </div>
 
-            <div>
-                <label class="text-[10px] font-bold uppercase text-slate-400">Gambar Iklan (URL)</label>
-                <input id="ad-image-url" type="text" placeholder="https://... link gambar iklan"
-                    oninput="const p=document.getElementById('ad-preview-img'); const w=document.getElementById('ad-preview-wrap'); if(this.value.trim()){p.src=this.value.trim(); w.classList.remove('hide');} else {w.classList.add('hide');}"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+            <div class="border border-slate-200 rounded-2xl p-4 space-y-3 bg-slate-50/50">
+                <p class="text-xs font-black text-slate-600 flex items-center gap-1.5">
+                    <i class="fas fa-mobile-screen text-indigo-500"></i> Gambar Versi HP (Mobile) <span class="text-rose-500">*wajib</span>
+                </p>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">URL Gambar</label>
+                    <input id="ad-image-url-mobile" type="text" placeholder="https://... link gambar iklan (HP)"
+                        oninput="const p=document.getElementById('ad-preview-img-mobile'); const w=document.getElementById('ad-preview-wrap-mobile'); if(this.value.trim()){p.src=this.value.trim(); w.classList.remove('hide');} else {w.classList.add('hide');}"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Atau Upload dari Perangkat</label>
+                    <input id="ad-image-file-mobile" type="file" accept="image/*"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div id="ad-image-upload-progress-mobile" class="bg-indigo-500 h-1.5 w-0 transition-all"></div>
+                    </div>
+                </div>
+
+                <div id="ad-preview-wrap-mobile" class="hide">
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Pratinjau (HP)</label>
+                    <div class="w-full h-40 bg-slate-100 rounded-xl mt-1 border border-slate-200 flex items-center justify-center overflow-hidden">
+                        <img id="ad-preview-img-mobile" class="max-w-full max-h-full object-contain">
+                    </div>
+                </div>
             </div>
 
-            <div>
-                <label class="text-[10px] font-bold uppercase text-slate-400">Atau Upload Gambar dari Perangkat</label>
-                <input id="ad-image-file" type="file" accept="image/*"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
-                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                    <div id="ad-image-upload-progress" class="bg-indigo-500 h-1.5 w-0 transition-all"></div>
+            <div class="border border-slate-200 rounded-2xl p-4 space-y-3 bg-slate-50/50">
+                <p class="text-xs font-black text-slate-600 flex items-center gap-1.5">
+                    <i class="fas fa-display text-indigo-500"></i> Gambar Versi Laptop (Desktop) <span class="text-rose-500">*wajib</span>
+                </p>
+                <p class="text-[10px] text-slate-400 -mt-1">Disarankan gambar landscape lebar (rasio panjang, kira-kira 3x lebih lebar dari versi HP).</p>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">URL Gambar</label>
+                    <input id="ad-image-url-desktop" type="text" placeholder="https://... link gambar iklan (Laptop)"
+                        oninput="const p=document.getElementById('ad-preview-img-desktop'); const w=document.getElementById('ad-preview-wrap-desktop'); if(this.value.trim()){p.src=this.value.trim(); w.classList.remove('hide');} else {w.classList.add('hide');}"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Atau Upload dari Perangkat</label>
+                    <input id="ad-image-file-desktop" type="file" accept="image/*"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div id="ad-image-upload-progress-desktop" class="bg-indigo-500 h-1.5 w-0 transition-all"></div>
+                    </div>
+                </div>
+
+                <div id="ad-preview-wrap-desktop" class="hide">
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Pratinjau (Laptop)</label>
+                    <div class="w-full h-40 bg-slate-100 rounded-xl mt-1 border border-slate-200 flex items-center justify-center overflow-hidden">
+                        <img id="ad-preview-img-desktop" class="max-w-full max-h-full object-contain">
+                    </div>
                 </div>
             </div>
 
@@ -11598,13 +11678,6 @@ ${b.status}
                 <label class="text-[10px] font-bold uppercase text-slate-400">Link Tujuan (dibuka saat gambar diklik)</label>
                 <input id="ad-link-url" type="text" placeholder="https://contoh-tujuan-iklan.com"
                     class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
-            </div>
-
-            <div id="ad-preview-wrap" class="hide">
-                <label class="text-[10px] font-bold uppercase text-slate-400">Pratinjau</label>
-                                <div class="w-full h-40 bg-slate-100 rounded-xl mt-1 border border-slate-200 flex items-center justify-center overflow-hidden">
-                    <img id="ad-preview-img" class="max-w-full max-h-full object-contain">
-                </div>
             </div>
 
             <button id="btn-save-ad-settings" onclick="window.saveAdSettings()"
