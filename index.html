@@ -29,6 +29,18 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
+/* ================= 🔥 ANTI DOUBLE-SUBMIT: TOMBOL YANG DI-DISABLE JADI KELIHATAN BEDA ================= */
+/* Berlaku untuk SEMUA tombol (submit form, tombol aksi, dsb) begitu diberi atribut
+   disabled oleh JS -- warnanya otomatis redup & kursor jadi "not-allowed", jadi user
+   tahu tombolnya sedang diproses & tidak bisa diklik lagi (mencegah submit dobel). */
+button:disabled,
+input[type="submit"]:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(0.25);
+    pointer-events: none;
+}
+
 /* ================= BODY BACKGROUND DIGITAL ================= */
 
 body {
@@ -2585,7 +2597,7 @@ window.downloadQR = function () {
                         id="book-start" 
                         required 
                         class="bg-slate-100 rounded-xl px-2 py-3 text-sm"
-                        onchange="window.validateToolSelection()"
+                        onchange="window.handleBookTimeChange()"
                     >
                         <option value="" disabled selected>-- Pilih Jam --</option>
                         <option value="00:00">00:00</option>
@@ -2650,7 +2662,7 @@ window.downloadQR = function () {
                         id="book-end" 
                         required 
                         class="bg-slate-100 rounded-xl px-2 py-3 text-sm"
-                        onchange="window.validateToolSelection()"
+                        onchange="window.handleBookTimeChange()"
                     >
                         <option value="" disabled selected>-- Pilih Jam --</option>
                         <option value="00:00">00:00</option>
@@ -3624,6 +3636,38 @@ let localState = {
             if (id === 'modal-detail' && window.__detailModalHistoryPushed) {
                 window.__detailModalHistoryPushed = false;
                 history.back();
+            }
+        };
+
+        // 🔥 ANTI DOUBLE-SUBMIT: bungkus tombol aksi (Simpan/Kirim/Hapus/dsb) pakai ini supaya
+        // begitu diklik, tombol langsung berubah warna (opacity turun) & tidak bisa diklik lagi
+        // selama proses berjalan (mencegah data kekirim/kesimpan dobel kalau user klik berkali-kali).
+        // Dipakai lewat: onclick="window.guardedClick(this, () => window.namaFungsiAsli(args))"
+        // - btn: elemen tombol yang diklik (kirim `this` dari onclick).
+        // - fn : function yang menjalankan aksi aslinya (boleh async/promise, boleh biasa).
+        // Tombol otomatis aktif kembali setelah proses selesai (baik sukses maupun gagal),
+        // supaya modal yang sama tetap bisa dipakai lagi untuk transaksi berikutnya.
+        window.guardedClick = async (btn, fn) => {
+            if (!btn || btn.disabled || btn.dataset.submitting === '1') return;
+
+            const prevClass = btn.className;
+            btn.dataset.submitting = '1';
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+
+            try {
+                const result = fn();
+                if (result && typeof result.then === 'function') {
+                    await result;
+                }
+            } finally {
+                // 🔧 Kalau tombolnya sudah tidak ada lagi di DOM (mis. list-nya di-render ulang
+                // setelah data berubah), tidak perlu diapa-apakan lagi.
+                if (btn.isConnected) {
+                    delete btn.dataset.submitting;
+                    btn.disabled = false;
+                    btn.className = prevClass;
+                }
             }
         };
 
@@ -4979,6 +5023,10 @@ if (ctx3) {
         // AUTH HANDLERS
         document.getElementById('form-login').onsubmit = async (e) => {
             e.preventDefault();
+            const loginBtn = e.target.querySelector('button[type="submit"]');
+            if (loginBtn && loginBtn.disabled) return; // 🔥 cegah submit dobel kalau lagi diproses
+            if (loginBtn) loginBtn.disabled = true;
+            try {
             const u = document.getElementById('login-username').value;
             const p = document.getElementById('login-password').value;
             // 🔥 SEMUA ROLE (termasuk admin) dicek dari Firestore, TIDAK ada lagi akun hardcode di source code
@@ -5047,10 +5095,17 @@ if (ctx3) {
     }
 
 }
+            } finally {
+                if (loginBtn) loginBtn.disabled = false;
+            }
         };
 
         document.getElementById('form-register').onsubmit = async (e) => {
             e.preventDefault();
+            const regBtn = e.target.querySelector('button[type="submit"]');
+            if (regBtn && regBtn.disabled) return; // 🔥 cegah submit dobel kalau lagi diproses
+            if (regBtn) regBtn.disabled = true;
+            try {
             const username = document.getElementById('reg-username').value;
 			const email = document.getElementById('reg-email').value;
 			const password = document.getElementById('reg-password').value;
@@ -5068,6 +5123,9 @@ if (ctx3) {
 });
             alert("Pendaftaran berhasil! Silakan login.");
             window.closeModal('modal-register');
+            } finally {
+                if (regBtn) regBtn.disabled = false;
+            }
         };
 
         function initSession() {
@@ -5718,6 +5776,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return dates;
         };
 
+        // 🔥 UTIL: cek apakah kombinasi tanggal+jam mulai/selesai valid (rentang tidak negatif).
+        // - Tanggal selesai wajib >= tanggal mulai.
+        // - Kalau pemesanan HANYA 1 hari (tanggal mulai == tanggal selesai / tanggal selesai kosong),
+        //   maka jam selesai wajib > jam mulai (tidak boleh sama/kurang).
+        //   Untuk pemesanan lebih dari 1 hari, jam selesai boleh "kelihatan" lebih kecil dari jam
+        //   mulai karena itu jam di hari terakhir yang berbeda (bukan hari yang sama).
+        window.isBookingTimeOrderValid = (dateStart, dateEnd, start, end) => {
+            if (!dateStart || !start || !end) return true; // biar validasi "wajib diisi" yang nangkep duluan
+            const isSingleDay = !dateEnd || dateEnd === dateStart;
+            if (dateEnd && dateEnd < dateStart) return false;
+            if (isSingleDay && end <= start) return false;
+            return true;
+        };
+
         // 🔥 Saat tanggal mulai diubah, auto-samakan tanggal selesai kalau belum diisi / jadi tidak valid
         window.handleBookStartDateChange = () => {
             const startEl = document.getElementById('book-date');
@@ -5727,7 +5799,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 endEl.value = startEl.value;
             }
 
-            window.validateToolSelection();
+            window.handleBookTimeChange();
         };
 
         // 🔥 Saat tanggal selesai diubah, jangan sampai lebih awal dari tanggal mulai
@@ -5738,6 +5810,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (startEl.value && endEl.value < startEl.value) {
                 alert("Tanggal selesai tidak boleh sebelum tanggal mulai.");
                 endEl.value = startEl.value;
+            }
+
+            window.handleBookTimeChange();
+        };
+
+        // 🔥 Saat jam mulai/selesai diubah: kalau pesanan 1 hari & jam selesai <= jam mulai, tolak
+        // (reset jam selesai supaya user wajib pilih ulang jam yang valid).
+        window.handleBookTimeChange = () => {
+            const dateStart = document.getElementById('book-date')?.value || '';
+            const dateEnd = document.getElementById('book-date-end')?.value || '';
+            const startEl = document.getElementById('book-start');
+            const endEl = document.getElementById('book-end');
+
+            if (startEl.value && endEl.value && !window.isBookingTimeOrderValid(dateStart, dateEnd, startEl.value, endEl.value)) {
+                alert("Jam selesai tidak boleh sama dengan atau sebelum jam mulai untuk pesanan 1 hari.");
+                endEl.value = "";
             }
 
             window.validateToolSelection();
@@ -5788,6 +5876,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
 }
 
+            // 🔥 VALIDASI RENTANG TANGGAL/JAM TIDAK BOLEH NEGATIF:
+            // - tanggal selesai < tanggal mulai -> tolak
+            // - pesanan 1 hari & jam selesai <= jam mulai -> tolak
+            if (!window.isBookingTimeOrderValid(date, dateEndRaw, start, end)) {
+                errorMsg.innerText = 'Rentang waktu pesanan tidak valid: tanggal selesai tidak boleh sebelum tanggal mulai, dan untuk pesanan 1 hari, jam selesai harus setelah jam mulai.';
+                errorMsg.classList.remove('hide');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
+                return;
+            }
+
             const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
             
             let roomBentrok = false;
@@ -5802,6 +5901,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (roomBentrok) {
+                errorMsg.innerText = 'Pilihan ruangan ini sudah dipesan pada waktu tersebut.';
                 errorMsg.classList.remove('hide');
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-50');
@@ -6251,7 +6351,7 @@ class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover
     Mulai
 </button>
 
-<button onclick="window.cancelBooking('${b.id}')"
+<button onclick="window.guardedClick(this, () => window.cancelBooking('${b.id}'))"
 class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
     Batal
 </button>
@@ -6267,7 +6367,7 @@ class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover
 
 </div>
 ` : b.status === 'Pending' ? `
-<button onclick="window.deleteBooking('${b.id}')"
+<button onclick="window.guardedClick(this, () => window.deleteBooking('${b.id}'))"
 class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
     <i class="fas fa-trash-alt text-sm"></i>
 </button>
@@ -7148,8 +7248,8 @@ return `
                         </div>
 
                         <div class="flex gap-3">
-                            <button onclick="window.updateBookingStatusWithNote('${key}', 'Rejected')" class="flex-1 py-3 border border-rose-100 text-rose-500 rounded-2xl text-xs font-black hover:bg-rose-50 transition-colors">Tolak Semua</button>
-                            <button id="btn-approve-${key}" onclick="window.processPartialApproval('${key}')" class="flex-1 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black transition-all">Setujui</button>
+                            <button onclick="window.guardedClick(this, () => window.updateBookingStatusWithNote('${key}', 'Rejected'))" class="flex-1 py-3 border border-rose-100 text-rose-500 rounded-2xl text-xs font-black hover:bg-rose-50 transition-colors">Tolak Semua</button>
+                            <button id="btn-approve-${key}" onclick="window.guardedClick(this, () => window.processPartialApproval('${key}'))" class="flex-1 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black transition-all">Setujui</button>
                         </div>
                     </div>
                 `;
@@ -7990,7 +8090,7 @@ ${
         </button>
 
         <button
-        onclick="event.stopPropagation(); window.cancelBooking('${b.id}')"
+        onclick="event.stopPropagation(); window.guardedClick(this, () => window.cancelBooking('${b.id}'))"
         class="px-3 py-1 text-[10px] font-bold 
         bg-rose-500 text-white 
         rounded-lg hover:bg-rose-600 transition">
@@ -8523,7 +8623,7 @@ ${qrSection}
 
             footer.innerHTML = `
 
-<button onclick="window.deleteBooking('${b.id}')"
+<button onclick="window.guardedClick(this, () => window.deleteBooking('${b.id}'))"
 class="w-full bg-rose-500 text-white py-3 rounded-2xl font-bold text-xs">
 Hapus
 </button>
@@ -8595,7 +8695,7 @@ class="w-full text-xs mb-2" />
 <div id="progress-text-finish-${b.id}" class="text-xs text-center mb-2">0%</div>
 
 <button id="btn-finish-${b.id}"
-onclick="window.finishBooking('${b.id}')"
+onclick="window.guardedClick(this, () => window.finishBooking('${b.id}'))"
 disabled
 class="w-full bg-slate-300 text-slate-500 py-3 rounded-2xl font-bold text-xs cursor-not-allowed transition-colors">
 Pilih Foto Bukti Selesai Dulu
@@ -9038,6 +9138,12 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
     e.preventDefault();
 
+    // 🔥 ANTI DOUBLE-SUBMIT: begitu diklik, tombol langsung nonaktif & berubah warna
+    // sampai proses simpan (sukses/gagal/ditolak validasi) selesai.
+    const submitBookingBtn = document.getElementById('btn-submit-booking');
+    if (submitBookingBtn && submitBookingBtn.disabled) return;
+    if (submitBookingBtn) submitBookingBtn.disabled = true;
+
     try {
 
         const editIdCheck = document.getElementById('edit-booking-id').value;
@@ -9053,6 +9159,14 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         const start = document.getElementById('book-start').value;
         const end = document.getElementById('book-end').value;
         const editId = document.getElementById('edit-booking-id').value;
+
+        // 🔥 VALIDASI TERAKHIR (JAGA-JAGA): tolak kalau tanggal selesai < tanggal mulai,
+        // atau (pesanan 1 hari) jam selesai <= jam mulai. Ini lapisan pengaman terakhir
+        // sebelum data disimpan, selain validasi real-time di validateToolSelection().
+        if (window.isBookingTimeOrderValid && !window.isBookingTimeOrderValid(date, dateEndRaw, start, end)) {
+            alert('❌ Rentang waktu pesanan tidak valid: tanggal selesai tidak boleh sebelum tanggal mulai, dan untuk pesanan 1 hari, jam selesai harus setelah jam mulai.');
+            return;
+        }
 
         // 🔥 RUANGAN YANG DICEKLIS (BISA LEBIH DARI 1 UNTUK PESANAN BARU)
         const roomIds = window.getSelectedRoomIds();
@@ -9261,6 +9375,8 @@ window.showView('riwayat','Pesanan Saya');
 
 } catch (err) {
     console.error("Submit booking error:", err);
+} finally {
+    if (submitBookingBtn) submitBookingBtn.disabled = false;
 }
 
 });
@@ -10134,12 +10250,12 @@ function renderPelanggaran() {
             `}
 
             <div class="flex flex-wrap gap-2">
-                <button onclick="window.sendViolationEmail('${v.id}')"
+                <button onclick="window.guardedClick(this, () => window.sendViolationEmail('${v.id}'))"
                     class="px-3 py-1.5 text-[10px] font-bold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1">
                     <i class="fas fa-envelope"></i> ${v.status === 'Selesai' ? 'Kirim Notifikasi Penyelesaian' : 'Kirim Peringatan Email'}
                 </button>
                 ${v.status !== 'Selesai' ? `
-                <button onclick="window.sendViolationReminder('${v.id}')"
+                <button onclick="window.guardedClick(this, () => window.sendViolationReminder('${v.id}'))"
                     class="px-3 py-1.5 text-[10px] font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition flex items-center gap-1">
                     <i class="fas fa-bell"></i> Kirim Reminder
                 </button>
@@ -10151,7 +10267,7 @@ function renderPelanggaran() {
                     class="px-3 py-1.5 text-[10px] font-bold border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">
                     ✏ Edit Bukti Penyelesaian
                 </button>`}
-                <button onclick="window.deleteViolation('${v.id}')"
+                <button onclick="window.guardedClick(this, () => window.deleteViolation('${v.id}'))"
                     class="px-3 py-1.5 text-[10px] font-bold border border-rose-200 text-rose-500 rounded-lg hover:bg-rose-50 transition">
                     🗑 Hapus
                 </button>
@@ -10210,7 +10326,7 @@ function renderViolationMonitoring() {
                     ${v.reminderCount ? ` • 🔔 ${v.reminderCount}x reminder` : ''}
                 </p>
             </div>
-            <button onclick="window.sendViolationReminder('${v.id}')"
+            <button onclick="window.guardedClick(this, () => window.sendViolationReminder('${v.id}'))"
                 class="flex-shrink-0 px-3 py-1.5 text-[10px] font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg flex items-center gap-1">
                 <i class="fas fa-bell"></i> Reminder
             </button>
@@ -10241,7 +10357,12 @@ function getAllAssetRatingSummaries() {
         // yang tetap perlu ditindaklanjuti walau rata-rata keseluruhan aset masih bagus.
         const watchRatings = list.filter(r => Number(r.rating) === RATING_WATCH_VALUE);
         const watchComments = watchRatings.filter(r => r.comment).map(r => r.comment);
-        const latestRatingAt = list.reduce((max, r) => Math.max(max, r.createdAt?.seconds || 0), 0);
+        // 🔥 FIX: dulu dihitung dari SELURUH rating (termasuk rating bagus 4-5 bintang),
+        // jadi kalau ada rating bagus baru masuk setelah admin menindaklanjuti, notif
+        // "perlu tindak lanjut" muncul lagi padahal tidak relevan. Sekarang HANYA dihitung
+        // dari rating ≤3 (rendah/cukup) — itulah satu-satunya yang jadi alasan tindak lanjut.
+        const badRatingsForAsset = list.filter(r => Number(r.rating) <= 3);
+        const latestRatingAt = badRatingsForAsset.reduce((max, r) => Math.max(max, r.createdAt?.seconds || 0), 0);
         const latestWatchRatingAt = watchRatings.reduce((max, r) => Math.max(max, r.createdAt?.seconds || 0), 0);
         return {
             ...a, count: summary.count, avg: summary.avg, list,
@@ -10368,8 +10489,10 @@ window.openAssetFollowUpHistory = (type, id, name) => {
 function isRecommendationResolved(summary) {
     const followUp = getAssetFollowUp(summary.type, summary.id);
     if (!followUp) return false;
-    // 🔥 Ambil rating terbaru yang relevan (termasuk rating 3), jadi kalau ada rating 3
-    // baru masuk SETELAH ditindaklanjuti, rekomendasi otomatis muncul lagi.
+    // 🔥 Ambil waktu rating ≤3 (rendah/cukup) TERBARU yang relevan. Kalau ada rating baru
+    // ≤3 yang masuk SETELAH ditindaklanjuti, rekomendasi otomatis muncul lagi (perlu
+    // ditindaklanjuti ulang). Rating BAGUS (4-5 bintang) yang masuk setelahnya TIDAK
+    // memicu notif ini lagi — sekali ditindaklanjuti untuk rating ≤3, dianggap SELESAI.
     const relevantLatest = Math.max(summary.latestRatingAt || 0, summary.latestWatchRatingAt || 0);
     return (followUp.resolvedAt?.seconds || 0) >= relevantLatest;
 }
@@ -10945,7 +11068,7 @@ ${b.status}
 
         <div class="flex justify-end gap-2">
             <button onclick="closeChangePassword()" class="px-3 py-1 text-sm">Batal</button>
-            <button onclick="submitChangePassword()" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">Simpan</button>
+            <button onclick="window.guardedClick(this, () => submitChangePassword())" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">Simpan</button>
         </div>
 
     </div>
@@ -10976,7 +11099,7 @@ ${b.status}
 
             <div id="rating-assets-container" class="space-y-3"></div>
 
-            <button onclick="window.submitUserRating()"
+            <button onclick="window.guardedClick(this, () => window.submitUserRating())"
                 class="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-bold text-sm transition">
                 Kirim Rating & Feedback
             </button>
@@ -11263,7 +11386,7 @@ ${b.status}
                     class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-rose-400">
             </div>
 
-            <button onclick="window.submitViolation()"
+            <button onclick="window.guardedClick(this, () => window.submitViolation())"
                 class="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-2xl font-bold text-sm transition">
                 Simpan Catatan Pelanggaran
             </button>
