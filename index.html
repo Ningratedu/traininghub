@@ -2972,12 +2972,14 @@ const appId = "booking-ruang-training";
 
 		try {
 			if (fileInput.files && fileInput.files[0]) {
-				const file = fileInput.files[0];
-				progressBar.style.width = '40%';
-				const fileRef = ref(storage, `ad-banner/${Date.now()}_${file.name}`);
-				await uploadBytes(fileRef, file);
-				imageUrl = await getDownloadURL(fileRef);
-				progressBar.style.width = '100%';
+				const rawFile = fileInput.files[0];
+				const compressed = await compressImage(rawFile);
+				imageUrl = await uploadToCloudinary(
+					compressed,
+					'ad-image-upload-progress',
+					null,
+					'btn-save-ad-settings'
+				);
 			}
 
 			if (!imageUrl) {
@@ -2999,7 +3001,10 @@ const appId = "booking-ruang-training";
 			console.error('Gagal simpan pengaturan iklan:', err);
 			alert('❌ Gagal menyimpan pengaturan iklan. Coba lagi.');
 		} finally {
-			if (btn) btn.disabled = false;
+			if (btn) {
+				btn.disabled = false;
+				btn.innerText = 'Simpan Pengaturan Iklan';
+			}
 			progressBar.style.width = '0%';
 		}
 	};
