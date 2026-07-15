@@ -15,17 +15,94 @@
     <meta name="apple-mobile-web-app-title" content="TrainingHub">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%2010%20Jul%202026%2C%2007.45.48.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 🔥 FIX LOADING AWAL LEMOT: kasih tau browser lebih awal domain-domain
+         yang bakal dipakai (CDN, Firebase, gambar GitHub) supaya DNS lookup +
+         TLS handshake-nya jalan PARALEL sedari awal, bukan nunggu giliran
+         satu-satu pas script/asset-nya baru ke-discover belakangan. -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+    <link rel="dns-prefetch" href="https://unpkg.com">
+
+    <!-- 🔥 FIX: qrcodejs & html5-qrcode SUDAH DIPINDAH ke lazy-load (lihat loadScriptOnce
+         di bawah) karena keduanya cuma dipakai di fitur QR (generate/scan), bukan di setiap
+         load app. Sebelumnya kedua library ini (terutama html5-qrcode yang berat) selalu
+         didownload & dieksekusi di <head> pada SETIAP kali app dibuka, padahal mayoritas
+         sesi user gak pernah sentuh fitur QR sama sekali -> ini salah satu penyebab utama
+         loading awal kerasa berat/lama. -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // 🔥 Loader kecil buat lazy-load library berat (qrcodejs, html5-qrcode, xlsx dst)
+    // HANYA saat fitur terkait beneran dipakai, bukan di setiap load app.
+    // Cache promise per-src supaya kalau dipanggil berkali-kali gak double-download.
+    window.__scriptLoadCache = window.__scriptLoadCache || {};
+    window.loadScriptOnce = function (src) {
+        if (window.__scriptLoadCache[src]) return window.__scriptLoadCache[src];
+        window.__scriptLoadCache[src] = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error('Gagal memuat script: ' + src));
+            document.head.appendChild(s);
+        });
+        return window.__scriptLoadCache[src];
+    };
+    </script>
 
     <style>
+
+/* ================= 🔥 BOOT LOADER (TAMPIL INSTAN, GAK NUNGGU TAILWIND CDN) =================
+   Login-screen & seluruh layout app pakai class utility Tailwind, yang baru "hidup" setelah
+   script CDN Tailwind selesai didownload & jalan. Sebelum itu, browser bisa sempat menampilkan
+   HTML mentah tanpa styling sepersekian detik (apalagi di koneksi lemot) -> kerasa kayak
+   "loading gagal / macet". CSS di bawah ini di-tulis manual (bukan class Tailwind) supaya
+   langsung aktif begitu HTML ke-parse, jadi user selalu lihat indikator loading yang rapi
+   dari detik pertama, bukan layar putih/berantakan. Otomatis disembunyikan oleh script kecil
+   di akhir <body> begitu halaman selesai load. */
+#boot-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: #0f172a;
+    transition: opacity .35s ease;
+}
+#boot-loader.boot-loader-hide {
+    opacity: 0;
+    pointer-events: none;
+}
+#boot-loader .boot-spinner {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-top-color: #818cf8;
+    animation: boot-spin .8s linear infinite;
+}
+#boot-loader .boot-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+    letter-spacing: .02em;
+}
+@keyframes boot-spin {
+    to { transform: rotate(360deg); }
+}
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
@@ -342,6 +419,39 @@ body {
 
 <body class="text-slate-700">
 
+<!-- 🔥 BOOT LOADER: elemen PALING PERTAMA di <body>, langsung kelihatan begitu
+     HTML ke-parse (gak nunggu Tailwind/Firebase/dst). Ditutup otomatis oleh
+     script kecil di bagian paling bawah <body> begitu app siap dipakai. -->
+<div id="boot-loader">
+    <div class="boot-spinner"></div>
+    <div class="boot-label">Memuat TrainingHub…</div>
+</div>
+<script>
+(function () {
+    function hideBootLoader() {
+        var el = document.getElementById('boot-loader');
+        if (!el) return;
+        el.classList.add('boot-loader-hide');
+        setTimeout(function () {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }, 400);
+    }
+    // Ditutup begitu DOM siap (Tailwind yang di-defer sudah jalan duluan sebelum
+    // DOMContentLoaded, jadi login-screen sudah kelihatan rapi saat ini nembak).
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        setTimeout(hideBootLoader, 50);
+    } else {
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(hideBootLoader, 50);
+        });
+    }
+    // 🔥 Jaring pengaman: apapun yang terjadi, paksa tutup loader maksimal 4 detik
+    // supaya user TIDAK PERNAH "terjebak" di layar loading walau ada resource lain
+    // yang gagal/lambat.
+    setTimeout(hideBootLoader, 4000);
+})();
+</script>
+
 <!-- ================= QR PUBLIC FULLSCREEN (Halaman Download QR Serah Terima) ================= -->
 <!-- 🔥 Halaman mandiri: dibuka dari link QR yang dikirim lewat email (window.sendQrEmail).
      Menampilkan QR Serah Terima, bisa didownload, dan ada tombol kembali ke Pesanan Saya. -->
@@ -502,7 +612,7 @@ window.downloadQR = function () {
         return true;
     }
 
-    function showQrPage() {
+    async function showQrPage() {
 
         const qrPage = document.getElementById("qr-page");
         if (qrPage) qrPage.classList.remove("hide");
@@ -516,6 +626,16 @@ window.downloadQR = function () {
         if (!qrContainer) return;
 
         qrContainer.innerHTML = "";
+
+        // 🔥 qrcodejs baru di-load di sini (bukan di <head>) karena cuma halaman QR
+        // ini yang butuh — jadi gak ikut memperberat loading awal app buat semua user.
+        if (typeof QRCode === "undefined") {
+            try {
+                await window.loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
         if (typeof QRCode === "undefined") {
             console.error("QRCode library belum termuat");
@@ -4361,6 +4481,63 @@ function renderStatistikSaya() {
 }
 window.renderStatistikSaya = renderStatistikSaya;
 
+// 🔥 FIX TREND CHART vs FILTER GLOBAL:
+// Sebelumnya trend selalu dikelompokkan PER BULAN & urutan label ikut urutan data
+// (bukan urutan tanggal asli) — jadi kalau filter global-nya "Hari Ini" / "7 Hari
+// Terakhir" / rentang pendek lain, chart-nya kelihatan aneh (cuma 1 titik / garis
+// loncat-loncat) dan gak nyambung sama periode yang lagi dipilih di atas.
+// Sekarang: rentang bucket-nya IKUT filterRange (dari filter waktu global),
+// granularity otomatis PER HARI kalau rentang ≤31 hari, atau PER BULAN kalau
+// rentangnya lebih lebar. Slot yang tidak ada pesanannya tetap muncul sebagai 0
+// (zero-filled) biar bentuk garis benar-benar merepresentasikan seluruh periode
+// yang dipilih, bukan cuma tanggal-tanggal yang kebetulan ada datanya.
+function buildTrendBuckets(dataList) {
+    let rangeStart = (filterRange && filterRange.start) ? new Date(filterRange.start) : null;
+    let rangeEnd = (filterRange && filterRange.end) ? new Date(filterRange.end) : null;
+
+    if (!rangeStart || !rangeEnd || isNaN(rangeStart) || isNaN(rangeEnd)) {
+        const validDates = dataList.map(b => new Date(b.date)).filter(d => !isNaN(d));
+        if (validDates.length === 0) return { labels: [], data: [] };
+        rangeStart = new Date(Math.min(...validDates));
+        rangeEnd = new Date(Math.max(...validDates));
+    }
+
+    const spanDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
+    const byDay = spanDays <= 31;
+
+    const buckets = {};
+    const labelOf = {};
+
+    if (byDay) {
+        for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
+            const key = formatLocalDate(d);
+            buckets[key] = 0;
+            labelOf[key] = d.toLocaleString('id-ID', { day: '2-digit', month: 'short' });
+        }
+    } else {
+        for (let d = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), 1); d <= rangeEnd; d.setMonth(d.getMonth() + 1)) {
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            buckets[key] = 0;
+            labelOf[key] = d.toLocaleString('id-ID', { month: 'short', year: '2-digit' });
+        }
+    }
+
+    dataList.forEach(b => {
+        if (!b.date) return;
+        const d = new Date(b.date);
+        if (isNaN(d)) return;
+        const key = byDay ? formatLocalDate(d) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (!(key in buckets)) return; // di luar rentang filter global aktif, jangan ikut dihitung
+        buckets[key]++;
+    });
+
+    const sortedKeys = Object.keys(buckets).sort(); // aman karena key format ISO (YYYY-MM-DD / YYYY-MM)
+    return {
+        labels: sortedKeys.map(k => labelOf[k]),
+        data: sortedKeys.map(k => buckets[k])
+    };
+}
+
 function updateMyChart(dataList) {
     // STATUS DOUGHNUT
     const statusCount = { Pending: 0, Approved: 0, Ongoing: 0, Completed: 0, Rejected: 0, Cancelled: 0 };
@@ -4390,15 +4567,8 @@ function updateMyChart(dataList) {
         });
     }
 
-    // TREND LINE (per bulan)
-    const trendMap = {};
-    dataList.forEach(b => {
-        if (!b.date) return;
-        const d = new Date(b.date);
-        if (isNaN(d)) return;
-        const label = d.toLocaleString('id-ID', { month: 'short', year: '2-digit' });
-        trendMap[label] = (trendMap[label] || 0) + 1;
-    });
+    // TREND LINE — granularity & rentang ikut FILTER GLOBAL (lihat buildTrendBuckets)
+    const { labels: trendLabels, data: trendData } = buildTrendBuckets(dataList);
 
     const ctxTrend = document.getElementById('trendChartMine');
     if (ctxTrend) {
@@ -4406,10 +4576,10 @@ function updateMyChart(dataList) {
         trendChartMine = new Chart(ctxTrend, {
             type: 'line',
             data: {
-                labels: Object.keys(trendMap),
+                labels: trendLabels,
                 datasets: [{
                     label: 'Pesanan Saya',
-                    data: Object.values(trendMap),
+                    data: trendData,
                     borderColor: '#4f46e5',
                     backgroundColor: 'rgba(79,70,229,0.15)',
                     tension: 0.35,
@@ -7047,7 +7217,19 @@ ${b.status}
 };
 
 // 🔥 EXPORT EXCEL (SUDAH SESUAI KETERANGAN BARU)
-window.exportAllBookingsExcel = () => {
+window.exportAllBookingsExcel = async () => {
+
+    // 🔥 xlsx.full.min.js itu berat (~800KB) & cuma dipakai fitur export ini,
+    // jadi baru di-download pas tombol export beneran ditekan.
+    if (typeof XLSX === "undefined") {
+        try {
+            await window.loadScriptOnce("https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js");
+        } catch (e) {
+            console.error(e);
+            alert("Gagal memuat library Excel. Cek koneksi internet lalu coba lagi.");
+            return;
+        }
+    }
 
     let data = getFilteredBookings();
 
@@ -8792,10 +8974,24 @@ ${qrSection}
         && status === 'ongoing'
     ) {
 
-        setTimeout(() => {
+        setTimeout(async () => {
+
+            // 🔥 Lazy-load qrcodejs: cuma admin & cuma pesanan status "ongoing" yang butuh QR ini,
+            // jadi library-nya gak perlu ikut didownload di setiap load app.
+            if (typeof QRCode === "undefined") {
+                try {
+                    await window.loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
+                } catch (e) {
+                    console.error(e);
+                    return;
+                }
+            }
+
+            const qrEl = document.getElementById("qrcode");
+            if (!qrEl) return;
 
             new QRCode(
-                document.getElementById("qrcode"),
+                qrEl,
                 {
                     text: `finish-booking-${b.id}`,
                     width: 140,
@@ -8991,12 +9187,24 @@ class="w-full bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-2xl f
 };
 
 // ================= SCANNER CAMERA =================
-window.startScanner = (bookingId) => {
+window.startScanner = async (bookingId) => {
 
 window.currentScanBookingId = bookingId;
 
 document.getElementById('modal-scanner')
 .classList.remove('hide');
+
+// 🔥 html5-qrcode itu library gede & cuma dipakai fitur scan kamera ini (admin),
+// jadi baru di-download pas tombol scan-nya beneran ditekan, bukan di setiap load app.
+if (typeof Html5Qrcode === "undefined") {
+    try {
+        await window.loadScriptOnce("https://unpkg.com/html5-qrcode");
+    } catch (e) {
+        console.error(e);
+        alert("Gagal memuat library scanner. Cek koneksi internet lalu coba lagi.");
+        return;
+    }
+}
 
 if(typeof html5QrCode !== "undefined" && html5QrCode){
 try{ html5QrCode.stop(); }catch{}
@@ -9094,6 +9302,11 @@ const bookingId = window.currentScanBookingId;
 if(!bookingId){
 alert("Booking tidak ditemukan!");
 return;
+}
+
+// 🔥 Sama seperti startScanner(): lazy-load html5-qrcode baru saat fitur ini dipakai.
+if (typeof Html5Qrcode === "undefined") {
+    await window.loadScriptOnce("https://unpkg.com/html5-qrcode");
 }
 
 if(html5QrCode){
@@ -10878,7 +11091,6 @@ window.renderRatingMonitoring = renderRatingMonitoring;
 window.updateRatingAttentionBadge = updateRatingAttentionBadge;
 
 </script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <script>
 
