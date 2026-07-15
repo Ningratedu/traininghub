@@ -8945,6 +8945,14 @@ ${(() => {
             </div>
             <div class="text-slate-500 mt-0.5">${v.description || '-'}</div>
             <div class="text-[9px] text-slate-400 mt-1">Status: ${v.status || '-'}</div>
+            ${
+                // 🔥 Info konsekuensi pelanggaran HANYA ditampilkan untuk pemilik
+                // pesanan (user lain yang cuma numpang lihat gak perlu tahu detail
+                // konsekuensi pribadi pemilik pesanan), ditaruh sebelum tombol
+                // penyelesaian WA, sama seperti di popup "Pelanggaran Saya".
+                (isBookingOwner && v.consequence) ? `
+            <p class="text-[11px] text-rose-500 bg-rose-50 rounded-lg p-2 mt-1"><b>Konsekuensi:</b> ${v.consequence}</p>
+            ` : ''}
             ${showWaBtn ? `
             <a href="https://wa.me/6282116444887?text=${waTextDetail}" target="_blank" rel="noopener noreferrer"
                 class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold shadow transition">
