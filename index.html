@@ -465,7 +465,7 @@ body {
             QR Serah Terima
         </h2>
         <p class="text-[11px] text-slate-400 mb-4">
-            Tunjukkan / scan QR ini ke Admin Training untuk menyelesaikan pesanan.
+            Scan QR Code ini untuk menyelesaikan Pesanan Anda
         </p>
 
         <!-- Ringkasan pesanan (diisi otomatis begitu data pesanan tersedia) -->
@@ -647,7 +647,7 @@ window.downloadQR = function () {
         new QRCode(qrContainer, { text: qrCode, width: 220, height: 220 });
 
         const loadingText = document.getElementById("qr-loading-text");
-        if (loadingText) loadingText.innerText = "QR siap — silakan download atau tunjukkan ke Admin.";
+        if (loadingText) loadingText.innerText = "QR siap — silakan download atau Screenshoot.";
 
         // Coba tampilkan ringkasan pesanan; kalau data belum sampai, retry beberapa kali
         if (!renderBookingInfo()) {
