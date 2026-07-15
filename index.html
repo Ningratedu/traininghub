@@ -6688,7 +6688,7 @@ const listenToData = () => {
             window.getBookingViolations && window.getBookingViolations(b.id).length > 0
             ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
                 class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
-                ⚠ Lihat Penyelesaian
+                ⚠ Lihat Pelanggaran
                 </button>`
             : ''
         }
@@ -8389,7 +8389,7 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
                     )
                     ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
                         class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
-                        ⚠ Lihat Penyelesaian
+                        ⚠ Lihat Pelanggaran
                         </button>`
                     : `<span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Pelanggaran</span>`
                   )
