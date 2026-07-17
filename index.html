@@ -293,6 +293,18 @@ body {
     display: none !important;
 }
 
+/* 🔥 Field tanggal kustom di filter global: dipendekin biar start-end nempel
+   rapi & gak ngelebar di HP (ikon kalender bawaan browser suka makan tempat). */
+#custom-date-container input[type="date"] {
+    min-width: 0;
+}
+#custom-date-container input[type="date"]::-webkit-calendar-picker-indicator {
+    padding: 0;
+    margin-left: 2px;
+    transform: scale(0.85);
+}
+
+
 /* 🔧 FIX FREEZE UTAMA: chip filter status (Pesanan Saya & Kalender) ini
    scroll HORIZONTAL (overflow-x-auto) tapi ada DI DALAM halaman yang
    scroll VERTIKAL. Tanpa "touch-action" yang jelas, browser (terutama
@@ -1046,13 +1058,14 @@ window.downloadQR = function () {
                                  elemen baru di header), jadi tetap gak ganggu layout header. -->
                             <div id="custom-date-container" class="hide flex-col gap-2">
                                 <p class="text-[10px] font-black uppercase text-slate-400 px-1">Pilih Rentang Tanggal</p>
-                                <label class="text-[10px] font-bold text-slate-500 px-1">Mulai</label>
-                                <input type="date" id="filter-start"
-                                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
 
-                                <label class="text-[10px] font-bold text-slate-500 px-1 mt-1">Selesai</label>
-                                <input type="date" id="filter-end"
-                                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
+                                <div class="flex items-center gap-1.5">
+                                    <input type="date" id="filter-start"
+                                        class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-2 text-[11px] leading-none">
+                                    <span class="text-slate-300 text-[10px] shrink-0">—</span>
+                                    <input type="date" id="filter-end"
+                                        class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-2 text-[11px] leading-none">
+                                </div>
 
                                 <div class="flex gap-2 mt-2">
                                     <button type="button" onclick="window.backToTimeFilterOptions()"
