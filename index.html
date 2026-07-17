@@ -1781,12 +1781,12 @@ window.downloadQR = function () {
 				
                 <div id="view-jadwal" class="view hide">
     <div id="jadwal-filter-bar" class="mb-4 status-filter-sticky"></div>
-    <div id="calendar-list" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start"></div>
+    <div id="calendar-list" class="grid grid-cols-1 lg:grid-cols-3 gap-3 content-start auto-rows-max"></div>
 </div>
 
 <div id="view-riwayat" class="view hide">
     <div id="riwayat-filter-bar" class="mb-4 status-filter-sticky"></div>
-    <div id="my-booking-list" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start"></div>
+    <div id="my-booking-list" class="grid grid-cols-1 lg:grid-cols-3 gap-3 content-start auto-rows-max"></div>
 </div>
 
 <!-- ================= 🔥 VIEW: STATISTIK SAYA (KHUSUS USER) ================= -->
@@ -2388,12 +2388,12 @@ window.downloadQR = function () {
 
     <!-- MODAL RIWAYAT RUANGAN -->
     <div id="modal-room-history" class="fixed inset-0 z-[190] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[80vh]">
+        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[92vh]">
             <div class="flex justify-between items-center mb-6">
                 <h3 id="room-history-title" class="text-lg font-black text-indigo-600">Riwayat Penggunaan</h3>
                 <button onclick="closeModal('modal-room-history')"><i class="fas fa-times text-slate-300"></i></button>
             </div>
-            <div id="room-history-container" class="overflow-y-auto space-y-4"></div>
+            <div id="room-history-container" class="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-3 p-1 content-start auto-rows-max snap-y snap-proximity scroll-smooth"></div>
         </div>
     </div>
 
@@ -4829,7 +4829,7 @@ window.showRoomHistory = (roomId, roomName) => {
     if(filtered.length === 0) {
 
         container.innerHTML =
-        `<div class="text-center py-8 text-slate-400 text-xs italic">
+        `<div class="col-span-full text-center py-8 text-slate-400 text-xs italic">
             Tidak ada riwayat pemesanan di periode ini
         </div>`;
 
@@ -4839,43 +4839,8 @@ window.showRoomHistory = (roomId, roomName) => {
             filtered
             .slice()
             .reverse()
-            .map(b => `
-
-<div class="border-b border-slate-50 pb-3 last:border-0">
-
-    <div class="flex justify-between items-center mb-1">
-
-        <span class="text-[10px] font-black uppercase 
-        ${getStatusClass(b.status)} 
-        px-2 py-0.5 rounded">
-
-            ${b.status}
-
-        </span>
-
-        <span class="text-[9px] text-slate-400 font-bold">
-
-            ${b.date}
-
-        </span>
-
-    </div>
-
-    <p class="text-xs font-bold text-slate-700">
-
-        ${b.goal}
-
-    </p>
-
-    <p class="text-[10px] text-slate-400">
-
-        ${b.userName} (${b.dept}) • ${b.start} - ${b.end}
-
-    </p>
-
-</div>
-
-`).join('');
+            .map(b => window.assetBookingCardHTML(b))
+            .join('');
 
     }
 
@@ -4894,33 +4859,12 @@ window.showRoomHistory = (roomId, roomName) => {
 
     if(filtered.length === 0) {
         container.innerHTML = `
-            <div class="text-center py-8 text-slate-400 text-xs italic">
+            <div class="col-span-full text-center py-8 text-slate-400 text-xs italic">
                 Tidak ada riwayat penggunaan alat ini
             </div>
         `;
     } else {
-        container.innerHTML = filtered.slice().reverse().map(b => `
-            <div class="border-b border-slate-50 pb-3 last:border-0">
-
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-[10px] font-black uppercase ${getStatusClass(b.status)} px-2 py-0.5 rounded">
-                        ${b.status}
-                    </span>
-                    <span class="text-[9px] text-slate-400 font-bold">
-                        ${b.date}
-                    </span>
-                </div>
-
-                <p class="text-xs font-bold text-slate-700">
-                    ${b.goal}
-                </p>
-
-                <p class="text-[10px] text-slate-400">
-                    ${b.userName} (${b.dept}) • ${b.start} - ${b.end}
-                </p>
-
-            </div>
-        `).join('');
+        container.innerHTML = filtered.slice().reverse().map(b => window.assetBookingCardHTML(b)).join('');
     }
 
     document.getElementById('modal-room-history').classList.remove('hide');
@@ -6771,6 +6715,93 @@ const listenToData = () => {
             </div>`;
         };
 
+        // 🔥 KARTU RIWAYAT/PESANAN 1 ASET — gaya SAMA PERSIS dengan kartu "Kalender",
+        // dipakai bareng oleh SEMUA popup riwayat aset (Total Ruangan, Total Alat,
+        // popup dari card ruangan/alat di dashboard user/admin), biar konsisten.
+        window.assetBookingCardHTML = (b) => {
+          try {
+
+            b = b || {};
+
+            const statusColor =
+                b.status === 'Pending' ? 'bg-amber-400 text-amber-900' :
+                b.status === 'Approved' ? 'bg-emerald-500 text-white' :
+                b.status === 'Ongoing' ? 'bg-orange-500 text-white' :
+                b.status === 'Completed' ? 'bg-indigo-500 text-white' :
+                b.status === 'Rejected' ? 'bg-rose-500 text-white' :
+                b.status === 'Cancelled' ? 'bg-slate-400 text-white' :
+                'bg-slate-400 text-white';
+
+            const statusIcon =
+                b.status === 'Pending' ? '⏳' :
+                b.status === 'Approved' ? '✅' :
+                b.status === 'Ongoing' ? '🟠' :
+                b.status === 'Completed' ? '🏁' :
+                b.status === 'Rejected' ? '✖' :
+                b.status === 'Cancelled' ? '🚫' :
+                '⛔';
+
+            // 🔥 Sub-komponen (date box, label jenis, grid alat) WAJIB ada.
+            // Kalau salah satu belum ke-load, jangan biarkan kartu collapse diam-diam —
+            // tampilkan placeholder yang jelas + log error ke console.
+            const dateTimeHTML = (typeof window.bookingDateTimeBlockHTML === 'function')
+                ? window.bookingDateTimeBlockHTML({ date: b.date, start: b.start, end: b.end }, null, false)
+                : `<p class="text-[10px] text-rose-500 font-bold">⚠ bookingDateTimeBlockHTML belum siap</p>`;
+
+            const typeLabelHTML = (typeof window.bookingTypeLabelHTML === 'function')
+                ? window.bookingTypeLabelHTML(b)
+                : `<p class="text-[10px] text-rose-500 font-bold">⚠ bookingTypeLabelHTML belum siap</p>`;
+
+            const toolsGridHTML = (b.tools && b.tools.length > 0)
+                ? (typeof window.bookingToolsGridHTML === 'function' ? window.bookingToolsGridHTML(b.tools) : `<p class="text-[10px] text-rose-500 font-bold">⚠ bookingToolsGridHTML belum siap</p>`)
+                : '';
+
+            return `
+            <div class="relative bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-1 overflow-visible min-h-[150px] h-full snap-start">
+
+                <div class="absolute top-0 left-0 z-10">
+                    <div class="${statusColor} text-[8px] font-black uppercase px-2 py-[3px] rounded-tl-2xl rounded-br-lg shadow-md tracking-wide flex items-center gap-1">
+                        <span>${statusIcon}</span><span>${b.status || '-'}</span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    ${dateTimeHTML}
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-1">
+                    ${typeLabelHTML}
+                </div>
+
+                <p class="font-bold italic text-xs text-slate-800 leading-snug mt-3">
+                    "${b.goal || '-'}"
+                </p>
+
+                <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+                    <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${b.userName || '-'} (${b.dept || '-'})</span>
+                </p>
+
+                ${toolsGridHTML ? `
+                <div class="mt-0.5">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
+                    ${toolsGridHTML}
+                </div>
+                ` : ``}
+
+            </div>
+            `;
+
+          } catch (err) {
+            // 🔥 Kalau ada error tak terduga, JANGAN silent-fail jadi kartu kosong —
+            // tampilkan kartu debug yang jelas & log detail errornya ke console.
+            console.error('assetBookingCardHTML error:', err, 'data:', b);
+            return `
+            <div class="relative bg-rose-50 border border-rose-300 p-3 rounded-2xl text-[10px] text-rose-600 font-bold">
+                ⚠ Gagal render kartu pesanan (${(b && b.id) || '-'}). Cek console untuk detail error: ${err && err.message}
+            </div>`;
+          }
+        };
+
         function renderRiwayat() {
 
     renderRiwayatFilterBar();
@@ -6833,7 +6864,7 @@ const listenToData = () => {
 
             return `
 
-            <div class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-2 group overflow-hidden min-w-0 min-h-[340px]">
+            <div class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-2 group overflow-visible min-w-0 h-full">
 
     ${(() => {
 
@@ -7337,70 +7368,57 @@ window.showAssetBookings = (id, type, name) => {
         new Date(`${a.date}T${a.start}`) - new Date(`${b.date}T${b.start}`)
     );
 
+    const isAdminView = currentUser?.role === 'admin';
+
     // UBAH JUDUL
     const title =
         document.getElementById('asset-modal-title');
 
     if(title){
 
-        title.innerText =
-        `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
+        title.innerText = isAdminView
+            ? `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`
+            : `Pesanan Mendatang ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
 
     }
 
-    // ISI TABEL
-    const tbody =
-        document.getElementById('asset-booking-body');
+    // 🔥 Popup ini SEKARANG SELALU pakai tampilan kartu (sama persis gaya kartu
+    // "Kalender"), baik untuk ADMIN maupun USER. Bedanya cuma data yang ditampilkan:
+    // - ADMIN  : SEMUA status pesanan (Pending/Approved/Ongoing/Completed/Rejected),
+    //            sesuai filter tanggal global yang aktif -> buat keperluan riwayat/audit.
+    // - USER   : cuma pesanan yang MASIH MENDATANG/BERJALAN (belum lewat waktunya &
+    //            belum Cancelled/Rejected), sesuai filter tanggal global yang aktif.
+    const tableWrap = document.getElementById('asset-booking-table-wrap');
+    const cardsWrap = document.getElementById('asset-booking-cards-wrap');
+    if (tableWrap) tableWrap.classList.add('hide');
+    if (cardsWrap) cardsWrap.classList.remove('hide');
 
-    if(!tbody) return;
-
-    if(data.length === 0){
-
-        tbody.innerHTML = `
-        <tr>
-            <td colspan="6"
-                class="text-center py-6 text-slate-400">
-                Tidak ada pesanan
-            </td>
-        </tr>`;
-
+    let list;
+    if (isAdminView) {
+        list = data;
+    } else {
+        const nowTs = new Date();
+        list = data.filter(b => {
+            const endTs = new Date(`${b.date}T${b.end || b.start || '23:59'}`);
+            return endTs >= nowTs && !['Cancelled', 'Rejected'].includes(b.status);
+        });
     }
-    else{
 
-        tbody.innerHTML =
-        data.map(b => {
+    const cardsEl = document.getElementById('asset-booking-cards');
+    if (!cardsEl) return;
 
-            return `
-<tr>
+    if (list.length === 0) {
 
-<td class="px-3 py-2">
-${b.date}
-</td>
+        cardsEl.innerHTML = `
+        <div class="col-span-full py-10 text-center text-slate-400 italic">
+            ${isAdminView
+                ? `Tidak ada pesanan untuk ${type === 'room' ? 'ruangan' : 'alat'} ini`
+                : `Tidak ada pesanan mendatang untuk ${type === 'room' ? 'ruangan' : 'alat'} ini`}
+        </div>`;
 
-<td class="px-3 py-2">
-${b.start} - ${b.end}
-</td>
+    } else {
 
-<td class="px-3 py-2">
-${b.userName}
-</td>
-
-<td class="px-3 py-2">
-${b.dept}
-</td>
-
-<td class="px-3 py-2">
-${b.goal || '-'}
-</td>
-
-<td class="px-3 py-2 text-center font-semibold">
-${b.status}
-</td>
-
-</tr>
-`;
-
-        }).join('');
+        cardsEl.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
 
     }
 
@@ -8540,7 +8558,7 @@ function renderJadwal() {
 
 <div 
 onclick="window.openDetail('${b.id}')" 
-class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-2 group cursor-pointer overflow-hidden min-w-0 min-h-[340px]">
+class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-2 group cursor-pointer overflow-visible min-w-0 h-full">
 
     ${(() => {
 
@@ -10427,6 +10445,13 @@ window.openAssetRating = (type, id, name) => {
     // sedangkan penilaian terhadap PEMINJAM sendiri sudah objektif berdasarkan riwayat pelanggaran
     // (lihat window.getUserObjectiveRating / window.userRatingBadgeHTML).
 
+    // 🔥 Tombol "Buat Pesanan" cuma relevan buat USER (yang mau pakai asetnya),
+    // ADMIN gak butuh tombol ini di popup rating & feedback.
+    const bookBtn = document.getElementById('asset-rating-book-btn');
+    if (bookBtn) {
+        bookBtn.classList.toggle('hide', currentUser?.role === 'admin');
+    }
+
     document.getElementById('modal-asset-rating').classList.remove('hide');
 };
 
@@ -11581,70 +11606,57 @@ window.showAssetBookings = (id, type, name) => {
         new Date(`${a.date}T${a.start}`) - new Date(`${b.date}T${b.start}`)
     );
 
+    const isAdminView = currentUser?.role === 'admin';
+
     // UBAH JUDUL
     const title =
         document.getElementById('asset-modal-title');
 
     if(title){
 
-        title.innerText =
-        `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
+        title.innerText = isAdminView
+            ? `Riwayat ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`
+            : `Pesanan Mendatang ${type === 'room' ? 'Ruangan' : 'Alat'}: ${name}`;
 
     }
 
-    // ISI TABEL
-    const tbody =
-        document.getElementById('asset-booking-body');
+    // 🔥 Popup ini SEKARANG SELALU pakai tampilan kartu (sama persis gaya kartu
+    // "Kalender"), baik untuk ADMIN maupun USER. Bedanya cuma data yang ditampilkan:
+    // - ADMIN  : SEMUA status pesanan (Pending/Approved/Ongoing/Completed/Rejected),
+    //            sesuai filter tanggal global yang aktif -> buat keperluan riwayat/audit.
+    // - USER   : cuma pesanan yang MASIH MENDATANG/BERJALAN (belum lewat waktunya &
+    //            belum Cancelled/Rejected), sesuai filter tanggal global yang aktif.
+    const tableWrap = document.getElementById('asset-booking-table-wrap');
+    const cardsWrap = document.getElementById('asset-booking-cards-wrap');
+    if (tableWrap) tableWrap.classList.add('hide');
+    if (cardsWrap) cardsWrap.classList.remove('hide');
 
-    if(!tbody) return;
-
-    if(data.length === 0){
-
-        tbody.innerHTML = `
-        <tr>
-            <td colspan="6"
-                class="text-center py-6 text-slate-400">
-                Tidak ada pesanan
-            </td>
-        </tr>`;
-
+    let list;
+    if (isAdminView) {
+        list = data;
+    } else {
+        const nowTs = new Date();
+        list = data.filter(b => {
+            const endTs = new Date(`${b.date}T${b.end || b.start || '23:59'}`);
+            return endTs >= nowTs && !['Cancelled', 'Rejected'].includes(b.status);
+        });
     }
-    else{
 
-        tbody.innerHTML =
-        data.map(b => {
+    const cardsEl = document.getElementById('asset-booking-cards');
+    if (!cardsEl) return;
 
-            return `
-<tr>
+    if (list.length === 0) {
 
-<td class="px-3 py-2">
-${b.date}
-</td>
+        cardsEl.innerHTML = `
+        <div class="col-span-full py-10 text-center text-slate-400 italic">
+            ${isAdminView
+                ? `Tidak ada pesanan untuk ${type === 'room' ? 'ruangan' : 'alat'} ini`
+                : `Tidak ada pesanan mendatang untuk ${type === 'room' ? 'ruangan' : 'alat'} ini`}
+        </div>`;
 
-<td class="px-3 py-2">
-${b.start} - ${b.end}
-</td>
+    } else {
 
-<td class="px-3 py-2">
-${b.userName}
-</td>
-
-<td class="px-3 py-2">
-${b.dept}
-</td>
-
-<td class="px-3 py-2">
-${b.goal || '-'}
-</td>
-
-<td class="px-3 py-2 text-center font-semibold">
-${b.status}
-</td>
-
-</tr>
-`;
-
-        }).join('');
+        cardsEl.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
 
     }
 
@@ -11685,7 +11697,8 @@ ${b.status}
 
         </div>
 
-        <div class="overflow-auto max-h-[70vh] rounded-xl border">
+        <!-- 🔥 TABEL RIWAYAT (ADMIN) -->
+        <div id="asset-booking-table-wrap" class="overflow-auto max-h-[70vh] rounded-xl border">
 
             <table class="min-w-full text-sm divide-y divide-slate-100">
 
@@ -11710,6 +11723,11 @@ ${b.status}
 
             </table>
 
+        </div>
+
+        <!-- 🔥 KARTU KALENDER PESANAN MENDATANG (USER), sesuai filter global yang aktif -->
+        <div id="asset-booking-cards-wrap" class="hide overflow-auto max-h-[70vh] p-1 snap-y snap-proximity scroll-smooth">
+            <div id="asset-booking-cards" class="grid grid-cols-1 lg:grid-cols-2 gap-3 content-start auto-rows-max"></div>
         </div>
 
         <!-- 🔥 TOMBOL BUAT PESANAN (fungsi sama persis dengan tombol + Buat Pesanan utama) -->
