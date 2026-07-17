@@ -1781,12 +1781,12 @@ window.downloadQR = function () {
 				
                 <div id="view-jadwal" class="view hide">
     <div id="jadwal-filter-bar" class="mb-4 status-filter-sticky"></div>
-    <div id="calendar-list" class="space-y-4"></div>
+    <div id="calendar-list" class="grid grid-cols-2 gap-3 items-start"></div>
 </div>
 
 <div id="view-riwayat" class="view hide">
     <div id="riwayat-filter-bar" class="mb-4 status-filter-sticky"></div>
-    <div id="my-booking-list" class="space-y-4"></div>
+    <div id="my-booking-list" class="grid grid-cols-2 gap-3 items-start"></div>
 </div>
 
 <!-- ================= 🔥 VIEW: STATISTIK SAYA (KHUSUS USER) ================= -->
@@ -2685,188 +2685,204 @@ window.downloadQR = function () {
 
 
 
-            <!-- TANGGAL (MENDUKUNG MULTI HARI) -->
-            <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
+            <!-- WAKTU MULAI (TANGGAL + JAM NEMPEL JADI 1 BLOK) -->
+            <div class="col-span-2 sm:col-span-1 bg-indigo-50/70 rounded-2xl p-3">
 
-                <div class="flex flex-col">
+                <label class="text-[10px] font-bold uppercase text-indigo-500">
+                    Mulai
+                </label>
 
-                    <label class="text-[10px] font-bold uppercase text-slate-400">
-                        Tanggal Mulai
-                    </label>
+                <div class="grid grid-cols-2 gap-2 mt-1">
 
-                    <input 
-                        type="date" 
-                        id="book-date" 
-                        required 
-                        class="bg-slate-100 border-none rounded-xl px-2 py-3 text-sm"
-                        onchange="window.handleBookStartDateChange()"
-                    >
+                    <div class="flex flex-col">
+
+                        <label class="text-[9px] font-bold uppercase text-slate-400">
+                            Tanggal
+                        </label>
+
+                        <input 
+                            type="date" 
+                            id="book-date" 
+                            required 
+                            class="bg-white border-none rounded-xl px-2 py-3 text-sm"
+                            onchange="window.handleBookStartDateChange()"
+                        >
+
+                    </div>
+
+                    <div class="flex flex-col">
+
+                        <label class="text-[9px] font-bold uppercase text-slate-400">
+                            Jam
+                        </label>
+
+                        <select 
+                            id="book-start" 
+                            required 
+                            class="bg-white rounded-xl px-2 py-3 text-sm"
+                            onchange="window.handleBookTimeChange()"
+                        >
+                        <option value="" disabled selected>-- Pilih Jam --</option>
+                        <option value="00:00">00:00</option>
+                        <option value="00:30">00:30</option>
+                        <option value="01:00">01:00</option>
+                        <option value="01:30">01:30</option>
+                        <option value="02:00">02:00</option>
+                        <option value="02:30">02:30</option>
+                        <option value="03:00">03:00</option>
+                        <option value="03:30">03:30</option>
+                        <option value="04:00">04:00</option>
+                        <option value="04:30">04:30</option>
+                        <option value="05:00">05:00</option>
+                        <option value="05:30">05:30</option>
+                        <option value="06:00">06:00</option>
+                        <option value="06:30">06:30</option>
+                        <option value="07:00">07:00</option>
+                        <option value="07:30">07:30</option>
+                        <option value="08:00">08:00</option>
+                        <option value="08:30">08:30</option>
+                        <option value="09:00">09:00</option>
+                        <option value="09:30">09:30</option>
+                        <option value="10:00">10:00</option>
+                        <option value="10:30">10:30</option>
+                        <option value="11:00">11:00</option>
+                        <option value="11:30">11:30</option>
+                        <option value="12:00">12:00</option>
+                        <option value="12:30">12:30</option>
+                        <option value="13:00">13:00</option>
+                        <option value="13:30">13:30</option>
+                        <option value="14:00">14:00</option>
+                        <option value="14:30">14:30</option>
+                        <option value="15:00">15:00</option>
+                        <option value="15:30">15:30</option>
+                        <option value="16:00">16:00</option>
+                        <option value="16:30">16:30</option>
+                        <option value="17:00">17:00</option>
+                        <option value="17:30">17:30</option>
+                        <option value="18:00">18:00</option>
+                        <option value="18:30">18:30</option>
+                        <option value="19:00">19:00</option>
+                        <option value="19:30">19:30</option>
+                        <option value="20:00">20:00</option>
+                        <option value="20:30">20:30</option>
+                        <option value="21:00">21:00</option>
+                        <option value="21:30">21:30</option>
+                        <option value="22:00">22:00</option>
+                        <option value="22:30">22:30</option>
+                        <option value="23:00">23:00</option>
+                        <option value="23:30">23:30</option>
+                    </select>
+
+                    </div>
 
                 </div>
-
-                <div class="flex flex-col">
-
-                    <label class="text-[10px] font-bold uppercase text-slate-400">
-                        Tanggal Selesai
-                    </label>
-
-                    <input 
-                        type="date" 
-                        id="book-date-end" 
-                        required 
-                        class="bg-slate-100 border-none rounded-xl px-2 py-3 text-sm"
-                        onchange="window.handleBookEndDateChange()"
-                    >
-
-                </div>
-
-                <p class="col-span-2 text-[10px] text-slate-400 -mt-1">
-                    Untuk pesanan 1 hari, isi tanggal mulai & selesai sama. Untuk pesanan beberapa hari, isi tanggal selesai lebih akhir — sistem akan mengecek bentrok di setiap harinya.
-                </p>
 
             </div>
 
 
 
-            <!-- JAM (DROPDOWN, SELISIH 30 MENIT) -->
-            <div class="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
+            <!-- WAKTU SELESAI (TANGGAL + JAM NEMPEL JADI 1 BLOK) -->
+            <div class="col-span-2 sm:col-span-1 bg-slate-100 rounded-2xl p-3">
 
-                <div class="flex flex-col">
+                <label class="text-[10px] font-bold uppercase text-slate-400">
+                    Selesai
+                </label>
 
-                    <label class="text-[10px] font-bold uppercase text-slate-400">
-                        Mulai
-                    </label>
+                <div class="grid grid-cols-2 gap-2 mt-1">
 
-                    <select 
-                        id="book-start" 
-                        required 
-                        class="bg-slate-100 rounded-xl px-2 py-3 text-sm"
-                        onchange="window.handleBookTimeChange()"
-                    >
-                        <option value="" disabled selected>-- Pilih Jam --</option>
-                        <option value="00:00">00:00</option>
-                        <option value="00:30">00:30</option>
-                        <option value="01:00">01:00</option>
-                        <option value="01:30">01:30</option>
-                        <option value="02:00">02:00</option>
-                        <option value="02:30">02:30</option>
-                        <option value="03:00">03:00</option>
-                        <option value="03:30">03:30</option>
-                        <option value="04:00">04:00</option>
-                        <option value="04:30">04:30</option>
-                        <option value="05:00">05:00</option>
-                        <option value="05:30">05:30</option>
-                        <option value="06:00">06:00</option>
-                        <option value="06:30">06:30</option>
-                        <option value="07:00">07:00</option>
-                        <option value="07:30">07:30</option>
-                        <option value="08:00">08:00</option>
-                        <option value="08:30">08:30</option>
-                        <option value="09:00">09:00</option>
-                        <option value="09:30">09:30</option>
-                        <option value="10:00">10:00</option>
-                        <option value="10:30">10:30</option>
-                        <option value="11:00">11:00</option>
-                        <option value="11:30">11:30</option>
-                        <option value="12:00">12:00</option>
-                        <option value="12:30">12:30</option>
-                        <option value="13:00">13:00</option>
-                        <option value="13:30">13:30</option>
-                        <option value="14:00">14:00</option>
-                        <option value="14:30">14:30</option>
-                        <option value="15:00">15:00</option>
-                        <option value="15:30">15:30</option>
-                        <option value="16:00">16:00</option>
-                        <option value="16:30">16:30</option>
-                        <option value="17:00">17:00</option>
-                        <option value="17:30">17:30</option>
-                        <option value="18:00">18:00</option>
-                        <option value="18:30">18:30</option>
-                        <option value="19:00">19:00</option>
-                        <option value="19:30">19:30</option>
-                        <option value="20:00">20:00</option>
-                        <option value="20:30">20:30</option>
-                        <option value="21:00">21:00</option>
-                        <option value="21:30">21:30</option>
-                        <option value="22:00">22:00</option>
-                        <option value="22:30">22:30</option>
-                        <option value="23:00">23:00</option>
-                        <option value="23:30">23:30</option>
-                    </select>
+                    <div class="flex flex-col">
 
-                </div>
+                        <label class="text-[9px] font-bold uppercase text-slate-400">
+                            Tanggal
+                        </label>
 
-                <div class="flex flex-col">
+                        <input 
+                            type="date" 
+                            id="book-date-end" 
+                            required 
+                            class="bg-white border-none rounded-xl px-2 py-3 text-sm"
+                            onchange="window.handleBookEndDateChange()"
+                        >
 
-                    <label class="text-[10px] font-bold uppercase text-slate-400">
-                        Selesai
-                    </label>
+                    </div>
 
-                    <select 
-                        id="book-end" 
-                        required 
-                        class="bg-slate-100 rounded-xl px-2 py-3 text-sm"
-                        onchange="window.handleBookTimeChange()"
-                    >
-                        <option value="" disabled selected>-- Pilih Jam --</option>
-                        <option value="00:00">00:00</option>
-                        <option value="00:30">00:30</option>
-                        <option value="01:00">01:00</option>
-                        <option value="01:30">01:30</option>
-                        <option value="02:00">02:00</option>
-                        <option value="02:30">02:30</option>
-                        <option value="03:00">03:00</option>
-                        <option value="03:30">03:30</option>
-                        <option value="04:00">04:00</option>
-                        <option value="04:30">04:30</option>
-                        <option value="05:00">05:00</option>
-                        <option value="05:30">05:30</option>
-                        <option value="06:00">06:00</option>
-                        <option value="06:30">06:30</option>
-                        <option value="07:00">07:00</option>
-                        <option value="07:30">07:30</option>
-                        <option value="08:00">08:00</option>
-                        <option value="08:30">08:30</option>
-                        <option value="09:00">09:00</option>
-                        <option value="09:30">09:30</option>
-                        <option value="10:00">10:00</option>
-                        <option value="10:30">10:30</option>
-                        <option value="11:00">11:00</option>
-                        <option value="11:30">11:30</option>
-                        <option value="12:00">12:00</option>
-                        <option value="12:30">12:30</option>
-                        <option value="13:00">13:00</option>
-                        <option value="13:30">13:30</option>
-                        <option value="14:00">14:00</option>
-                        <option value="14:30">14:30</option>
-                        <option value="15:00">15:00</option>
-                        <option value="15:30">15:30</option>
-                        <option value="16:00">16:00</option>
-                        <option value="16:30">16:30</option>
-                        <option value="17:00">17:00</option>
-                        <option value="17:30">17:30</option>
-                        <option value="18:00">18:00</option>
-                        <option value="18:30">18:30</option>
-                        <option value="19:00">19:00</option>
-                        <option value="19:30">19:30</option>
-                        <option value="20:00">20:00</option>
-                        <option value="20:30">20:30</option>
-                        <option value="21:00">21:00</option>
-                        <option value="21:30">21:30</option>
-                        <option value="22:00">22:00</option>
-                        <option value="22:30">22:30</option>
-                        <option value="23:00">23:00</option>
-                        <option value="23:30">23:30</option>
-                    </select>
+                    <div class="flex flex-col">
+
+                        <label class="text-[9px] font-bold uppercase text-slate-400">
+                            Jam
+                        </label>
+
+                        <select 
+                            id="book-end" 
+                            required 
+                            class="bg-white rounded-xl px-2 py-3 text-sm"
+                            onchange="window.handleBookTimeChange()"
+                        >
+                            <option value="" disabled selected>-- Pilih Jam --</option>
+                            <option value="00:00">00:00</option>
+                            <option value="00:30">00:30</option>
+                            <option value="01:00">01:00</option>
+                            <option value="01:30">01:30</option>
+                            <option value="02:00">02:00</option>
+                            <option value="02:30">02:30</option>
+                            <option value="03:00">03:00</option>
+                            <option value="03:30">03:30</option>
+                            <option value="04:00">04:00</option>
+                            <option value="04:30">04:30</option>
+                            <option value="05:00">05:00</option>
+                            <option value="05:30">05:30</option>
+                            <option value="06:00">06:00</option>
+                            <option value="06:30">06:30</option>
+                            <option value="07:00">07:00</option>
+                            <option value="07:30">07:30</option>
+                            <option value="08:00">08:00</option>
+                            <option value="08:30">08:30</option>
+                            <option value="09:00">09:00</option>
+                            <option value="09:30">09:30</option>
+                            <option value="10:00">10:00</option>
+                            <option value="10:30">10:30</option>
+                            <option value="11:00">11:00</option>
+                            <option value="11:30">11:30</option>
+                            <option value="12:00">12:00</option>
+                            <option value="12:30">12:30</option>
+                            <option value="13:00">13:00</option>
+                            <option value="13:30">13:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="14:30">14:30</option>
+                            <option value="15:00">15:00</option>
+                            <option value="15:30">15:30</option>
+                            <option value="16:00">16:00</option>
+                            <option value="16:30">16:30</option>
+                            <option value="17:00">17:00</option>
+                            <option value="17:30">17:30</option>
+                            <option value="18:00">18:00</option>
+                            <option value="18:30">18:30</option>
+                            <option value="19:00">19:00</option>
+                            <option value="19:30">19:30</option>
+                            <option value="20:00">20:00</option>
+                            <option value="20:30">20:30</option>
+                            <option value="21:00">21:00</option>
+                            <option value="21:30">21:30</option>
+                            <option value="22:00">22:00</option>
+                            <option value="22:30">22:30</option>
+                            <option value="23:00">23:00</option>
+                            <option value="23:30">23:30</option>
+                        </select>
+
+                    </div>
 
                 </div>
 
-                <!-- ERROR (persis di bawah field jam) -->
-                <div id="booking-error-msg" class="col-span-2 text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg mt-1">
+                <!-- ERROR (persis di bawah blok Selesai) -->
+                <div id="booking-error-msg" class="text-rose-600 text-[10px] font-bold text-center hide bg-rose-50 p-2 rounded-lg mt-2">
                     Pilihan ruangan ini sudah dipesan pada waktu tersebut.
                 </div>
 
             </div>
+
+            <p class="col-span-2 text-[10px] text-slate-400 -mt-2">
+                Untuk pesanan 1 hari, isi tanggal mulai & selesai sama. Untuk pesanan beberapa hari, isi tanggal selesai lebih akhir — sistem akan mengecek bentrok di setiap harinya.
+            </p>
 
 
 
@@ -2936,7 +2952,7 @@ window.downloadQR = function () {
     <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
     getStorage,
@@ -5586,13 +5602,28 @@ if (!openDetailParam) {
 
             container.innerHTML = list.map(item => {
                 const bookingsInRange = getFilteredBookings().filter(b => (b.roomId === item.id || (b.tools && b.tools.some(t => t.id === item.id))) && (b.status === 'Approved' || b.status === 'Ongoing'));
-                const isOccupied = bookingsInRange.length > 0;
                 const isClosed = item.status === 'Closed';
+
+                // 🔥 PESANAN TERDEKAT MENDATANG (sesuai filter global yang aktif):
+                // ambil dari bookingsInRange (sudah dibatasi filter tanggal global di atas),
+                // lalu cari yang belum selesai (end >= sekarang), diurutkan paling dekat dulu.
+                const nowTs = new Date();
+                const nextBooking = bookingsInRange
+                    .slice()
+                    .sort((a, b) =>
+                        new Date(`${a.date}T${a.start || '00:00'}`) - new Date(`${b.date}T${b.start || '00:00'}`)
+                    )
+                    .find(b => new Date(`${b.date}T${b.end || b.start || '23:59'}`) >= nowTs);
+
+                // 🔥 BADGE "DIPESAN" cuma nyala kalau ADA pesanan yang waktunya mendatang/
+                // masih berjalan (belum lewat) di dalam rentang filter global. Pesanan yang
+                // sudah lewat waktunya (walau masih ke-filter tanggalnya) tidak dianggap "Dipesan".
+                const isOccupied = !!nextBooking;
                 
                 return `
     <div 
         onclick="showAssetBookings('${item.id}','${type}', decodeURIComponent('${encodeURIComponent(item.name)}'))"
-        class="bg-white rounded-2xl shadow-sm border border-slate-100 flex overflow-hidden relative cursor-pointer hover:shadow-md transition ${isClosed ? 'opacity-60 grayscale' : ''}"
+        class="bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center overflow-hidden relative cursor-pointer hover:shadow-md transition ${isClosed ? 'opacity-60 grayscale' : ''}"
     >
 
         <!-- OVERLAY CLOSED -->
@@ -5617,23 +5648,23 @@ if (!openDetailParam) {
         <img 
             src="${item.image || 'https://via.placeholder.com/150'}"
             onclick="event.stopPropagation(); window.openImageLightbox('${item.image || ''}', decodeURIComponent('${encodeURIComponent(item.name)}'))"
-            class="w-32 h-32 object-cover flex-shrink-0 cursor-zoom-in hover:opacity-80 transition ${isClosed ? 'opacity-70' : ''}"
+            class="w-32 h-32 object-cover flex-shrink-0 self-center cursor-zoom-in hover:opacity-80 transition ${isClosed ? 'opacity-70' : ''}"
         />
 
         <!-- CONTENT -->
-        <div class="p-4 flex flex-col justify-center text-left flex-1">
+        <div class="p-4 flex flex-col justify-center text-left flex-1 min-w-0 h-32 overflow-hidden">
 
             <!-- TITLE + ICON (FIX DI KIRI) -->
-            <div class="flex items-center gap-2">
-                <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-slate-400 text-sm"></i>
+            <div class="flex items-center gap-2 min-w-0">
+                <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-slate-400 text-sm shrink-0"></i>
 
-                <h5 class="font-bold text-slate-900 text-sm">
+                <h5 class="font-bold text-slate-900 text-sm truncate">
                     ${item.name}
                 </h5>
             </div>
 
             <!-- INFO -->
-            <p class="text-xs text-slate-500 mt-1">
+            <p class="text-xs text-slate-500 mt-1 truncate">
                 ${
                     type === 'room'
                     ? `Kapasitas: ${item.capacity || 0} Orang`
@@ -5645,6 +5676,18 @@ if (!openDetailParam) {
             <div class="mt-1" onclick="event.stopPropagation(); window.openAssetRating('${type}','${item.id}', decodeURIComponent('${encodeURIComponent(item.name)}'))">
                 ${window.ratingBadgeHTML ? window.ratingBadgeHTML(type, item.id) : ''}
             </div>
+
+            <!-- 🔥 INFO PESANAN TERDEKAT MENDATANG (sesuai filter global) -->
+            ${nextBooking ? `
+            <div class="mt-0.5 leading-tight">
+                <p class="text-[7px] font-bold text-slate-400 uppercase tracking-wide truncate">Pesanan Mendatang</p>
+                <p class="text-[8px] text-slate-400 leading-snug">
+                    <i class="fas fa-clock"></i>
+                    <span class="font-semibold text-slate-500">${nextBooking.userName || nextBooking.name || '-'}</span>
+                    · ${nextBooking.goal || '-'}
+                    · ${nextBooking.date || '-'}${nextBooking.start ? ` (${nextBooking.start}${nextBooking.end ? '-' + nextBooking.end : ''})` : ''}
+                </p>
+            </div>` : ''}
 
         </div>
 
@@ -6141,6 +6184,49 @@ document.addEventListener('DOMContentLoaded', () => {
             return dates;
         };
 
+        // 🔥 ANTI BENTROK ANTAR-USER (RACE CONDITION FIX):
+        // Cek `localState.bookings` SAJA tidak cukup karena data itu dari cache real-time
+        // listener yang bisa telat beberapa ratus ms. Kalau 2 user submit pesanan yang
+        // bentrok nyaris bersamaan, keduanya bisa lolos validasi berbasis cache karena
+        // sama-sama belum lihat pesanan lawan.
+        // Fungsi ini ambil data LANGSUNG dan TERBARU dari Firestore (bukan cache) tepat
+        // sebelum data disimpan, supaya jendela race condition-nya jauh lebih sempit.
+        // Firestore "where...in" maksimal 10 value per query, jadi tanggal di-chunk per 10.
+        window.fetchLiveActiveBookingsForDates = async (dateList) => {
+            const activeStatuses = ['Pending', 'Approved', 'Ongoing'];
+            const uniqueDates = [...new Set(dateList)].filter(Boolean);
+            if (uniqueDates.length === 0) return [];
+
+            const chunks = [];
+            for (let i = 0; i < uniqueDates.length; i += 10) {
+                chunks.push(uniqueDates.slice(i, i + 10));
+            }
+
+            const bookingsCol = collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
+            const results = [];
+
+            try {
+                for (const chunk of chunks) {
+                    const q = query(bookingsCol, where('date', 'in', chunk));
+                    const snap = await getDocs(q);
+                    snap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (activeStatuses.includes(data.status)) {
+                            results.push({ id: docSnap.id, ...data });
+                        }
+                    });
+                }
+            } catch (err) {
+                // 🔥 Kalau query live gagal (mis. offline), jangan blokir total —
+                // biarkan pemanggil fallback ke localState.bookings (cache) supaya
+                // user tetap bisa memesan, hanya saja pengecekannya kurang real-time.
+                console.error('Gagal cek bentrok live ke Firestore, fallback ke cache lokal:', err);
+                return null;
+            }
+
+            return results;
+        };
+
         // 🔥 UTIL: cek apakah kombinasi tanggal+jam mulai/selesai valid (rentang tidak negatif).
         // - Tanggal selesai wajib >= tanggal mulai.
         // - Kalau pemesanan HANYA 1 hari (tanggal mulai == tanggal selesai / tanggal selesai kosong),
@@ -6565,6 +6651,123 @@ const listenToData = () => {
             );
         }
 
+        // 🔥 UTIL: kelompokkan booking (per-tanggal) jadi 1 "kartu" berdasarkan groupId
+        // (fallback ke id sendiri kalau booking 1 hari / tanpa groupId). Dipakai bareng
+        // di "Pesanan Saya" & "Kalender" supaya pemesanan beberapa hari tampil sebagai
+        // 1 kartu ringkas (bukan 1 kartu per hari).
+        window.groupBookingsForCards = (list) => {
+            const map = new Map();
+            list.forEach(b => {
+                // 🔥 status ikut jadi bagian key: begitu 1 hari dalam grup sudah beda
+                // status dari hari lainnya (mis. hari 1 "Completed", hari 2 masih
+                // "Ongoing"), hari itu otomatis pecah jadi kartu tersendiri lagi
+                // supaya progres per-hari tetap kelihatan jelas, bukan ketutupan
+                // status yang digabung rata.
+                const key = (b.groupId || b.id) + '__' + (b.status || '');
+                if (!map.has(key)) map.set(key, []);
+                map.get(key).push(b);
+            });
+            return Array.from(map.values()).map(items => {
+                items.sort((a, c) => new Date(`${a.date}T${a.start || '00:00'}`) - new Date(`${c.date}T${c.start || '00:00'}`));
+                return {
+                    key: items[0].groupId || items[0].id,
+                    ids: items.map(x => x.id),
+                    items,
+                    first: items[0],
+                    last: items[items.length - 1],
+                    isMultiDay: items.length > 1
+                };
+            });
+        };
+
+        // 🔥 UTIL: format "20 Jul" dari string tanggal YYYY-MM-DD
+        window.formatShortDateLabel = (dateStr) => {
+            if (!dateStr) return '-';
+            const day = dateStr.split('-')[2];
+            const month = new Date(dateStr).toLocaleString('id-ID', {month:'short'});
+            return `${day} ${month}`;
+        };
+
+        // 🔥 KOTAK TANGGAL GAYA "KALENDER": angka tanggal besar di atas, nama
+        // bulan kecil di bawahnya (mirip sobekan kalender meja), dan jam (opsional)
+        // di baris paling bawah. Dipakai bareng di kartu "Pesanan Saya" & "Kalender"
+        // biar tampilannya konsisten.
+        window.calendarDateBoxHTML = (dateStr, timeLabel = '') => {
+            if (!dateStr) return '';
+            const day = dateStr.split('-')[2] || '--';
+            const month = new Date(dateStr + 'T00:00:00').toLocaleString('id-ID', {month:'short'});
+            return `
+            <div class="flex flex-col items-center justify-center bg-indigo-50 rounded-xl w-14 shrink-0 leading-none py-1.5">
+                <span class="text-lg font-black text-indigo-600">${day}</span>
+                <span class="text-[8px] font-bold uppercase text-indigo-400 mt-0.5">${month}</span>
+                ${timeLabel ? `<span class="text-[8px] font-bold text-indigo-500 mt-1">${timeLabel}</span>` : ''}
+            </div>`;
+        };
+
+        // 🔥 BLOK TANGGAL + JAM LENGKAP UNTUK 1 KARTU PESANAN:
+        // - 1 hari: 1 kotak tanggal + nama hari + jam mulai-selesai di sampingnya.
+        // - Multi-hari: 2 kotak tanggal (mulai & selesai) dengan format yang sama,
+        //   MASING-MASING kotak menampilkan jamnya sendiri di bawah tanggalnya
+        //   (jam mulai di bawah tanggal mulai, jam selesai di bawah tanggal selesai).
+        window.bookingDateTimeBlockHTML = (first, last, isMultiDay) => {
+            if (!first) return '';
+
+            if (isMultiDay && last) {
+                return `
+                <div class="flex items-center gap-1.5 min-w-0">
+                    ${window.calendarDateBoxHTML(first.date, first.start || '-')}
+                    <i class="fas fa-arrow-right text-slate-300 text-[9px] shrink-0"></i>
+                    ${window.calendarDateBoxHTML(last.date, last.end || '-')}
+                </div>`;
+            }
+
+            const dayName = new Date(first.date + 'T00:00:00').toLocaleString('id-ID', {weekday:'long'});
+
+            return `
+            <div class="flex items-center gap-1.5 min-w-0">
+                ${window.calendarDateBoxHTML(first.date)}
+                <div class="text-[10px] text-slate-500 leading-snug min-w-0">
+                    <p class="font-semibold text-slate-600 truncate">${dayName}</p>
+                    <p>⏰ ${first.start || '-'} - ${first.end || '-'}</p>
+                </div>
+            </div>`;
+        };
+
+        // 🔥 LABEL JENIS PESANAN: "Pesanan Ruangan" (b.type === 'room') atau
+        // "Pesanan Peralatan" (b.type === 'tool' / hanya alat, tanpa ruangan).
+        window.bookingTypeLabelHTML = (b) => {
+            const isRoom = b.type === 'room';
+            return `
+            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full self-start
+                ${isRoom ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}">
+                <i class="fas ${isRoom ? 'fa-building' : 'fa-toolbox'} mr-1"></i>${isRoom ? 'Pesanan Ruangan' : 'Pesanan Peralatan'}
+            </span>`;
+        };
+
+        // 🔥 DETAIL ALAT DALAM BENTUK LIST POIN 2 KOLOM (GRID), biar rapi walau
+        // alatnya banyak, dibanding cuma teks panjang dipisah koma.
+        // Urutan pengisian: KE BAWAH dulu (kolom 1 penuh dari atas ke bawah),
+        // baru lanjut ke kolom 2 di sampingnya — bukan kiri-kanan per baris.
+        window.bookingToolsGridHTML = (tools) => {
+            if (!tools || tools.length === 0) return '';
+
+            const renderItem = (t) => `
+                <p class="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                    <i class="fas fa-circle text-[3px] text-slate-400 shrink-0"></i>
+                    <span class="truncate">${t.name}</span>
+                </p>`;
+
+            const half = Math.ceil(tools.length / 2);
+            const col1 = tools.slice(0, half);
+            const col2 = tools.slice(half);
+
+            return `
+            <div class="grid grid-cols-2 gap-x-2">
+                <div class="flex flex-col gap-0.5">${col1.map(renderItem).join('')}</div>
+                <div class="flex flex-col gap-0.5">${col2.map(renderItem).join('')}</div>
+            </div>`;
+        };
+
         function renderRiwayat() {
 
     renderRiwayatFilterBar();
@@ -6576,16 +6779,18 @@ const listenToData = () => {
         !riwayatStatusFilter ||
         riwayatStatusFilter === 'all' ||
         (b.status || '').toLowerCase() === riwayatStatusFilter.toLowerCase()
-    )
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+    );
+
+    const groups = window.groupBookingsForCards(my)
+        .sort((a, b) => new Date(a.first.date) - new Date(b.first.date));
 
     const container =
         document.getElementById('my-booking-list');
 
-    if(my.length === 0){
+    if(groups.length === 0){
 
         container.innerHTML =
-        `<div class="py-10 text-center text-slate-400 italic">
+        `<div class="col-span-2 py-10 text-center text-slate-400 italic">
         Belum ada riwayat pesanan di periode ini
         </div>`;
 
@@ -6594,7 +6799,9 @@ const listenToData = () => {
     else{
 
         container.innerHTML =
-        my.slice().reverse().map(b => {
+        groups.map(({ ids, items, first, last, isMultiDay }) => {
+
+            const b = first; // representatif: ruangan/alat/goal sama untuk tiap hari dalam 1 grup
 
             // 🔥 AMBIL NAMA RUANGAN DARI roomId
             const room =
@@ -6619,9 +6826,11 @@ const listenToData = () => {
             const violationEligible = isAdmin && started && b.status !== 'Completed';
             const hasViolation = isAdmin && window.getLatestBookingViolation && window.getLatestBookingViolation(b.id);
 
+            const idsJson = JSON.stringify(ids).replace(/"/g, '&quot;');
+
             return `
 
-            <div class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group overflow-hidden">
+            <div class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-2 group overflow-hidden min-w-0 min-h-[340px]">
 
     ${(() => {
 
@@ -6643,7 +6852,7 @@ const listenToData = () => {
 
         return `
         <div class="absolute top-0 left-0 z-10">
-            <div class="${statusColor} text-[8px] font-black uppercase px-2.5 py-[3px]
+            <div class="${statusColor} text-[8px] font-black uppercase px-2 py-[3px]
             rounded-tl-2xl rounded-br-lg shadow-md relative tracking-wide flex items-center gap-1">
                 <span>${statusIcon}</span><span>${b.status}</span>
                 <span class="absolute bottom-0 left-0 w-0 h-0
@@ -6655,34 +6864,36 @@ const listenToData = () => {
 
     })()}
 
-    <!-- 📅 TANGGAL -->
-    <div class="text-center min-w-[45px] leading-tight mt-4">
-        <p class="text-xl font-black text-slate-900">
-            ${b.date ? b.date.split('-')[2] : '-'}
-        </p>
-        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
-            ${b.date ? new Date(b.date).toLocaleString('id-ID', {month:'short'}) : '-'}
-        </p>
-    </div>
-
     <!-- 📋 CONTENT -->
-    <div onclick="window.openDetail('${b.id}')" class="flex-1 min-w-0 flex flex-col gap-1 mt-4">
+    <div onclick="window.openDetail('${b.id}')" class="min-w-0 flex flex-col gap-1 mt-4 flex-1">
 
-        <p class="font-bold text-sm text-slate-800 truncate">
+        ${window.bookingDateTimeBlockHTML(first, last, isMultiDay)}
+
+        <div class="flex flex-wrap items-center gap-1">
+            ${window.bookingTypeLabelHTML(b)}
+            ${isMultiDay ? `
+            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
+                <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+            </span>
+            ` : ``}
+        </div>
+
+        <p class="font-bold text-xs text-slate-800 leading-snug">
             ${b.goal}
         </p>
 
-        <p class="text-[11px] text-slate-500 truncate">
+        ${b.type === 'room' ? `
+        <p class="text-[10px] text-slate-500 truncate">
             📍 ${roomName}
         </p>
+        ` : ``}
 
-        <p class="text-[11px] text-slate-500 truncate">
-            🧰 ${toolsText}
-        </p>
-
-        <p class="text-[10px] text-slate-400">
-            ⏰ ${b.start} - ${b.end}
-        </p>
+        ${(b.tools && b.tools.length > 0) ? `
+        <div class="mt-0.5">
+            <p class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
+            ${window.bookingToolsGridHTML(b.tools)}
+        </div>
+        ` : ``}
 
         ${
             window.getBookingViolations && window.getBookingViolations(b.id).length > 0
@@ -6696,52 +6907,44 @@ const listenToData = () => {
     </div>
 
     <!-- 👉 ACTION -->
-    <div class="flex flex-col items-end gap-2 shrink-0 mt-4">
-
-   <!-- ICON ACTION -->
-<div class="flex flex-col items-end gap-2">
+    <div class="flex flex-wrap items-center gap-2 justify-end">
 
 ${b.status === 'Pending' ? `
 <button onclick="window.editBooking('${b.id}')"
 class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
     <i class="fas fa-pen text-sm"></i>
 </button>
-` : ``}
-
-${b.status === 'Approved' ? `
-<div class="flex flex-col gap-2">
-
-<button onclick="window.openDetail('${b.id}')"
-class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
-    Mulai
-</button>
-
-<button onclick="window.guardedClick(this, () => window.cancelBooking('${b.id}'))"
-class="px-3 py-1 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
-    Batal
-</button>
-
-</div>
-` : b.status === 'Ongoing' ? `
-<div class="flex flex-col gap-2">
-
-<button onclick="window.openDetail('${b.id}')"
-class="px-3 py-1 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
-    Akhiri
-</button>
-
-</div>
-` : b.status === 'Pending' ? `
-<button onclick="window.guardedClick(this, () => window.deleteBooking('${b.id}'))"
+<button onclick="window.guardedClick(this, () => window.deleteBookingMany(${idsJson}))"
 class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
     <i class="fas fa-trash-alt text-sm"></i>
 </button>
-` : b.status === 'Completed' ? `
+` : ``}
+
+${b.status === 'Approved' ? `
+<button onclick="window.openDetail('${b.id}')"
+class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+    Mulai
+</button>
+
+<button onclick="window.guardedClick(this, () => window.cancelBookingMany(${idsJson}))"
+class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
+    Batal
+</button>
+` : ``}
+
+${b.status === 'Ongoing' ? `
+<button onclick="window.openDetail('${b.id}')"
+class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+    Akhiri
+</button>
+` : ``}
+
+${b.status === 'Completed' ? `
 ${
     window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-    ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
+    ? `<span class="px-2 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
     : `<button onclick="window.openUserRatingModal('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition whitespace-nowrap">
+        class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition whitespace-nowrap">
         ⭐ Beri Rating
         </button>`
 }
@@ -6753,9 +6956,7 @@ ${
     : ``
 }
 
-</div>
-
-</div> <!-- ACTION -->
+    </div>
 
 </div> <!-- 🔥 CARD (WAJIB ADA) -->
 
@@ -7519,6 +7720,52 @@ setTimeout(() => {
 
 };
 
+// 🔥 Versi group-aware dari cancelBooking/deleteBooking: dipakai oleh kartu
+// "Pesanan Saya" & "Kalender" yang sudah digabung jadi 1 kartu untuk pemesanan
+// beberapa hari, supaya Batal/Hapus otomatis kena ke SEMUA hari dalam grup itu,
+// bukan cuma 1 dokumen/hari saja.
+window.cancelBookingMany = async (ids) => {
+
+    if(!ids || ids.length === 0) return;
+    if(!confirm(ids.length > 1 ? `Batalkan pesanan ini (${ids.length} hari)?` : "Batalkan pesanan ini?")) return;
+
+    try {
+
+        for (const id of ids) {
+            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
+            await updateDoc(ref, {
+                status: 'Cancelled',
+                cancelledAt: serverTimestamp()
+            });
+        }
+
+        console.log("✅ Booking berhasil dibatalkan");
+
+    } catch(err) {
+        console.error("❌ Gagal cancel:", err);
+    }
+
+};
+
+window.deleteBookingMany = async (ids) => {
+
+    if(!ids || ids.length === 0) return;
+    if(!confirm(ids.length > 1 ? `Batalkan dan hapus pesanan ini (${ids.length} hari)?` : "Batalkan dan hapus pesanan ini?")) return;
+
+    try {
+
+        for (const id of ids) {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id));
+        }
+
+        window.closeModal('modal-detail');
+
+    } catch(err) {
+        console.error("❌ Gagal hapus:", err);
+    }
+
+};
+
         function renderApproval() {
             const pending = getFilteredBookings().filter(b => b.status === 'Pending');
             const container = document.getElementById('approval-list');
@@ -8248,9 +8495,6 @@ function renderJadwal() {
             jadwalStatusFilter === 'all' ||
             !jadwalStatusFilter ||
             (b.status || '') === jadwalStatusFilter
-        )
-        .sort((a,b) =>
-            a.date.localeCompare(b.date)
         );
 
     const container =
@@ -8259,7 +8503,7 @@ function renderJadwal() {
     if(approved.length === 0) {
 
         container.innerHTML =
-            `<div class="py-10 text-center text-slate-400 italic">
+            `<div class="col-span-2 py-10 text-center text-slate-400 italic">
             Belum ada jadwal pemakaian di periode ini
             </div>`;
 
@@ -8267,9 +8511,17 @@ function renderJadwal() {
 
     }
 
-    container.innerHTML = approved
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .map(b => {
+    const groups = window.groupBookingsForCards(approved)
+        .sort((a, b) => new Date(a.first.date) - new Date(b.first.date));
+
+    container.innerHTML = groups
+    .map(({ ids, items, first, last, isMultiDay }) => {
+
+        // 🔥 representatif untuk aksi yang sensitif tanggal (reminder/expired/dsb):
+        // hari yang tanggalnya sama dengan hari ini kalau ada, kalau tidak pakai
+        // hari pertama dalam grup (karena semua hari di grup ini statusnya seragam).
+        const todayStr = new Date().toISOString().slice(0,10);
+        const b = items.find(x => x.date === todayStr) || first;
 
         const expired =
             b.status === "Approved"
@@ -8285,7 +8537,7 @@ function renderJadwal() {
 
 <div 
 onclick="window.openDetail('${b.id}')" 
-class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indigo-500 flex gap-2 items-start group cursor-pointer overflow-hidden">
+class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-2 group cursor-pointer overflow-hidden min-w-0 min-h-[340px]">
 
     ${(() => {
 
@@ -8307,7 +8559,7 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
 
         return `
         <div class="absolute top-0 left-0 z-10">
-            <div class="${statusColor} text-[8px] font-black uppercase px-2.5 py-[3px]
+            <div class="${statusColor} text-[8px] font-black uppercase px-2 py-[3px]
             rounded-tl-2xl rounded-br-lg shadow-md relative tracking-wide flex items-center gap-1">
                 <span>${statusIcon}</span><span>${b.status}</span>
                 <span class="absolute bottom-0 left-0 w-0 h-0
@@ -8319,18 +8571,8 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
 
     })()}
 
-    <!-- 📅 TANGGAL -->
-    <div class="text-center min-w-[45px] leading-tight mt-4">
-        <p class="text-xl font-black text-slate-900">
-            ${b.date.split('-')[2]}
-        </p>
-        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
-            ${new Date(b.date).toLocaleString('id-ID', {month:'short'})}
-        </p>
-    </div>
-
     <!-- 📋 CONTENT -->
-    <div class="flex-1 min-w-0 flex flex-col gap-1 mt-4">
+    <div class="min-w-0 flex flex-col gap-1 mt-4 flex-1">
 
         ${(() => {
 
@@ -8349,25 +8591,37 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
 
             return `
 
-        <p class="font-bold text-sm text-slate-800 truncate">
+        ${window.bookingDateTimeBlockHTML(first, last, isMultiDay)}
+
+        <div class="flex flex-wrap items-center gap-1">
+            ${window.bookingTypeLabelHTML(b)}
+            ${isMultiDay ? `
+            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
+                <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+            </span>
+            ` : ``}
+        </div>
+
+        <p class="font-bold text-xs text-slate-800 leading-snug">
             ${b.goal}
         </p>
 
-        <p class="text-[11px] text-slate-500 truncate">
+        <p class="text-[10px] text-slate-500 truncate">
             👤 ${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})
         </p>
 
-        <p class="text-[11px] text-slate-500 truncate">
+        ${b.type === 'room' ? `
+        <p class="text-[10px] text-slate-500 truncate">
             📍 ${roomName}
         </p>
+        ` : ``}
 
-        <p class="text-[11px] text-slate-500 truncate">
-            🧰 ${toolsText}
-        </p>
-
-        <p class="text-[10px] text-slate-400">
-            ⏰ ${b.start} - ${b.end}
-        </p>
+        ${(b.tools && b.tools.length > 0) ? `
+        <div class="mt-0.5">
+            <p class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
+            ${window.bookingToolsGridHTML(b.tools)}
+        </div>
+        ` : ``}
 
         ${
             window.getBookingViolations && window.getBookingViolations(b.id).length > 0
@@ -8439,10 +8693,7 @@ class="relative card-pop bg-white p-4 rounded-2xl border border-l-4 border-indig
     </div>
 
     <!-- 👉 ACTION -->
-    <div class="flex flex-col items-end gap-2 shrink-0 mt-4">
-
-        <!-- ICON ACTION -->
-        <div class="flex flex-col items-end gap-2">
+    <div class="flex flex-wrap items-center gap-2 justify-end">
 
 ${
 (
@@ -8467,7 +8718,7 @@ ${
         </button>
 
         <button
-        onclick="event.stopPropagation(); window.guardedClick(this, () => window.cancelBooking('${b.id}'))"
+        onclick="event.stopPropagation(); window.guardedClick(this, () => window.cancelBookingMany(${JSON.stringify(ids).replace(/"/g, '&quot;')}))"
         class="px-3 py-1 text-[10px] font-bold 
         bg-rose-500 text-white 
         rounded-lg hover:bg-rose-600 transition">
@@ -8559,8 +8810,6 @@ isAdmin
 `
 : ``
 }
-
-        </div>
 
     </div>
 
@@ -9627,6 +9876,13 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         // 🔥 CEK ULANG BENTROK UNTUK SEMUA TANGGAL SEBELUM DISIMPAN (JAGA-JAGA DARI RACE CONDITION)
         const activeStatuses = ['Pending', 'Approved', 'Ongoing'];
 
+        // 🔥 AMBIL DATA TERBARU LANGSUNG DARI FIRESTORE (bukan cache localState) supaya
+        // pesanan user LAIN yang baru saja masuk (belum sempat ke-sync ke cache kita)
+        // tetap ketahuan sebelum kita ikut menyimpan pesanan yang bentrok.
+        // Kalau gagal (mis. koneksi bermasalah), fallback pakai cache lokal seperti biasa.
+        const liveBookings = await window.fetchLiveActiveBookingsForDates(dateList);
+        const bookingsForConflictCheck = liveBookings !== null ? liveBookings : localState.bookings;
+
         if (bookingType === 'room') {
 
             const targetsToCheck = editId ? [editRoomId].filter(Boolean) : roomTargets;
@@ -9634,7 +9890,7 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
             for (const rId of targetsToCheck) {
 
-                const roomBentrok = localState.bookings.some(b =>
+                const roomBentrok = bookingsForConflictCheck.some(b =>
                     b.id !== editId &&
                     dateList.includes(b.date) &&
                     b.roomId === rId &&
@@ -9658,7 +9914,7 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
 for (const t of selectedTools) {
 
-    const toolBentrok = localState.bookings.some(b =>
+    const toolBentrok = bookingsForConflictCheck.some(b =>
         b.id !== editId &&
         dateList.includes(b.date) &&
         activeStatuses.includes(b.status) &&
