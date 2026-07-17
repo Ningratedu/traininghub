@@ -1015,35 +1015,60 @@ window.downloadQR = function () {
                     </button>
                     <h2 class="text-base md:text-xl font-bold text-slate-900" id="view-title">Dashboard</h2>
                     <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
-                    <div class="relative group w-full sm:w-auto">
-                        <select id="global-time-filter" onchange="window.handleTimeFilterChange(this.value)" class="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 pr-8 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="this-month">Bulan Ini</option>
-                            <option value="last-month">Bulan Lalu</option>
-                            <option value="next-month">Bulan Depan</option>
-							<option value="today">Hari Ini</option>
-                            <option value="yesterday">Kemarin</option>
-                            <option value="tomorrow">Besok</option>
-                            <option value="last-7-days">7 Hari Terakhir</option>
-                            <option value="next-7-days">7 Hari Kedepan</option>
-                            <option value="custom">Kustom...</option>
-                        </select>
-                        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                    <div class="relative" id="global-time-filter-wrap">
+                        <button type="button" id="global-time-filter-btn" onclick="window.toggleTimeFilterDropdown()"
+                            class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500 max-w-[160px] sm:max-w-none">
+                            <span id="global-time-filter-label" class="truncate">Bulan Ini</span>
+                            <i class="fas fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+                        </button>
+
+                        <!-- 🔥 Dropdown ini SELALU posisinya "absolute" (melayang di atas konten),
+                             jadi buka/tutup atau pindah ke mode custom TIDAK PERNAH mengubah
+                             tinggi/ukuran header - baik di laptop maupun HP. -->
+                        <div id="global-time-filter-dropdown"
+                            class="hide absolute left-0 top-full mt-2 z-50 bg-white border border-slate-200 rounded-xl shadow-2xl w-64 max-w-[calc(100vw-2rem)] p-2">
+
+                            <div id="time-filter-options-list" class="flex flex-col">
+                                <button type="button" onclick="window.selectTimeFilterOption('this-month', 'Bulan Ini')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">Bulan Ini</button>
+                                <button type="button" onclick="window.selectTimeFilterOption('last-month', 'Bulan Lalu')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">Bulan Lalu</button>
+                                <button type="button" onclick="window.selectTimeFilterOption('next-month', 'Bulan Depan')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">Bulan Depan</button>
+                                <button type="button" onclick="window.selectTimeFilterOption('today', 'Hari Ini')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">Hari Ini</button>
+                                <button type="button" onclick="window.selectTimeFilterOption('yesterday', 'Kemarin')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">Kemarin</button>
+                                <button type="button" onclick="window.selectTimeFilterOption('tomorrow', 'Besok')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">Besok</button>
+                                <button type="button" onclick="window.selectTimeFilterOption('last-7-days', '7 Hari Terakhir')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">7 Hari Terakhir</button>
+                                <button type="button" onclick="window.selectTimeFilterOption('next-7-days', '7 Hari Kedepan')" class="time-filter-option-btn text-left text-xs font-bold text-slate-600 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition">7 Hari Kedepan</button>
+                                <button type="button" onclick="window.openCustomTimeFilterPanel()" class="time-filter-option-btn text-left text-xs font-bold text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-50 transition border-t border-slate-100 mt-1 pt-2">
+                                    <i class="fas fa-calendar-days mr-1"></i>Kustom...
+                                </button>
+                            </div>
+
+                            <!-- 🔥 Panel tanggal kustom: gantiin isi dropdown yang sama (bukan nambah
+                                 elemen baru di header), jadi tetap gak ganggu layout header. -->
+                            <div id="custom-date-container" class="hide flex-col gap-2">
+                                <p class="text-[10px] font-black uppercase text-slate-400 px-1">Pilih Rentang Tanggal</p>
+                                <label class="text-[10px] font-bold text-slate-500 px-1">Mulai</label>
+                                <input type="date" id="filter-start"
+                                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
+
+                                <label class="text-[10px] font-bold text-slate-500 px-1 mt-1">Selesai</label>
+                                <input type="date" id="filter-end"
+                                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
+
+                                <div class="flex gap-2 mt-2">
+                                    <button type="button" onclick="window.backToTimeFilterOptions()"
+                                        class="flex-1 bg-slate-100 text-slate-500 text-xs font-bold px-3 py-2 rounded-lg hover:bg-slate-200 transition">
+                                        Batal
+                                    </button>
+                                    <button type="button" onclick="applyCustomFilter()"
+                                        class="flex-1 bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-indigo-700 transition">
+                                        Terapkan
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
-		
-		<div id="custom-date-container" class="hide mt-2 flex flex-col gap-2 w-full max-w-xs">
-    <input type="date" id="filter-start"
-        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
-
-    <input type="date" id="filter-end"
-        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs w-full">
-
-    <button onclick="applyCustomFilter()"
-        class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-lg w-full">
-        Terapkan
-    </button>
-</div>
-		
                 <div id="header-actions">
                     <div id="header-actions">
     <button onclick="window.assetPrefill = null; openBooking();" 
@@ -4043,27 +4068,90 @@ let localState = {
 
         window.openRegister = () => document.getElementById('modal-register').classList.remove('hide');
 
+        // 🔥 FILTER GLOBAL: sekarang custom dropdown (bukan <select> bawaan) yang
+        // melayang "absolute" di atas konten, jadi buka/tutup atau ganti ke mode
+        // custom TIDAK PERNAH mengubah tinggi/ukuran header (laptop maupun HP).
+        window.toggleTimeFilterDropdown = () => {
+            const dropdown = document.getElementById('global-time-filter-dropdown');
+            if (!dropdown) return;
+
+            const isHidden = dropdown.classList.contains('hide');
+
+            if (isHidden) {
+                // 🔥 Setiap dibuka, SELALU mulai dari daftar pilihan dulu (Bulan Ini, dst),
+                // walaupun mode aktifnya lagi custom -> user gampang ganti balik ke preset
+                // tanpa harus tau ada tombol "Batal" dulu.
+                window.backToTimeFilterOptions();
+                dropdown.classList.remove('hide');
+            } else {
+                dropdown.classList.add('hide');
+            }
+        };
+
+        window.openCustomTimeFilterPanel = () => {
+            document.getElementById('time-filter-options-list')?.classList.add('hide');
+            const panel = document.getElementById('custom-date-container');
+            if (panel) panel.classList.remove('hide');
+            if (panel) panel.classList.add('flex');
+
+            document.getElementById('filter-start').value = filterRange.start || '';
+            document.getElementById('filter-end').value = filterRange.end || '';
+        };
+
+        window.backToTimeFilterOptions = () => {
+            document.getElementById('time-filter-options-list')?.classList.remove('hide');
+            const panel = document.getElementById('custom-date-container');
+            if (panel) panel.classList.add('hide');
+            if (panel) panel.classList.remove('flex');
+        };
+
+        // 🔥 Format label singkat buat rentang tanggal custom, mis. "17 Jul - 24 Jul 2026"
+        function formatCustomRangeLabel(startStr, endStr) {
+            const opts = { day: 'numeric', month: 'short' };
+            const s = new Date(startStr + 'T00:00:00');
+            const e = new Date(endStr + 'T00:00:00');
+            const sameYear = s.getFullYear() === e.getFullYear();
+            const startLabel = s.toLocaleDateString('id-ID', opts);
+            const endLabel = e.toLocaleDateString('id-ID', sameYear ? opts : { ...opts, year: 'numeric' });
+            return `${startLabel} - ${endLabel} ${e.getFullYear()}`;
+        }
+
+        window.selectTimeFilterOption = (val, label) => {
+            filterMode = val;
+
+            const labelEl = document.getElementById('global-time-filter-label');
+            if (labelEl) labelEl.innerText = label;
+
+            document.getElementById('global-time-filter-dropdown')?.classList.add('hide');
+
+            calculateFilterRange();
+            refreshUI();
+            renderJadwal();
+            setTimeout(() => renderJadwal(), 100);
+        };
+
+        // 🔥 Dipertahankan buat kompatibilitas kalau ada pemanggilan lama di tempat lain.
         window.handleTimeFilterChange = (val) => {
-    filterMode = val;
+            if (val === 'custom') {
+                window.openCustomTimeFilterPanel();
+                return;
+            }
+            const labels = {
+                'this-month': 'Bulan Ini', 'last-month': 'Bulan Lalu', 'next-month': 'Bulan Depan',
+                'today': 'Hari Ini', 'yesterday': 'Kemarin', 'tomorrow': 'Besok',
+                'last-7-days': '7 Hari Terakhir', 'next-7-days': '7 Hari Kedepan'
+            };
+            window.selectTimeFilterOption(val, labels[val] || val);
+        };
 
-    const customContainer = document.getElementById('custom-date-container');
-
-    if (val === 'custom') {
-        if (customContainer) customContainer.classList.remove('hide');
-
-        document.getElementById('filter-start').value = filterRange.start || '';
-        document.getElementById('filter-end').value = filterRange.end || '';
-
-        return;
-    }
-
-    if (customContainer) customContainer.classList.add('hide');
-
-    calculateFilterRange();
-    refreshUI();
-    renderJadwal();
-    setTimeout(() => renderJadwal(), 100);
-};
+        // 🔥 Klik di luar dropdown -> otomatis nutup (gak ganggu ukuran header karena
+        // dropdown ini "absolute", nutup/buka cuma toggle class .hide).
+        document.addEventListener('click', (e) => {
+            const wrap = document.getElementById('global-time-filter-wrap');
+            const dropdown = document.getElementById('global-time-filter-dropdown');
+            if (!wrap || !dropdown || dropdown.classList.contains('hide')) return;
+            if (!wrap.contains(e.target)) dropdown.classList.add('hide');
+        });
 
 
 window.applyCustomFilter = () => {
@@ -4082,6 +4170,12 @@ window.applyCustomFilter = () => {
 
     filterMode = 'custom';
     filterRange = { start, end };
+
+    // 🔥 Field-nya sekarang langsung nampilin rentang tanggalnya, bukan teks "Kustom..." lagi.
+    const labelEl = document.getElementById('global-time-filter-label');
+    if (labelEl) labelEl.innerText = formatCustomRangeLabel(start, end);
+
+    document.getElementById('global-time-filter-dropdown')?.classList.add('hide');
 
     refreshUI();
     renderJadwal();
