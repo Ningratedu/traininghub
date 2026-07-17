@@ -5655,10 +5655,10 @@ if (!openDetailParam) {
         <div class="p-4 flex flex-col justify-center text-left flex-1 min-w-0 h-32 overflow-hidden">
 
             <!-- TITLE + ICON (FIX DI KIRI) -->
-            <div class="flex items-center gap-2 min-w-0">
-                <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-slate-400 text-sm shrink-0"></i>
+            <div class="flex items-start gap-2 min-w-0">
+                <i class="fas ${type === 'room' ? 'fa-building' : 'fa-tools'} text-slate-400 text-sm shrink-0 mt-[1px]"></i>
 
-                <h5 class="font-bold text-slate-900 text-sm truncate">
+                <h5 class="font-bold text-slate-900 text-xs sm:text-sm leading-tight line-clamp-2 break-words min-w-0">
                     ${item.name}
                 </h5>
             </div>
@@ -6714,7 +6714,7 @@ const listenToData = () => {
 
             if (isMultiDay && last) {
                 return `
-                <div class="flex items-center gap-1.5 min-w-0">
+                <div class="flex items-center justify-center gap-1.5 min-w-0 w-full">
                     ${window.calendarDateBoxHTML(first.date, first.start || '-')}
                     <i class="fas fa-arrow-right text-slate-300 text-[9px] shrink-0"></i>
                     ${window.calendarDateBoxHTML(last.date, last.end || '-')}
@@ -6724,7 +6724,7 @@ const listenToData = () => {
             const dayName = new Date(first.date + 'T00:00:00').toLocaleString('id-ID', {weekday:'long'});
 
             return `
-            <div class="flex items-center gap-1.5 min-w-0">
+            <div class="flex items-center justify-center gap-1.5 min-w-0 w-full">
                 ${window.calendarDateBoxHTML(first.date)}
                 <div class="text-[10px] text-slate-500 leading-snug min-w-0">
                     <p class="font-semibold text-slate-600 truncate">${dayName}</p>
@@ -6869,7 +6869,7 @@ const listenToData = () => {
 
         ${window.bookingDateTimeBlockHTML(first, last, isMultiDay)}
 
-        <div class="flex flex-wrap items-center gap-1">
+        <div class="flex flex-wrap items-center justify-center gap-1">
             ${window.bookingTypeLabelHTML(b)}
             ${isMultiDay ? `
             <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
@@ -6878,7 +6878,7 @@ const listenToData = () => {
             ` : ``}
         </div>
 
-        <p class="font-bold text-xs text-slate-800 leading-snug">
+        <p class="font-bold text-xs text-slate-800 leading-snug mt-1.5">
             ${b.goal}
         </p>
 
@@ -6898,7 +6898,7 @@ const listenToData = () => {
         ${
             window.getBookingViolations && window.getBookingViolations(b.id).length > 0
             ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
-                class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
+                class="self-start mt-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
                 ⚠ Lihat Pelanggaran
                 </button>`
             : ''
@@ -6911,30 +6911,30 @@ const listenToData = () => {
 
 ${b.status === 'Pending' ? `
 <button onclick="window.editBooking('${b.id}')"
-class="text-indigo-400 hover:text-indigo-600 opacity-70 hover:opacity-100 transition">
+class="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
     <i class="fas fa-pen text-sm"></i>
 </button>
 <button onclick="window.guardedClick(this, () => window.deleteBookingMany(${idsJson}))"
-class="text-rose-400 hover:text-rose-600 opacity-70 hover:opacity-100 transition">
+class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition">
     <i class="fas fa-trash-alt text-sm"></i>
 </button>
 ` : ``}
 
 ${b.status === 'Approved' ? `
 <button onclick="window.openDetail('${b.id}')"
-class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+class="flex-1 min-w-[72px] px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
     Mulai
 </button>
 
 <button onclick="window.guardedClick(this, () => window.cancelBookingMany(${idsJson}))"
-class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
+class="flex-1 min-w-[72px] px-3 py-1.5 text-[10px] font-bold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">
     Batal
 </button>
 ` : ``}
 
 ${b.status === 'Ongoing' ? `
 <button onclick="window.openDetail('${b.id}')"
-class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+class="flex-1 min-w-[72px] px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
     Akhiri
 </button>
 ` : ``}
@@ -6942,9 +6942,9 @@ class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-indigo-500 text-
 ${b.status === 'Completed' ? `
 ${
     window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-    ? `<span class="px-2 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
+    ? `<span class="px-2.5 py-1.5 text-[10px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
     : `<button onclick="window.openUserRatingModal('${b.id}')"
-        class="flex-1 min-w-[64px] px-3 py-1.5 text-[10px] font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition whitespace-nowrap">
+        class="flex-1 min-w-[72px] px-3 py-1.5 text-[10px] font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition whitespace-nowrap">
         ⭐ Beri Rating
         </button>`
 }
@@ -8593,7 +8593,7 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
 
         ${window.bookingDateTimeBlockHTML(first, last, isMultiDay)}
 
-        <div class="flex flex-wrap items-center gap-1">
+        <div class="flex flex-wrap items-center justify-center gap-1">
             ${window.bookingTypeLabelHTML(b)}
             ${isMultiDay ? `
             <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
@@ -8602,7 +8602,7 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
             ` : ``}
         </div>
 
-        <p class="font-bold text-xs text-slate-800 leading-snug">
+        <p class="font-bold text-xs text-slate-800 leading-snug mt-1.5">
             ${b.goal}
         </p>
 
@@ -8642,10 +8642,10 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
                         )
                     )
                     ? `<button onclick="event.stopPropagation(); window.showMyViolations(null, '${b.id}')"
-                        class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
+                        class="self-start mt-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap hover:bg-rose-600 transition cursor-pointer">
                         ⚠ Lihat Pelanggaran
                         </button>`
-                    : `<span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Ada Pelanggaran</span>`
+                    : `<span class="self-start mt-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-rose-500 text-white whitespace-nowrap">⚠ Ada Pelanggaran</span>`
                   )
               )
             : ''
@@ -8668,7 +8668,7 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
 
                     return `
                     <button onclick="event.stopPropagation(); window.goToViolationDetail('${b.id}')"
-                    class="w-full mt-2 ${vStatusColor} border py-2 rounded-xl font-bold text-[11px] transition">
+                    class="w-full mt-2 ${vStatusColor} border py-1.5 rounded-lg font-bold text-[10px] transition">
                     ⚠ Ada Pelanggaran / ${latestViolation.status}
                     </button>`;
                 }
@@ -8676,7 +8676,7 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
                 if (eligible) {
                     return `
                     <button onclick="event.stopPropagation(); window.openViolationModal('${b.id}')"
-                    class="w-full mt-2 bg-rose-50 text-rose-600 border border-rose-200 py-2 rounded-xl font-bold text-[11px] hover:bg-rose-100 transition">
+                    class="w-full mt-2 bg-rose-50 text-rose-600 border border-rose-200 py-1.5 rounded-lg font-bold text-[10px] hover:bg-rose-100 transition">
                     ⚠ Catat Pelanggaran Peminjaman
                     </button>`;
                 }
@@ -8711,7 +8711,7 @@ ${
         ? `
         <button
         onclick="event.stopPropagation(); window.openDetail('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold 
+        class="px-3 py-1.5 text-[10px] font-bold 
         bg-indigo-500 text-white 
         rounded-lg hover:bg-indigo-600 transition">
         ▶ Mulai
@@ -8719,7 +8719,7 @@ ${
 
         <button
         onclick="event.stopPropagation(); window.guardedClick(this, () => window.cancelBookingMany(${JSON.stringify(ids).replace(/"/g, '&quot;')}))"
-        class="px-3 py-1 text-[10px] font-bold 
+        class="px-3 py-1.5 text-[10px] font-bold 
         bg-rose-500 text-white 
         rounded-lg hover:bg-rose-600 transition">
         ✖ Batal
@@ -8729,7 +8729,7 @@ ${
         ? `
         <button
         onclick="event.stopPropagation(); window.openDetail('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold 
+        class="px-3 py-1.5 text-[10px] font-bold 
         bg-indigo-500 text-white 
         rounded-lg hover:bg-indigo-600 transition">
         ⏹ Akhiri
@@ -8738,11 +8738,11 @@ ${
         : b.status === 'Completed'
         ? (
             window.hasUserRatedBooking && window.hasUserRatedBooking(b.id)
-            ? `<span class="px-3 py-1 text-[9px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
+            ? `<span class="px-3 py-1.5 text-[10px] font-bold bg-emerald-100 text-emerald-600 rounded-lg whitespace-nowrap">✅ Sudah Dinilai</span>`
             : `
             <button
             onclick="event.stopPropagation(); window.openUserRatingModal('${b.id}')"
-            class="px-3 py-1 text-[10px] font-bold 
+            class="px-3 py-1.5 text-[10px] font-bold 
             bg-amber-500 text-white 
             rounded-lg hover:bg-amber-600 transition whitespace-nowrap">
             ⭐ Beri Rating
@@ -8767,7 +8767,7 @@ isAdmin
         ? `
         <button
         onclick="event.stopPropagation(); window.sendReminder('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold 
+        class="px-3 py-1.5 text-[10px] font-bold 
         bg-amber-500 text-white 
         rounded-lg hover:bg-amber-600 
         transition whitespace-nowrap">
@@ -8782,7 +8782,7 @@ isAdmin
         ? `
         <button
         onclick="event.stopPropagation(); finishBookingByAdmin('${b.id}')"
-        class="px-3 py-1 text-[10px] font-bold 
+        class="px-3 py-1.5 text-[10px] font-bold 
         bg-rose-600 text-white 
         rounded-lg hover:bg-rose-700 
         transition whitespace-nowrap">
@@ -8797,7 +8797,7 @@ isAdmin
     ? `
     <button
     onclick="event.stopPropagation(); window.sendQrEmail('${b.id}')"
-    class="px-3 py-1 text-[10px] font-bold 
+    class="px-3 py-1.5 text-[10px] font-bold 
     bg-indigo-600 text-white 
     rounded-lg hover:bg-indigo-700 
     transition whitespace-nowrap">
