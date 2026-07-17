@@ -1781,12 +1781,12 @@ window.downloadQR = function () {
 				
                 <div id="view-jadwal" class="view hide">
     <div id="jadwal-filter-bar" class="mb-4 status-filter-sticky"></div>
-    <div id="calendar-list" class="grid grid-cols-2 gap-3 items-start"></div>
+    <div id="calendar-list" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start"></div>
 </div>
 
 <div id="view-riwayat" class="view hide">
     <div id="riwayat-filter-bar" class="mb-4 status-filter-sticky"></div>
-    <div id="my-booking-list" class="grid grid-cols-2 gap-3 items-start"></div>
+    <div id="my-booking-list" class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start"></div>
 </div>
 
 <!-- ================= 🔥 VIEW: STATISTIK SAYA (KHUSUS USER) ================= -->
@@ -5644,12 +5644,27 @@ if (!openDetailParam) {
             ${isOccupied ? 'DIPESAN' : 'TERSEDIA'}
         </div>` : ''}
 
-        <!-- GAMBAR -->
-        <img 
-            src="${item.image || 'https://via.placeholder.com/150'}"
-            onclick="event.stopPropagation(); window.openImageLightbox('${item.image || ''}', decodeURIComponent('${encodeURIComponent(item.name)}'))"
-            class="w-32 h-32 object-cover flex-shrink-0 self-center cursor-zoom-in hover:opacity-80 transition ${isClosed ? 'opacity-70' : ''}"
-        />
+        <!-- GAMBAR + 🔥 INFO PESANAN MENDATANG (overlay DI DALAM foto, gak nambah tinggi card) -->
+        <div class="relative w-32 h-32 flex-shrink-0 self-center overflow-hidden">
+            <img 
+                src="${item.image || 'https://via.placeholder.com/150'}"
+                onclick="event.stopPropagation(); window.openImageLightbox('${item.image || ''}', decodeURIComponent('${encodeURIComponent(item.name)}'))"
+                class="w-32 h-32 object-cover cursor-zoom-in hover:opacity-80 transition ${isClosed ? 'opacity-70' : ''}"
+            />
+
+            ${nextBooking ? `
+            <div class="absolute bottom-0 left-0 right-0 bg-black/55 backdrop-blur-[1px] px-1 py-0.5 leading-tight pointer-events-none">
+                <p class="italic text-[6px] font-bold text-white/90 uppercase tracking-wide truncate">Pesanan Mendatang</p>
+                <p class="italic text-[6px] text-white/80 leading-snug truncate">
+                    <i class="fas fa-clock"></i>
+                    <span class="italic font-semibold text-white">${nextBooking.userName || nextBooking.name || '-'}</span>
+                    · ${nextBooking.goal || '-'}
+                </p>
+                <p class="italic text-[6px] text-white/80 leading-snug truncate">
+                    ${nextBooking.date || '-'}${nextBooking.start ? ` (${nextBooking.start}${nextBooking.end ? '-' + nextBooking.end : ''})` : ''}
+                </p>
+            </div>` : ''}
+        </div>
 
         <!-- CONTENT -->
         <div class="p-4 flex flex-col justify-center text-left flex-1 min-w-0 h-32 overflow-hidden">
@@ -5676,18 +5691,6 @@ if (!openDetailParam) {
             <div class="mt-1" onclick="event.stopPropagation(); window.openAssetRating('${type}','${item.id}', decodeURIComponent('${encodeURIComponent(item.name)}'))">
                 ${window.ratingBadgeHTML ? window.ratingBadgeHTML(type, item.id) : ''}
             </div>
-
-            <!-- 🔥 INFO PESANAN TERDEKAT MENDATANG (sesuai filter global) -->
-            ${nextBooking ? `
-            <div class="mt-0.5 leading-tight">
-                <p class="text-[7px] font-bold text-slate-400 uppercase tracking-wide truncate">Pesanan Mendatang</p>
-                <p class="text-[8px] text-slate-400 leading-snug">
-                    <i class="fas fa-clock"></i>
-                    <span class="font-semibold text-slate-500">${nextBooking.userName || nextBooking.name || '-'}</span>
-                    · ${nextBooking.goal || '-'}
-                    · ${nextBooking.date || '-'}${nextBooking.start ? ` (${nextBooking.start}${nextBooking.end ? '-' + nextBooking.end : ''})` : ''}
-                </p>
-            </div>` : ''}
 
         </div>
 
@@ -6740,7 +6743,7 @@ const listenToData = () => {
             return `
             <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full self-start
                 ${isRoom ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}">
-                <i class="fas ${isRoom ? 'fa-building' : 'fa-toolbox'} mr-1"></i>${isRoom ? 'Pesanan Ruangan' : 'Pesanan Alat'}
+                <i class="fas ${isRoom ? 'fa-building' : 'fa-toolbox'} mr-1"></i>${isRoom ? 'Pesanan Ruangan' : 'Pesanan Peralatan'}
             </span>`;
         };
 
@@ -6752,7 +6755,7 @@ const listenToData = () => {
             if (!tools || tools.length === 0) return '';
 
             const renderItem = (t) => `
-                <p class="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                <p class="text-[9px] text-slate-500 truncate flex items-center gap-1">
                     <i class="fas fa-circle text-[3px] text-slate-400 shrink-0"></i>
                     <span class="truncate">${t.name}</span>
                 </p>`;
@@ -6878,19 +6881,19 @@ const listenToData = () => {
             ` : ``}
         </div>
 
-        <p class="font-bold text-xs text-slate-800 leading-snug mt-1.5">
-            ${b.goal}
+        <p class="font-bold italic text-xs text-slate-800 leading-snug mt-3">
+            "${b.goal}"
         </p>
 
         ${b.type === 'room' ? `
-        <p class="text-[10px] text-slate-500 truncate">
-            📍 ${roomName}
+        <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+            <i class="fas fa-building w-3.5 text-center shrink-0"></i><span class="truncate">${roomName}</span>
         </p>
         ` : ``}
 
         ${(b.tools && b.tools.length > 0) ? `
         <div class="mt-0.5">
-            <p class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
             ${window.bookingToolsGridHTML(b.tools)}
         </div>
         ` : ``}
@@ -8602,23 +8605,23 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
             ` : ``}
         </div>
 
-        <p class="font-bold text-xs text-slate-800 leading-snug mt-1.5">
-            ${b.goal}
+        <p class="font-bold italic text-xs text-slate-800 leading-snug mt-3">
+            "${b.goal}"
         </p>
 
-        <p class="text-[10px] text-slate-500 truncate">
-            👤 ${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})
+        <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+            <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</span>
         </p>
 
         ${b.type === 'room' ? `
-        <p class="text-[10px] text-slate-500 truncate">
-            📍 ${roomName}
+        <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+            <i class="fas fa-building w-3.5 text-center shrink-0"></i><span class="truncate">${roomName}</span>
         </p>
         ` : ``}
 
         ${(b.tools && b.tools.length > 0) ? `
         <div class="mt-0.5">
-            <p class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
             ${window.bookingToolsGridHTML(b.tools)}
         </div>
         ` : ``}
@@ -11814,6 +11817,16 @@ ${b.status}
                 <div id="asset-rating-list" class="space-y-2"></div>
             </div>
 
+        </div>
+
+        <!-- 🔥 TOMBOL BUAT PESANAN (fungsi & bentuk sama persis dengan tombol + Buat Pesanan di popup riwayat asset, diletakkan di luar area scroll biar gak perlu scroll ke bawah) -->
+        <div class="flex justify-end px-6 pb-6 pt-4 border-t border-slate-100">
+            <button id="asset-rating-book-btn"
+                onclick="closeModal('modal-asset-rating'); window.openBookingFromAsset(document.getElementById('asset-rating-id').value, document.getElementById('asset-rating-type').value);"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition">
+                <i class="fas fa-plus"></i>
+                Buat Pesanan
+            </button>
         </div>
 
     </div>
