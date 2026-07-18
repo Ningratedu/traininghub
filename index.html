@@ -5727,7 +5727,7 @@ if (!openDetailParam) {
 
             ${nextBooking ? `
             <div class="absolute bottom-0 left-0 right-0 bg-black/55 backdrop-blur-[1px] px-1 py-0.5 leading-tight pointer-events-none">
-                <p class="italic text-[6px] font-bold text-white/90 uppercase tracking-wide truncate">Pesanan Mendatang</p>
+                <p class="italic text-[6px] font-bold text-white/90 uppercase tracking-wide truncate">Jadwal Mendatang</p>
                 <p class="italic text-[6px] text-white/80 leading-snug truncate">
                     <i class="fas fa-clock"></i>
                     <span class="italic font-semibold text-white">${nextBooking.userName || nextBooking.name || '-'}</span>
@@ -6948,14 +6948,14 @@ const listenToData = () => {
                     <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${b.userName || '-'} (${b.dept || '-'})</span>
                 </p>
 
-                ${violationInfoHTML}
-
                 ${toolsGridHTML ? `
                 <div class="mt-0.5">
                     <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">🧰 Detail Alat</p>
                     ${toolsGridHTML}
                 </div>
                 ` : ``}
+
+                ${violationInfoHTML}
 
             </div>
             `;
@@ -8238,7 +8238,9 @@ function renderMaster(){
 
     <!-- CONTENT -->
     <div class="flex-1">
-        <p class="text-sm font-bold text-slate-800">
+        <p onclick="event.stopPropagation(); window.showRoomHistory('${r.id}', decodeURIComponent('${encodeURIComponent(r.name)}'))"
+            class="text-sm font-bold text-slate-800 cursor-pointer hover:text-indigo-600 hover:underline transition"
+            title="Lihat riwayat pesanan ${r.name}">
             ${r.name}
         </p>
 
@@ -8320,7 +8322,9 @@ function renderMaster(){
 
     <!-- CONTENT -->
     <div class="flex-1">
-        <p class="text-sm font-bold text-slate-800">
+        <p onclick="event.stopPropagation(); window.showToolHistory('${t.id}', decodeURIComponent('${encodeURIComponent(t.name)}'))"
+            class="text-sm font-bold text-slate-800 cursor-pointer hover:text-indigo-600 hover:underline transition"
+            title="Lihat riwayat pesanan ${t.name}">
             ${t.name}
         </p>
 
@@ -8800,15 +8804,15 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
             "${b.goal}"
         </p>
 
-        <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
-            <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</span>
-        </p>
-
         ${b.type === 'room' ? `
         <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
             <i class="fas fa-building w-3.5 text-center shrink-0"></i><span class="truncate">${roomName}</span>
         </p>
         ` : ``}
+
+        <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+            <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</span>
+        </p>
 
         ${(b.tools && b.tools.length > 0) ? `
         <div class="mt-0.5">
