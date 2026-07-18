@@ -2456,25 +2456,12 @@ window.downloadQR = function () {
 
     <!-- MODAL TABEL STATISTIK -->
     <div id="modal-stat-table" class="fixed inset-0 z-[185] hide modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[92vh]">
             <div class="flex justify-between items-center mb-6">
                 <h3 id="stat-table-title" class="text-xl font-black">Detail Data</h3>
                 <button onclick="closeModal('modal-stat-table')"><i class="fas fa-times"></i></button>
             </div>
-            <div class="overflow-x-auto border rounded-2xl">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
-                        <tr>
-                            <th class="px-4 py-3">Peminjam</th>
-                            <th class="px-4 py-3">Tujuan</th>
-                            <th class="px-4 py-3">Unit</th>
-                            <th class="px-4 py-3">Waktu</th>
-                            <th class="px-4 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stat-table-body" class="divide-y"></tbody>
-                </table>
-            </div>
+            <div id="stat-table-body" class="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-3 p-1 content-start auto-rows-max snap-y snap-proximity scroll-smooth"></div>
         </div>
     </div>
 
@@ -4444,37 +4431,9 @@ window.showStatTable = (category) => {
     const body = document.getElementById('stat-table-body');
     
     if (list.length === 0) {
-        body.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>`;
+        body.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</div>`;
     } else {
-        body.innerHTML = list.map(b => {
-            const roomName = b.roomId ? (localState.rooms.find(r => r.id === b.roomId)?.name || 'N/A') : 'Hanya Alat';
-            return `
-                <tr class="hover:bg-slate-50 transition-colors border-b last:border-0">
-                    <td class="px-4 py-3">
-                        <p class="font-bold text-slate-700">${b.userName}</p>
-                        <p class="text-[9px] text-slate-400 uppercase">${b.dept}</p>
-                    </td>
-                    <td class="px-4 py-3">
-                        <p class="text-xs text-slate-600 line-clamp-1">${b.goal}</p>
-                    </td>
-                    <td class="px-4 py-3">
-    <p class="text-xs font-medium text-slate-700">${roomName}</p>
-    <p class="text-[9px] text-indigo-500 font-bold">
-        ${(b.tools && b.tools.length > 0)
-            ? 'Alat: ' + b.tools.map(t => t.name).join(', ')
-            : 'Tanpa alat'}
-    </p>
-</td>
-                    <td class="px-4 py-3">
-                        <p class="text-xs text-slate-700 font-medium">${b.date}</p>
-                        <p class="text-[9px] text-slate-400">${b.start} - ${b.end}</p>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
-                    </td>
-                </tr>
-            `;
-        }).join('');
+        body.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
     }
     document.getElementById('modal-stat-table').classList.remove('hide');
 };
@@ -4514,37 +4473,9 @@ window.showMyStatTable = (category) => {
     const body = document.getElementById('stat-table-body');
 
     if (list.length === 0) {
-        body.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>`;
+        body.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</div>`;
     } else {
-        body.innerHTML = list.map(b => {
-            const roomName = b.roomId ? (localState.rooms.find(r => String(r.id) === String(b.roomId))?.name || 'N/A') : 'Hanya Alat';
-            return `
-                <tr class="hover:bg-slate-50 transition-colors border-b last:border-0">
-                    <td class="px-4 py-3">
-                        <p class="font-bold text-slate-700">${b.userName}</p>
-                        <p class="text-[9px] text-slate-400 uppercase">${b.dept}</p>
-                    </td>
-                    <td class="px-4 py-3">
-                        <p class="text-xs text-slate-600 line-clamp-1">${b.goal}</p>
-                    </td>
-                    <td class="px-4 py-3">
-                        <p class="text-xs font-medium text-slate-700">${roomName}</p>
-                        <p class="text-[9px] text-indigo-500 font-bold">
-                            ${(b.tools && b.tools.length > 0)
-                                ? 'Alat: ' + b.tools.map(t => t.name).join(', ')
-                                : 'Tanpa alat'}
-                        </p>
-                    </td>
-                    <td class="px-4 py-3">
-                        <p class="text-xs text-slate-700 font-medium">${b.date}</p>
-                        <p class="text-[9px] text-slate-400">${b.start} - ${b.end}</p>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-full ${getStatusClass(b.status)}">${b.status}</span>
-                    </td>
-                </tr>
-            `;
-        }).join('');
+        body.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
     }
     document.getElementById('modal-stat-table').classList.remove('hide');
 };
@@ -6888,10 +6819,11 @@ const listenToData = () => {
         // "Pesanan Peralatan" (b.type === 'tool' / hanya alat, tanpa ruangan).
         window.bookingTypeLabelHTML = (b) => {
             const isRoom = b.type === 'room';
+            const roomName = (isRoom && b.roomId) ? (localState.rooms.find(r => String(r.id) === String(b.roomId))?.name || '') : '';
             return `
             <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full self-start
                 ${isRoom ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}">
-                <i class="fas ${isRoom ? 'fa-building' : 'fa-toolbox'} mr-1"></i>${isRoom ? 'Pesanan Ruangan' : 'Pesanan Peralatan'}
+                <i class="fas ${isRoom ? 'fa-building' : 'fa-toolbox'} mr-1"></i>${isRoom ? 'Pesanan Ruangan' : 'Pesanan Peralatan'}${roomName ? ` - ${roomName}` : ''}
             </span>`;
         };
 
@@ -6960,6 +6892,15 @@ const listenToData = () => {
                 ? (typeof window.bookingToolsGridHTML === 'function' ? window.bookingToolsGridHTML(b.tools) : `<p class="text-[10px] text-rose-500 font-bold">⚠ bookingToolsGridHTML belum siap</p>`)
                 : '';
 
+            // 🔥 Info pelanggaran (read-only) kalau pesanan ini pernah dicatat ada
+            // pelanggarannya - biar kelihatan juga di popup ringkasan/riwayat,
+            // konsisten kayak yang udah ada di kartu Kalender & Pesanan Saya.
+            const latestViolation = (typeof window.getLatestBookingViolation === 'function') ? window.getLatestBookingViolation(b.id) : null;
+            const violationInfoHTML = latestViolation ? `
+                <span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200 whitespace-nowrap">
+                    ⚠ Ada Pelanggaran / ${latestViolation.status}
+                </span>` : '';
+
             return `
             <div class="relative bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-1 overflow-visible min-h-[150px] h-full snap-start">
 
@@ -6984,6 +6925,8 @@ const listenToData = () => {
                 <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
                     <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${b.userName || '-'} (${b.dept || '-'})</span>
                 </p>
+
+                ${violationInfoHTML}
 
                 ${toolsGridHTML ? `
                 <div class="mt-0.5">
