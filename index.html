@@ -1025,11 +1025,6 @@ window.downloadQR = function () {
                         <i class="fas fa-table w-5"></i> <span class="nav-label">Semua Pesanan</span>
                     </button>
 
-                    <button onclick="window.openAdSettings()" 
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left">
-                        <i class="fas fa-ad w-5"></i> <span class="nav-label">Iklan / Banner</span>
-                    </button>
-
                     <button onclick="showView('pelanggaran', 'Pelanggaran Peminjaman')" 
                         class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left" 
                         data-view="pelanggaran">
@@ -1042,6 +1037,32 @@ window.downloadQR = function () {
                         data-view="rating-monitoring">
                         <i class="fas fa-star-half-stroke w-5"></i> <span class="nav-label">Rating & Feedback</span>
                         <span id="badge-rating-attention" class="ml-auto flex-shrink-0 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- 🔥 SUPER ADMIN MENU (hanya akun dengan flag superAdmin) -->
+            <div id="superadmin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
+
+                <p class="px-4 text-[10px] font-black uppercase tracking-wide text-amber-600 mb-1">
+                    <i class="fas fa-crown mr-1"></i> Super Admin
+                </p>
+
+                <div class="menu-group">
+                    <button onclick="window.openVisitorLog()"
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left">
+                        <i class="fas fa-eye w-5"></i> <span class="nav-label">Log Pengunjung</span>
+                    </button>
+
+                    <button onclick="window.openManageAccounts()"
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left">
+                        <i class="fas fa-user-shield w-5"></i> <span class="nav-label">Kelola Akun</span>
+                    </button>
+
+                    <button onclick="window.openAdSettings()"
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left">
+                        <i class="fas fa-ad w-5"></i> <span class="nav-label">Iklan / Banner</span>
                     </button>
                 </div>
 
@@ -3153,6 +3174,11 @@ const appId = "booking-ruang-training";
 
 	// 🔥 Admin: buka modal pengaturan iklan
 	window.openAdSettings = async function () {
+		// 🔒 Kelola Iklan/Banner sekarang KHUSUS Super Admin
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur Kelola Iklan/Banner khusus untuk Super Admin.");
+			return;
+		}
 		const modal = document.getElementById('modal-ad-settings');
 		if (!modal) return;
 
@@ -3197,6 +3223,11 @@ const appId = "booking-ruang-training";
 
 	// 🔥 Admin: simpan pengaturan iklan (URL gambar manual ATAU upload file) — WAJIB 2 versi: HP & Laptop
 	window.saveAdSettings = async function () {
+		// 🔒 Kelola Iklan/Banner sekarang KHUSUS Super Admin
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur Kelola Iklan/Banner khusus untuk Super Admin.");
+			return;
+		}
 		const btn = document.getElementById('btn-save-ad-settings');
 		const urlInputMobile = document.getElementById('ad-image-url-mobile');
 		const urlInputDesktop = document.getElementById('ad-image-url-desktop');
@@ -3295,6 +3326,214 @@ const appId = "booking-ruang-training";
 			// gagal cek (misal offline) — biarkan sesi lama tetap jalan,
 			// jangan paksa logout hanya karena network error
 			console.error("Gagal validasi sesi:", err);
+		}
+	};
+
+	// ================= 🔥 LOG PENGUNJUNG (SUPER ADMIN) =================
+	window.openVisitorLog = () => {
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur Log Pengunjung khusus untuk Super Admin.");
+			return;
+		}
+		const search = document.getElementById('visitor-log-search');
+		if (search) search.value = '';
+		window.renderVisitorLog();
+		window.openModal('modal-visitor-log');
+	};
+
+	window.renderVisitorLog = () => {
+		const body = document.getElementById('visitor-log-body');
+		const totalEl = document.getElementById('visitor-log-total');
+		if (!body || !totalEl) return; // modal belum ke-render / belum dibuka
+
+		const visits = (localState.visits || []).slice().sort((a, b) => {
+			const ta = a.timestamp?.seconds || 0;
+			const tb = b.timestamp?.seconds || 0;
+			return tb - ta; // terbaru dulu
+		});
+
+		totalEl.innerText = visits.length;
+
+		const keyword = (document.getElementById('visitor-log-search')?.value || '').toLowerCase().trim();
+
+		const filtered = keyword
+			? visits.filter(v => (v.username || '').toLowerCase().includes(keyword))
+			: visits;
+
+		if (filtered.length === 0) {
+			body.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400 italic">Belum ada data kunjungan.</td></tr>`;
+			return;
+		}
+
+		body.innerHTML = filtered.map(v => {
+			const d = v.timestamp?.seconds ? new Date(v.timestamp.seconds * 1000) : null;
+			const tanggal = d ? d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+			const jam = d ? d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
+			const roleLabel = v.superAdmin ? 'Super Admin' : (v.role === 'admin' ? 'Admin' : 'User');
+			return `
+<tr>
+    <td class="py-2 pr-2 font-bold text-slate-700">${v.username || '-'}</td>
+    <td class="py-2 pr-2">${roleLabel}</td>
+    <td class="py-2 pr-2">${v.dept || '-'}</td>
+    <td class="py-2 pr-2">${tanggal}</td>
+    <td class="py-2 pr-2">${jam}</td>
+</tr>`;
+		}).join('');
+	};
+
+	// ================= 🔥 KELOLA AKUN (SUPER ADMIN) =================
+	window.openManageAccounts = () => {
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur Kelola Akun khusus untuk Super Admin.");
+			return;
+		}
+		const search = document.getElementById('manage-accounts-search');
+		if (search) search.value = '';
+		window.renderManageAccounts();
+		window.openModal('modal-manage-accounts');
+	};
+
+	window.renderManageAccounts = () => {
+		const list = document.getElementById('manage-accounts-list');
+		if (!list) return;
+
+		const keyword = (document.getElementById('manage-accounts-search')?.value || '').toLowerCase().trim();
+
+		const users = (localState.users || [])
+			.slice()
+			.sort((a, b) => (a.username || '').localeCompare(b.username || ''))
+			.filter(u => !keyword ||
+				(u.username || '').toLowerCase().includes(keyword) ||
+				(u.email || '').toLowerCase().includes(keyword)
+			);
+
+		if (users.length === 0) {
+			list.innerHTML = `<p class="text-center text-slate-400 italic text-sm py-4">Tidak ada akun ditemukan.</p>`;
+			return;
+		}
+
+		list.innerHTML = users.map(u => {
+			const roleBadge = u.superAdmin
+				? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><i class="fas fa-crown mr-1"></i>Super Admin</span>`
+				: u.role === 'admin'
+					? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600">Admin</span>`
+					: `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">User</span>`;
+
+			return `
+<div class="flex items-center justify-between gap-2 bg-slate-50 rounded-xl p-3">
+    <div class="min-w-0">
+        <p class="text-sm font-bold text-slate-700 truncate">${u.username || '-'} ${roleBadge}</p>
+        <p class="text-[11px] text-slate-400 truncate">${u.email || '(belum ada email)'} • ${u.dept || '-'}</p>
+    </div>
+    <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button onclick="window.openEditAccount('${u.id}')"
+            class="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
+            <i class="fas fa-pen text-sm"></i>
+        </button>
+        <button onclick="window.guardedClick(this, () => window.deleteAccount('${u.id}'))"
+            class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition">
+            <i class="fas fa-trash-alt text-sm"></i>
+        </button>
+    </div>
+</div>`;
+		}).join('');
+	};
+
+	window.openEditAccount = (userId) => {
+		if (!window.isSuperAdmin(currentUser)) return;
+
+		const u = (localState.users || []).find(x => x.id === userId);
+		if (!u) { alert("Akun tidak ditemukan."); return; }
+
+		document.getElementById('edit-account-id').value = u.id;
+		document.getElementById('edit-account-username').value = u.username || '';
+		document.getElementById('edit-account-email').value = u.email || '';
+		document.getElementById('edit-account-password').value = '';
+		document.getElementById('edit-account-dept').value = u.dept || '';
+		document.getElementById('edit-account-role').value = u.role === 'admin' ? 'admin' : 'user';
+		document.getElementById('edit-account-superadmin').checked = !!u.superAdmin;
+
+		window.openModal('modal-edit-account');
+	};
+
+	window.saveEditAccount = async () => {
+		if (!window.isSuperAdmin(currentUser)) return;
+
+		const id = document.getElementById('edit-account-id').value;
+		const username = document.getElementById('edit-account-username').value.trim();
+		const email = document.getElementById('edit-account-email').value.trim();
+		const password = document.getElementById('edit-account-password').value;
+		const dept = document.getElementById('edit-account-dept').value.trim();
+		const role = document.getElementById('edit-account-role').value;
+		const superAdminFlag = document.getElementById('edit-account-superadmin').checked;
+
+		if (!id) { alert("Akun tidak valid."); return; }
+		if (!username) { alert("Username tidak boleh kosong."); return; }
+
+		// 🔒 Cegah username duplikat ke akun lain
+		const dup = (localState.users || []).find(x => x.id !== id && (x.username || '').toLowerCase() === username.toLowerCase());
+		if (dup) { alert("Username sudah dipakai akun lain."); return; }
+
+		const payload = {
+			username,
+			email,
+			dept,
+			role,
+			superAdmin: superAdminFlag
+		};
+
+		if (password) {
+			payload.password = password;
+			payload.mustChangePassword = false;
+		}
+
+		try {
+			await updateDoc(
+				doc(db, 'artifacts', appId, 'public', 'data', 'users', id),
+				payload
+			);
+			alert("Akun berhasil diperbarui.");
+			window.closeModal('modal-edit-account');
+
+			// 🔥 Kalau Super Admin sedang edit akunnya sendiri, sinkronkan currentUser & localStorage
+			if (currentUser && currentUser.uid === id) {
+				currentUser = { ...currentUser, ...payload };
+				localStorage.setItem("traininghub_user", JSON.stringify(currentUser));
+				initSession();
+			}
+		} catch (err) {
+			console.error(err);
+			alert("Gagal menyimpan perubahan akun.");
+		}
+	};
+
+	window.deleteAccount = async (userId) => {
+		if (!window.isSuperAdmin(currentUser)) return;
+
+		const u = (localState.users || []).find(x => x.id === userId);
+		if (!u) { alert("Akun tidak ditemukan."); return; }
+
+		if (currentUser && currentUser.uid === userId) {
+			alert("Tidak bisa menghapus akun yang sedang Anda gunakan sendiri.");
+			return;
+		}
+
+		if (u.superAdmin) {
+			const otherSuperAdmins = (localState.users || []).filter(x => x.id !== userId && x.superAdmin === true);
+			if (otherSuperAdmins.length === 0) {
+				alert("Tidak bisa menghapus Super Admin terakhir. Jadikan akun lain Super Admin dulu sebelum menghapus akun ini.");
+				return;
+			}
+		}
+
+		if (!confirm(`Hapus akun "${u.username}" secara permanen? Tindakan ini tidak bisa dibatalkan.`)) return;
+
+		try {
+			await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId));
+			alert("Akun berhasil dihapus.");
+		} catch (err) {
+			console.error(err);
+			alert("Gagal menghapus akun.");
 		}
 	};
 
@@ -4017,6 +4256,91 @@ async function ensureAdminAccountExists() {
     }
 }
 
+// ================= 🔥 SUPER ADMIN BOOTSTRAP =================
+// Super Admin adalah akun dengan role "admin" BIASA + field tambahan
+// `superAdmin: true`. Ini supaya seluruh pengecekan `role === 'admin'`
+// yang sudah ada di aplikasi TETAP berlaku untuk Super Admin (dia tetap
+// bisa akses semua menu admin biasa), sekaligus dapat menu & kewenangan
+// EKSTRA yang hanya dicek lewat window.isSuperAdmin(currentUser).
+const DEFAULT_SUPERADMIN_SEED = {
+    username: 'superadmin',
+    password: 'super2026'
+};
+let superAdminBootstrapChecked = false;
+
+async function ensureSuperAdminAccountExists() {
+
+    if (superAdminBootstrapChecked) return;
+    superAdminBootstrapChecked = true;
+
+    const superAdminExists =
+        (localState.users || []).some(u => u.superAdmin === true);
+
+    if (superAdminExists) return;
+
+    try {
+        await addDoc(
+            collection(db, 'artifacts', appId, 'public', 'data', 'users'),
+            {
+                username: DEFAULT_SUPERADMIN_SEED.username,
+                password: DEFAULT_SUPERADMIN_SEED.password,
+                role: 'admin',
+                superAdmin: true,
+                dept: 'Manajemen',
+                email: '',
+                mustChangePassword: true,
+                createdAt: serverTimestamp()
+            }
+        );
+
+        console.warn(
+            "🔐 Akun SUPER ADMIN default dibuat di Firestore (username: " +
+            DEFAULT_SUPERADMIN_SEED.username +
+            "). Segera login dan GANTI PASSWORD default ini!"
+        );
+
+    } catch (err) {
+        console.error("Gagal membuat akun super admin default:", err);
+    }
+}
+
+// 🔥 Helper global: cek apakah user adalah SUPER ADMIN (admin + flag superAdmin true).
+// Dipakai di seluruh app untuk gate fitur sensitif: log pengunjung, kelola akun
+// (edit/hapus username-email-password user lain), edit/hapus pesanan di semua
+// status, dan kelola iklan/banner.
+window.isSuperAdmin = function (u) {
+    return !!(u && u.role === 'admin' && u.superAdmin === true);
+};
+
+// ================= 🔥 LOG PENGUNJUNG (VISITOR LOG) =================
+// Setiap kali ada yang berhasil login / sesi login-nya di-restore (buka lagi
+// app-nya), dicatat satu baris ke koleksi Firestore "visits" berisi siapa
+// yang berkunjung + tanggal & jam-nya. Hanya Super Admin yang bisa melihat
+// rekap ini (menu "Log Pengunjung"), lengkap dengan total kunjungannya.
+// Dibatasi 1x per pemuatan halaman (page load) supaya tidak nyatet berkali-kali
+// kalau initSession() sempat terpanggil lebih dari sekali.
+window.__visitLoggedThisPageLoad = false;
+window.logVisit = async function (user) {
+    if (!user || window.__visitLoggedThisPageLoad) return;
+    window.__visitLoggedThisPageLoad = true;
+
+    try {
+        await addDoc(
+            collection(db, 'artifacts', appId, 'public', 'data', 'visits'),
+            {
+                username: user.username || '-',
+                dept: user.dept || '-',
+                role: user.role || 'user',
+                superAdmin: !!user.superAdmin,
+                userAgent: (navigator.userAgent || '').slice(0, 200),
+                timestamp: serverTimestamp()
+            }
+        );
+    } catch (err) {
+        console.error("Gagal mencatat log kunjungan:", err);
+    }
+};
+
 let deptChart = null;
 let statusChart = null;
 let trendChart = null;
@@ -4033,7 +4357,8 @@ let localState = {
     users: [],
     rooms: [],
     tools: [],
-    bookings: []
+    bookings: [],
+    visits: []
 };
 
         // FILTER STATE
@@ -5639,13 +5964,23 @@ if (ctx3) {
 
     // 🔥 SET USER INFO
     document.getElementById('user-display').innerText = currentUser.username;
-    document.getElementById('role-label').innerText = currentUser.role.toUpperCase();
+    document.getElementById('role-label').innerText =
+        window.isSuperAdmin(currentUser) ? 'SUPER ADMIN' : currentUser.role.toUpperCase();
 
     const isAdmin = currentUser.role === 'admin';
+    const isSuperAdminUser = window.isSuperAdmin(currentUser);
+
+    // 🔥 CATAT LOG KUNJUNGAN (siapa & kapan berkunjung ke web ini)
+    window.logVisit(currentUser);
 
     // 🔥 TOGGLE MENU
     document.getElementById('admin-menu-section')
         .classList.toggle('hide', !isAdmin);
+
+    const superAdminMenuSection = document.getElementById('superadmin-menu-section');
+    if (superAdminMenuSection) {
+        superAdminMenuSection.classList.toggle('hide', !isSuperAdminUser);
+    }
 
     document.getElementById('user-menu-section')
         .classList.toggle('hide', isAdmin);
@@ -6611,7 +6946,7 @@ onAuthStateChanged(auth, (user) => {
 
 });
 const listenToData = () => {
-    ['rooms', 'tools', 'bookings', 'users', 'ratings', 'violations', 'assetFollowUps'].forEach(coll => {
+    ['rooms', 'tools', 'bookings', 'users', 'ratings', 'violations', 'assetFollowUps', 'visits'].forEach(coll => {
 
         onSnapshot(
             collection(
@@ -6633,6 +6968,11 @@ const listenToData = () => {
 
                 if (coll === 'users') {
                     ensureAdminAccountExists();
+                    ensureSuperAdminAccountExists();
+                }
+
+                if (coll === 'visits' && typeof window.renderVisitorLog === 'function') {
+                    window.renderVisitorLog();
                 }
 
                 refreshUI();
@@ -7794,8 +8134,8 @@ window.editBooking = (bookingId) => {
         return;
     }
 
-    // 🔥 BLOK JIKA BUKAN PENDING
-    if (booking.status !== 'Pending') {
+    // 🔥 BLOK JIKA BUKAN PENDING (kecuali Super Admin, boleh edit status apapun)
+    if (booking.status !== 'Pending' && !window.isSuperAdmin(currentUser)) {
 
         alert("Hanya booking Pending yang bisa diedit");
         return;
@@ -9686,6 +10026,27 @@ class="w-full bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-2xl f
         // rating & feedback pesanan ini SUDAH tampil langsung di body detail
         // pesanan (bagian "⭐ Rating & Feedback Pesanan Ini"), jadi tombol ini
         // sudah redundan sekaligus sempat menyebabkan error sintaks JS.
+
+        // 🔥 SUPER ADMIN ONLY: Edit & Hapus pesanan ini berlaku untuk SEMUA
+        // status (Pending/Approved/Ongoing/Completed/Rejected), berbeda dengan
+        // admin biasa yang tidak punya kendali ini sama sekali.
+        if (window.isSuperAdmin(currentUser)) {
+            adminFooterHtml += `
+<div class="flex gap-2 mt-2">
+<button onclick="window.editBooking('${b.id}')"
+class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-xs hover:bg-indigo-700 transition">
+<i class="fas fa-pen mr-1"></i> Edit Pesanan
+</button>
+<button onclick="window.guardedClick(this, () => window.deleteBooking('${b.id}'))"
+class="flex-1 bg-rose-600 text-white py-3 rounded-2xl font-bold text-xs hover:bg-rose-700 transition">
+<i class="fas fa-trash-alt mr-1"></i> Hapus Pesanan
+</button>
+</div>
+<p class="text-[9px] text-amber-600 font-bold text-center mt-1">
+<i class="fas fa-crown mr-1"></i>Kewenangan Super Admin — berlaku di semua status
+</p>
+`;
+        }
 
         footer.innerHTML = adminFooterHtml;
 
@@ -12594,6 +12955,149 @@ window.showAssetBookings = (id, type, name) => {
             <button id="btn-save-ad-settings" onclick="window.saveAdSettings()"
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold text-sm transition">
                 Simpan Pengaturan Iklan
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: LOG PENGUNJUNG (SUPER ADMIN) ================= -->
+<div id="modal-visitor-log" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-indigo-50">
+            <h3 class="text-lg font-black text-indigo-600"><i class="fas fa-eye mr-1"></i> Log Pengunjung</h3>
+            <button onclick="closeModal('modal-visitor-log')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4">
+
+            <div class="bg-indigo-50 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase text-indigo-400">Total Kunjungan Tercatat</p>
+                    <p id="visitor-log-total" class="text-3xl font-black text-indigo-600">0</p>
+                </div>
+                <i class="fas fa-users text-4xl text-indigo-200"></i>
+            </div>
+
+            <input id="visitor-log-search" type="text" placeholder="Cari username..." oninput="window.renderVisitorLog()"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="text-left text-slate-400 uppercase text-[10px] border-b">
+                            <th class="py-2 pr-2">Username</th>
+                            <th class="py-2 pr-2">Role</th>
+                            <th class="py-2 pr-2">Departemen</th>
+                            <th class="py-2 pr-2">Tanggal</th>
+                            <th class="py-2 pr-2">Jam</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitor-log-body" class="divide-y"></tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: KELOLA AKUN (SUPER ADMIN) ================= -->
+<div id="modal-manage-accounts" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-indigo-50">
+            <h3 class="text-lg font-black text-indigo-600"><i class="fas fa-user-shield mr-1"></i> Kelola Akun (Super Admin)</h3>
+            <button onclick="closeModal('modal-manage-accounts')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-3">
+
+            <input id="manage-accounts-search" type="text" placeholder="Cari username / email..." oninput="window.renderManageAccounts()"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+
+            <div id="manage-accounts-list" class="space-y-2"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: EDIT AKUN (SUPER ADMIN) ================= -->
+<div id="modal-edit-account" class="fixed inset-0 z-[10000] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-6 border-b flex justify-between items-center bg-amber-50">
+            <h3 class="text-lg font-black text-amber-600"><i class="fas fa-user-pen mr-1"></i> Edit Akun</h3>
+            <button onclick="closeModal('modal-edit-account')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-3">
+
+            <input type="hidden" id="edit-account-id">
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Username</label>
+                <input id="edit-account-username" type="text"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Email</label>
+                <input id="edit-account-email" type="email"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Password Baru (kosongkan jika tidak diubah)</label>
+                <input id="edit-account-password" type="text" placeholder="••••••••"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Departemen</label>
+                <input id="edit-account-dept" type="text"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold uppercase text-slate-400">Role</label>
+                <select id="edit-account-role"
+                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-amber-400">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-50 rounded-xl p-3">
+                <div>
+                    <p class="text-sm font-bold text-slate-700">Super Admin</p>
+                    <p class="text-[10px] text-slate-400">Akses penuh: kelola akun, log pengunjung, iklan, edit/hapus pesanan semua status</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="edit-account-superadmin" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:bg-amber-500 transition-all relative
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                </label>
+            </div>
+
+            <button onclick="window.guardedClick(this, () => window.saveEditAccount())"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold text-sm transition">
+                Simpan Perubahan
             </button>
 
         </div>
