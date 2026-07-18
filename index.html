@@ -2136,16 +2136,6 @@ window.downloadQR = function () {
 
         <div class="flex items-center gap-3">
 
-            <!-- 🔥 Toggle: gabung pesanan multi-hari jadi 1 baris (rentang tanggal),
-                 atau tetap tampil per-hari (1 baris per tanggal, buat rekap/audit detail).
-                 Export Excel otomatis ngikutin mode ini juga. -->
-            <label class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 cursor-pointer select-none">
-                <input type="checkbox" id="all-bookings-group-toggle"
-                    onchange="window.allBookingsGroupMode = this.checked; window.saveAllBookingsGroupPref?.(); renderAllBookings();"
-                    class="w-4 h-4 accent-indigo-600 cursor-pointer">
-                🔗 Gabung Multi-Hari
-            </label>
-
             <button 
                 onclick="exportAllBookingsExcel()" 
                 class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
@@ -4356,26 +4346,32 @@ function calculateFilterRange() {
         // STATS RENDERING
 function renderAdminDashboard() {
     const filtered = getFilteredBookings();
-    const total = filtered.length || 0;
+
+    // 🔥 Hitung "1 pesanan" = 1 grup (gabungan hari multi-hari via groupId), BUKAN
+    // per dokumen/hari — biar semua card status di dashboard admin konsisten sama
+    // filosofi "multi-hari = 1 pesanan" (multi-ruangan tetap dihitung terpisah,
+    // karena tiap ruangan punya groupId sendiri).
+    const orderGroups = window.groupBookingsForCards ? window.groupBookingsForCards(filtered) : filtered.map(b => ({ items: [b], first: b }));
+    const total = orderGroups.length || 0;
 
     // 🔥 normalize status biar konsisten
     const getStatus = (b) => (b.status || "").toLowerCase();
 
-    const roomsBooking = filtered.filter(b => b.type === 'room');
-    const toolsOnlyBooking = filtered.filter(b => b.type === 'tool');
+    const roomsBooking = orderGroups.filter(g => g.first.type === 'room');
+    const toolsOnlyBooking = orderGroups.filter(g => g.first.type === 'tool');
 
-    const approved = filtered.filter(b => {
-        const s = getStatus(b);
+    const approved = orderGroups.filter(g => {
+        const s = getStatus(g.first);
         return ['approved','ongoing','completed'].includes(s);
     });
 
-    const pending = filtered.filter(b => getStatus(b) === 'pending');
-    const rejected = filtered.filter(b => getStatus(b) === 'rejected');
-	const cancelled = filtered.filter(b => getStatus(b) === 'cancelled');
+    const pending = orderGroups.filter(g => getStatus(g.first) === 'pending');
+    const rejected = orderGroups.filter(g => getStatus(g.first) === 'rejected');
+	const cancelled = orderGroups.filter(g => getStatus(g.first) === 'cancelled');
 
     // ✅ TAMBAHAN BARU
-    const ongoing = filtered.filter(b => getStatus(b) === 'ongoing');
-    const completed = filtered.filter(b => getStatus(b) === 'completed');
+    const ongoing = orderGroups.filter(g => getStatus(g.first) === 'ongoing');
+    const completed = orderGroups.filter(g => getStatus(g.first) === 'completed');
 
     document.getElementById('stat-total-rooms').innerText = localState.rooms.length;
     document.getElementById('stat-total-tools').innerText = localState.tools.length;
@@ -4405,7 +4401,9 @@ function renderAdminDashboard() {
     if (violCountEl) violCountEl.innerText = activeViolations.length;
     if (violRatioEl) violRatioEl.innerText = `${activeViolations.length} / ${allViolations.length} total • klik untuk kelola & selesaikan`;
 
-    updateChart(filtered);
+    // 🔥 Chart dept & status juga dihitung per pesanan (1 representatif per grup),
+    // bukan per dokumen/hari, biar gak dobel-hitung pesanan multi-hari.
+    updateChart(orderGroups.map(g => g.first));
 }
 
 window.showStatTable = (category) => {
@@ -4441,13 +4439,16 @@ window.showStatTable = (category) => {
         return dateB - dateA;
     });
 
-    document.getElementById('stat-table-title').innerText = `${title} (${list.length})`;
+    // 🔥 Jumlah di judul mengikuti jumlah "pesanan" (grup multi-hari), sesuai
+    // jumlah kartu yang benar-benar ditampilkan di bawahnya.
+    const groupedList = window.groupBookingsForCards(list);
+    document.getElementById('stat-table-title').innerText = `${title} (${groupedList.length})`;
     const body = document.getElementById('stat-table-body');
     
     if (list.length === 0) {
         body.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</div>`;
     } else {
-        body.innerHTML = window.groupBookingsForCards(list).map(g => window.assetBookingCardHTML(g.first, g)).join('');
+        body.innerHTML = groupedList.map(g => window.assetBookingCardHTML(g.first, g)).join('');
     }
     document.getElementById('modal-stat-table').classList.remove('hide');
 };
@@ -4483,13 +4484,16 @@ window.showMyStatTable = (category) => {
         return dateB - dateA;
     });
 
-    document.getElementById('stat-table-title').innerText = `${title} (${list.length})`;
+    // 🔥 Jumlah di judul mengikuti jumlah "pesanan" (grup multi-hari), sesuai
+    // jumlah kartu yang benar-benar ditampilkan di bawahnya.
+    const groupedList = window.groupBookingsForCards(list);
+    document.getElementById('stat-table-title').innerText = `${title} (${groupedList.length})`;
     const body = document.getElementById('stat-table-body');
 
     if (list.length === 0) {
         body.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</div>`;
     } else {
-        body.innerHTML = window.groupBookingsForCards(list).map(g => window.assetBookingCardHTML(g.first, g)).join('');
+        body.innerHTML = groupedList.map(g => window.assetBookingCardHTML(g.first, g)).join('');
     }
     document.getElementById('modal-stat-table').classList.remove('hide');
 };
@@ -4586,15 +4590,20 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
 function renderStatistikSaya() {
     if (!currentUser) return;
     const mine = getMyBookings();
-    const total = mine.length;
+
+    // 🔥 Hitung "1 pesanan" = 1 grup (gabungan hari multi-hari via groupId), BUKAN
+    // per dokumen/hari — biar semua card status di "Statistik Saya" konsisten sama
+    // filosofi "multi-hari = 1 pesanan" (multi-ruangan tetap dihitung terpisah).
+    const mineGroups = window.groupBookingsForCards ? window.groupBookingsForCards(mine) : mine.map(b => ({ items: [b], first: b }));
+    const total = mineGroups.length;
 
     const getStatus = (b) => (b.status || '').toLowerCase();
-    const pending = mine.filter(b => getStatus(b) === 'pending');
-    const approved = mine.filter(b => getStatus(b) === 'approved');
-    const ongoing = mine.filter(b => getStatus(b) === 'ongoing');
-    const completed = mine.filter(b => getStatus(b) === 'completed');
-    const rejected = mine.filter(b => getStatus(b) === 'rejected');
-    const cancelled = mine.filter(b => getStatus(b) === 'cancelled');
+    const pending = mineGroups.filter(g => getStatus(g.first) === 'pending');
+    const approved = mineGroups.filter(g => getStatus(g.first) === 'approved');
+    const ongoing = mineGroups.filter(g => getStatus(g.first) === 'ongoing');
+    const completed = mineGroups.filter(g => getStatus(g.first) === 'completed');
+    const rejected = mineGroups.filter(g => getStatus(g.first) === 'rejected');
+    const cancelled = mineGroups.filter(g => getStatus(g.first) === 'cancelled');
     const rated = mine.filter(b => window.hasUserRatedBooking && window.hasUserRatedBooking(b.id));
 
     const myViolations = (localState.violations || []).filter(v =>
@@ -6646,7 +6655,9 @@ const listenToData = () => {
 }
 
         function updatePendingBadge() {
-            const count = localState.bookings.filter(b => b.status === 'Pending').length;
+            const pendingBookings = localState.bookings.filter(b => b.status === 'Pending');
+            // 🔥 Badge dihitung per "pesanan" (grup multi-hari via groupId), bukan per dokumen/hari.
+            const count = window.groupBookingsForCards ? window.groupBookingsForCards(pendingBookings).length : pendingBookings.length;
             const badge = document.getElementById('badge-pending');
             if(badge) { badge.innerText = count; badge.classList.toggle('hide', count === 0); }
         }
@@ -6680,9 +6691,12 @@ const listenToData = () => {
         // global, tapi BELUM kena filter status, biar angka di tiap chip tetap total asli).
         // buildOnClick: (statusKey) => string onclick, biar reusable buat 2 halaman berbeda.
         function buildStatusChipBarHTML(list, activeKey, buildOnClick, excludeKeys = []) {
-            const counts = { all: list.length };
-            list.forEach(b => {
-                const s = b.status || '';
+            // 🔥 Hitung per "pesanan" (grup multi-hari via groupId), bukan per dokumen/hari,
+            // biar angka di tiap chip status konsisten sama kartu yang ditampilkan.
+            const groups = window.groupBookingsForCards ? window.groupBookingsForCards(list) : list.map(b => ({ items: [b], first: b }));
+            const counts = { all: groups.length };
+            groups.forEach(g => {
+                const s = g.first.status || '';
                 counts[s] = (counts[s] || 0) + 1;
             });
 
@@ -7355,24 +7369,15 @@ window.getAllBookingsFilteredData = () => {
     return data;
 };
 
-// 🔥 Simpan preferensi toggle "Gabung Multi-Hari" biar gak balik ke default
-// tiap kali pindah halaman/reload.
-window.saveAllBookingsGroupPref = () => {
-    try { localStorage.setItem('allBookingsGroupMode', window.allBookingsGroupMode ? '1' : '0'); } catch (e) {}
-};
-
-// 🔥 Baris final "Semua Pesanan" — hasil gabungan (kalau toggle ON, pesanan
-// multi-hari yang groupId+status-nya sama digabung jadi 1 baris rentang
-// tanggal) atau apa adanya per-dokumen (toggle OFF, 1 baris = 1 hari).
+// 🔥 Baris final "Semua Pesanan" — pesanan multi-hari yang groupId+status-nya
+// sama SELALU digabung jadi 1 baris (rentang tanggal); pesanan multi-ruangan
+// (beda groupId per ruangan) tetap jadi baris/pesanan terpisah.
 // Fungsi INI yang dipakai render tabel MAUPUN export Excel, supaya kolom
 // yang kedownload selalu identik sama yang kelihatan di layar.
 window.buildAllBookingsRows = () => {
     const data = window.getAllBookingsFilteredData();
-    const groupMode = !!window.allBookingsGroupMode;
 
-    let units = groupMode
-        ? window.groupBookingsForCards(data)
-        : data.map(b => ({ items: [b], first: b, last: b, isMultiDay: false }));
+    let units = window.groupBookingsForCards(data);
 
     // ================= SORT =================
     if (sortField) {
@@ -7435,10 +7440,6 @@ window.buildAllBookingsRows = () => {
 };
 
 window.renderAllBookings = function() {
-
-    // 🔥 Sinkronkan posisi toggle sama state-nya (misal abis reload halaman)
-    const groupToggle = document.getElementById('all-bookings-group-toggle');
-    if (groupToggle) groupToggle.checked = !!window.allBookingsGroupMode;
 
     const rows = window.buildAllBookingsRows();
 
@@ -7698,7 +7699,7 @@ window.exportAllBookingsExcel = async () => {
     }
 
     // 🔥 Pakai data yang SAMA PERSIS kayak yang lagi ditampilkan di tabel
-    // (ikut pencarian yang lagi diketik & mode "Gabung Multi-Hari" yang aktif),
+    // (ikut pencarian yang lagi diketik, multi-hari selalu digabung jadi 1 baris),
     // supaya file yang kedownload gak pernah beda sama yang kelihatan di layar.
     const tableRows = window.buildAllBookingsRows();
 
@@ -7729,14 +7730,6 @@ window.exportAllBookingsExcel = async () => {
 };
 		let searchTimeout;
 
-// 🔥 Default mode toggle "Gabung Multi-Hari" - ambil dari preferensi
-// terakhir yang disimpan (biar gak balik ke default tiap reload).
-try {
-    window.allBookingsGroupMode = localStorage.getItem('allBookingsGroupMode') === '1';
-} catch (e) {
-    window.allBookingsGroupMode = false;
-}
-
 document.addEventListener('DOMContentLoaded', () => {
 
     const input = document.getElementById('search-all-bookings');
@@ -7751,9 +7744,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 200); // delay 200ms
         });
     }
-
-    const groupToggle = document.getElementById('all-bookings-group-toggle');
-    if (groupToggle) groupToggle.checked = !!window.allBookingsGroupMode;
 
 });
         window.deleteBooking = async (id) => {
@@ -8138,6 +8128,8 @@ return `
         // Completed/Rejected/Cancelled — biar admin lihat gambaran approval secara umum)
         function renderApprovalStatusChart() {
             const all = getFilteredBookings();
+            // 🔥 Pie chart dihitung per "pesanan" (grup multi-hari via groupId), bukan per dokumen/hari.
+            const allGroups = window.groupBookingsForCards ? window.groupBookingsForCards(all) : all.map(b => ({ items: [b], first: b }));
 
             const statusMeta = [
                 { key: 'Pending',   label: 'Pending',              color: '#f59e0b' },
@@ -8148,7 +8140,7 @@ return `
                 { key: 'Cancelled', label: 'Cancelled',            color: '#64748b' }
             ];
 
-            const counts = statusMeta.map(s => all.filter(b => b.status === s.key).length);
+            const counts = statusMeta.map(s => allGroups.filter(g => g.first.status === s.key).length);
             const total = counts.reduce((a, c) => a + c, 0);
 
             // 🔥 Total "Disetujui" secara keseluruhan = Approved + Ongoing + Completed,
