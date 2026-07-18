@@ -165,9 +165,10 @@ body {
 /* 🔥 HEADER PUTIH SOLID (LOGO AREA) */
 #mobile-sidebar .sidebar-header {
     background: #ffffff;
-    padding: 16px;
+    padding: 0;
     border-radius: 16px;
     margin-bottom: 20px;
+    overflow: hidden;
 
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
@@ -944,7 +945,7 @@ window.downloadQR = function () {
             <div class="flex items-center justify-between">
 
                 <button type="button" id="sidebar-logo-btn" onclick="window.goToDashboardHome()"
-                    class="flex flex-col items-center gap-1 w-full cursor-pointer hover:opacity-80 active:scale-95 transition"
+                    class="flex flex-col items-center gap-1 w-full p-3 cursor-pointer hover:opacity-80 active:scale-95 transition"
                     title="Kembali ke Dashboard">
                     <img id="sidebar-logo-img"
                         src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%20May%2027%2C%202026%2C%2012_23_38%20PM%20(1).png" 
