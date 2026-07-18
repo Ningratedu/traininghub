@@ -4338,7 +4338,24 @@ function calculateFilterRange() {
 }
         function getFilteredBookings() {
             if(!filterRange.start || !filterRange.end) return localState.bookings;
-            return localState.bookings.filter(b => b.date >= filterRange.start && b.date <= filterRange.end);
+
+            const all = localState.bookings;
+            const matched = all.filter(b => b.date >= filterRange.start && b.date <= filterRange.end);
+
+            // 🔥 Kalau pesanan multi-hari cuma SEBAGIAN harinya yang masuk rentang filter
+            // (mis. pesanan 5 hari tapi filter cuma "Hari Ini"), tarik juga hari-hari lain
+            // dari groupId yang sama supaya pesanan itu tetap tampil UTUH (bukan kepotong
+            // jadi seolah-olah cuma pesanan 1 hari). Multi-ruangan tetap gak kebawa karena
+            // tiap ruangan punya groupId sendiri-sendiri.
+            const matchedGroupIds = new Set(matched.map(b => b.groupId).filter(Boolean));
+            if (matchedGroupIds.size === 0) return matched;
+
+            const matchedIds = new Set(matched.map(b => b.id));
+            const restOfGroup = all.filter(b =>
+                b.groupId && matchedGroupIds.has(b.groupId) && !matchedIds.has(b.id)
+            );
+
+            return matched.concat(restOfGroup);
         }
         // 🔥 FIX: dipakai juga oleh fungsi di <script> biasa (non-module) di bagian bawah file
         window.getFilteredBookings = getFilteredBookings;
@@ -10713,6 +10730,16 @@ function findUserEmailForBooking(b){
     return email;
 }
 
+// 🔥 CARI EMAIL PEMINJAM CUKUP DARI USERNAME SAJA (dipakai notif blokir/buka blokir,
+// karena di titik itu belum tentu ada objek booking/pelanggaran yang relevan)
+function findUserEmailByUsername(userName){
+    if (!userName) return '';
+    const user = (localState.users || []).find(u =>
+        (u.username && u.username === userName) || (u.name && u.name === userName)
+    );
+    return (user && user.email) || '';
+}
+
 window.openViolationModal = (bookingId = null) => {
     document.getElementById('violation-booking-id').value = bookingId || '';
     document.getElementById('violation-type').value = 'Terlambat Mengembalikan';
@@ -10756,6 +10783,14 @@ window.submitViolation = async () => {
     if (!username) { alert('Nama peminjam wajib diisi'); return; }
     if (!description) { alert('Deskripsi pelanggaran wajib diisi'); return; }
 
+    // 🔥 Hitung status blokir SEBELUM & SESUDAH pelanggaran baru ini secara eksplisit
+    // (bukan baca ulang localState.violations setelah addDoc, karena listener Firestore-nya
+    // baru update async, belum tentu langsung ke-refresh saat baris kode berikutnya jalan).
+    const beforeCount = window.getUserActiveViolationCount ? window.getUserActiveViolationCount(username) : 0;
+    const afterCount = beforeCount + 1;
+    const wasBlockedBefore = beforeCount >= MAX_VIOLATIONS_BEFORE_BLOCKED;
+    const nowBlocked = afterCount >= MAX_VIOLATIONS_BEFORE_BLOCKED;
+
     try {
         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'violations'), {
             bookingId,
@@ -10773,6 +10808,15 @@ window.submitViolation = async () => {
         });
         alert('Pelanggaran berhasil dicatat');
         window.closeModal('modal-violation');
+
+        // 🔥 Kalau pelanggaran ini yang bikin user BARU SAJA menyentuh batas blokir,
+        // tawarkan kirim notifikasi pemblokiran ke peminjam sekarang.
+        if (!wasBlockedBefore && nowBlocked) {
+            if (confirm(`⛔ "${username}" baru saja mencapai batas maksimal pelanggaran dan sekarang DIBLOKIR dari pemesanan baru.\n\nKirim notifikasi pemblokiran ke peminjam sekarang?`)) {
+                window.sendBlockNotificationEmail(username, email);
+            }
+        }
+
         window.showView('pelanggaran', 'Pelanggaran Peminjaman');
     } catch (err) {
         console.error('Submit violation error:', err);
@@ -10917,6 +10961,48 @@ window.deleteViolation = async (id) => {
     }
 };
 
+// ================= 🔥 BUKA BLOKIR PEMINJAM (RESET HITUNGAN BLOKIR) =================
+// Dipakai admin buat buka blokir user yang sudah kena batas maksimal pelanggaran.
+// Riwayat pelanggaran user itu TIDAK dihapus (tetap ada di menu Pelanggaran buat
+// arsip/audit), tapi pelanggaran-pelanggaran yang sudah tercatat SEBELUM ini tidak
+// lagi dihitung ke status blokir (lihat window.getUserActiveViolationCount). User baru
+// akan keblokir lagi kalau kumpul pelanggaran BARU sejumlah batas maksimal lagi.
+window.unblockUserFromViolations = async (userName) => {
+    if (!userName) return;
+
+    const user = (localState.users || []).find(u => (u.username || '').toLowerCase() === userName.toLowerCase());
+    if (!user) {
+        alert('Data akun peminjam ini tidak ditemukan, tidak bisa membuka blokir.');
+        return;
+    }
+
+    const confirmed = confirm(
+        `Buka blokir peminjaman untuk "${userName}"?\n\n` +
+        `Riwayat pelanggaran yang sudah ada TETAP tersimpan (tidak dihapus), tapi hitungan ` +
+        `blokir user ini akan direset mulai sekarang. User baru akan diblokir lagi kalau ` +
+        `tercatat pelanggaran BARU sejumlah batas maksimal.`
+    );
+    if (!confirmed) return;
+
+    try {
+        await updateDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id),
+            {
+                unblockedAt: serverTimestamp(),
+                unblockedBy: currentUser?.username || 'Admin'
+            }
+        );
+        alert(`✅ Blokir peminjaman untuk "${userName}" berhasil dibuka.`);
+
+        if (confirm(`Kirim notifikasi pembukaan blokir ke "${userName}" sekarang?`)) {
+            window.sendUnblockNotificationEmail(userName, user.email || '');
+        }
+    } catch (err) {
+        console.error('Unblock user error:', err);
+        alert('Gagal membuka blokir: ' + err.message);
+    }
+};
+
 // ================= NOTIFIKASI EMAIL PELANGGARAN =================
 window.sendViolationEmail = (id) => {
     const v = (localState.violations || []).find(x => x.id === id);
@@ -11040,19 +11126,98 @@ window.getUserViolationCount = (userName) => {
     ).length;
 };
 
+// 🔥 Hitung pelanggaran yang BERLAKU untuk status blokir (beda dari total historis di atas).
+// Kalau admin pernah klik "Buka Blokir" buat user ini, pelanggaran yang tercatat SEBELUM
+// waktu buka blokir tidak lagi dihitung ke status blokir (tapi tetap tersimpan di riwayat/arsip
+// pelanggaran, tidak dihapus). Jadi begitu dibuka, hitungan blokir user itu balik ke 0 dan
+// baru keblokir lagi kalau kumpul pelanggaran BARU sejumlah batas maksimal.
+window.getUserActiveViolationCount = (userName) => {
+    if (!userName) return 0;
+
+    const user = (localState.users || []).find(u => (u.username || '').toLowerCase() === userName.toLowerCase());
+    const unblockedAtSeconds = user?.unblockedAt?.seconds || 0;
+
+    if (!unblockedAtSeconds) return window.getUserViolationCount(userName);
+
+    return (localState.violations || []).filter(v =>
+        (v.userName || '').toLowerCase() === userName.toLowerCase() &&
+        (v.createdAt?.seconds || 0) > unblockedAtSeconds
+    ).length;
+};
+
 // ================= 🔥 RATING PEMINJAM: OBJEKTIF BERDASARKAN TOTAL PELANGGARAN =================
 // Aturan: belum pernah melanggar = 5 bintang, tiap 1x pelanggaran mengurangi 1 bintang.
 // Setelah mencapai batas MAX_VIOLATIONS (5x), peminjam tidak bisa mengajukan peminjaman baru lagi.
 const MAX_VIOLATIONS_BEFORE_BLOCKED = 5;
 
 window.getUserObjectiveRating = (userName) => {
-    const violationCount = window.getUserViolationCount(userName);
+    const violationCount = window.getUserActiveViolationCount(userName);
     const blocked = violationCount >= MAX_VIOLATIONS_BEFORE_BLOCKED;
     const stars = Math.max(0, MAX_VIOLATIONS_BEFORE_BLOCKED - violationCount);
     return { stars, violationCount, blocked, maxViolations: MAX_VIOLATIONS_BEFORE_BLOCKED };
 };
 
 window.isUserBlockedFromBooking = (userName) => window.getUserObjectiveRating(userName).blocked;
+
+// ================= 🔥 NOTIFIKASI EMAIL: KENA BLOKIR / DIBUKA BLOKIRNYA =================
+// Dikirim via mailto (dibuka di email client Admin) - pola yang sama seperti notifikasi
+// pelanggaran lain (window.sendViolationEmail / window.sendViolationReminder), supaya
+// isi & pengirimannya tetap bisa dicek/diedit manual oleh Admin sebelum benar-benar terkirim.
+window.sendBlockNotificationEmail = (userName, emailHint = '') => {
+    if (!userName) return;
+
+    let email = (emailHint || '').trim() || findUserEmailByUsername(userName);
+    if (!email) {
+        const input = prompt(`Email "${userName}" belum ditemukan. Masukkan alamat email peminjam:`) || '';
+        email = input.trim();
+        if (!email) return;
+    }
+
+    const ratingInfo = window.getUserObjectiveRating(userName);
+
+    const subject = `⛔ Akun Anda Diblokir dari Sistem Pemesanan Ruangan/Alat Training`;
+    const body =
+`Yth. ${userName},
+
+Kami informasikan bahwa akun Anda saat ini DIBLOKIR dari pengajuan peminjaman ruangan/alat Training baru.
+
+Hal ini terjadi karena tercatat ${ratingInfo.violationCount}x pelanggaran ketentuan peminjaman (batas maksimal ${ratingInfo.maxViolations}x sebelum diblokir), sehingga rating peminjam Anda saat ini 0/${ratingInfo.maxViolations}.
+
+Selama status ini berlaku, Anda tidak dapat mengajukan peminjaman ruangan/alat baru melalui sistem.
+
+Untuk meninjau riwayat pelanggaran atau mengajukan pembukaan blokir, silakan hubungi Admin Training melalui WhatsApp (082116444887).
+
+Terima kasih atas perhatian dan kerjasamanya.
+
+- Admin TrainingHub`;
+
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
+window.sendUnblockNotificationEmail = (userName, emailHint = '') => {
+    if (!userName) return;
+
+    let email = (emailHint || '').trim() || findUserEmailByUsername(userName);
+    if (!email) {
+        const input = prompt(`Email "${userName}" belum ditemukan. Masukkan alamat email peminjam:`) || '';
+        email = input.trim();
+        if (!email) return;
+    }
+
+    const subject = `✅ Blokir Peminjaman Ruangan/Alat Training Anda Sudah Dibuka`;
+    const body =
+`Yth. ${userName},
+
+Kami informasikan bahwa blokir pengajuan peminjaman ruangan/alat Training pada akun Anda telah DIBUKA oleh Admin Training. Anda sudah bisa mengajukan peminjaman baru kembali seperti biasa.
+
+Riwayat pelanggaran Anda sebelumnya tetap tersimpan sebagai arsip. Mohon agar ke depannya ketentuan peminjaman ruangan/alat Training tetap dipatuhi, karena akumulasi pelanggaran baru dapat membuat akun Anda diblokir kembali.
+
+Terima kasih atas perhatian dan kerjasamanya.
+
+- Admin TrainingHub`;
+
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
 
 // Badge kecil "★★★★☆ (Nx pelanggaran)" untuk ditempel di daftar/detail pesanan & pelanggaran
 window.userRatingBadgeHTML = (userName, opts = {}) => {
@@ -11145,6 +11310,8 @@ function renderPelanggaran() {
             : '-';
 
         const repeatCount = window.getUserViolationCount(v.userName);
+        const ratingInfo = window.getUserObjectiveRating ? window.getUserObjectiveRating(v.userName) : null;
+        const isAdmin = currentUser?.role === 'admin';
 
         return `
         <div id="violation-card-${v.id}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm transition-all">
@@ -11167,6 +11334,15 @@ function renderPelanggaran() {
             <p class="text-[11px] text-slate-500 mb-1">📌 Jenis: <span class="font-semibold text-slate-700">${v.type}</span></p>
             <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2 mb-1 italic">${v.description}</p>
             <p class="text-[11px] text-rose-500 bg-rose-50 rounded-lg p-2 mb-3"><b>Konsekuensi:</b> ${v.consequence}</p>
+
+            ${(isAdmin && ratingInfo?.blocked) ? `
+            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p class="text-[11px] text-rose-600 font-bold">⛔ ${v.userName} sedang DIBLOKIR (${ratingInfo.violationCount}/${ratingInfo.maxViolations} pelanggaran aktif)</p>
+                <button onclick="window.guardedClick(this, () => window.unblockUserFromViolations('${v.userName}'))"
+                    class="px-3 py-1.5 text-[10px] font-black bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition flex items-center gap-1">
+                    🔓 Buka Blokir
+                </button>
+            </div>` : ''}
 
             ${v.status === 'Selesai' ? `
             <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 mb-3">
