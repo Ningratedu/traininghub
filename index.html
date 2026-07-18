@@ -293,6 +293,17 @@ body {
     display: none !important;
 }
 
+/* 🔥 Animasi logo zoom out lalu balik normal pas diklik buat "refresh" ke
+   Dashboard, biar user kerasa ada aksi yang kejadian. */
+@keyframes logoZoom {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.8); }
+    100% { transform: scale(1); }
+}
+.logo-spin {
+    animation: logoZoom 2s ease-in-out;
+}
+
 /* 🔥 Field tanggal kustom di filter global: dipendekin biar start-end nempel
    rapi & gak ngelebar di HP (ikon kalender bawaan browser suka makan tempat). */
 #custom-date-container input[type="date"] {
@@ -893,10 +904,10 @@ window.downloadQR = function () {
         <div class="sidebar-header">
             <div class="flex items-center justify-between">
 
-                <button type="button" onclick="showView('dashboard', 'Dashboard')"
+                <button type="button" id="sidebar-logo-btn" onclick="window.goToDashboardHome()"
                     class="flex flex-col items-center gap-1 w-full cursor-pointer hover:opacity-80 active:scale-95 transition"
                     title="Kembali ke Dashboard">
-                    <img 
+                    <img id="sidebar-logo-img"
                         src="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%20May%2027%2C%202026%2C%2012_23_38%20PM%20(1).png" 
                         class="h-10 object-contain pointer-events-none"
                     />
@@ -4080,9 +4091,48 @@ let localState = {
         isOpen ? "1" : "0"
     );
 
+
 };
 
         window.openRegister = () => document.getElementById('modal-register').classList.remove('hide');
+
+        // 🔥 Klik logo sidebar -> balik ke Dashboard + kasih feedback VISUAL yang
+        // jelas kalau ini "refresh" (logo muter + toast + scroll ke atas),
+        // bukan cuma diam-diam re-render tanpa terasa.
+        window.goToDashboardHome = () => {
+            const logoImg = document.getElementById('sidebar-logo-img');
+            if (logoImg) {
+                logoImg.classList.remove('logo-spin');
+                void logoImg.offsetWidth; // restart animasi walau diklik berkali-kali cepat
+                logoImg.classList.add('logo-spin');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            showView('dashboard', 'Dashboard');
+
+            window.showRefreshToast?.('🔄 Dashboard diperbarui');
+        };
+
+        // 🔥 Toast kecil di bawah layar buat feedback aksi ringan (refresh, dsb).
+        window.showRefreshToast = (message) => {
+            let toast = document.getElementById('refresh-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'refresh-toast';
+                toast.className = 'fixed left-1/2 bottom-6 -translate-x-1/2 z-[300] bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-opacity duration-300';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = message;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+
+            clearTimeout(window._refreshToastTimer);
+            window._refreshToastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 1400);
+        };
 
         // 🔥 FILTER GLOBAL: sekarang custom dropdown (bukan <select> bawaan) yang
         // melayang "absolute" di atas konten, jadi buka/tutup atau ganti ke mode
