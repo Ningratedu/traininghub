@@ -6938,15 +6938,15 @@ const listenToData = () => {
                     "${b.goal || '-'}"
                 </p>
 
+                <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+                    <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${b.userName || '-'} (${b.dept || '-'})</span>
+                </p>
+
                 ${roomName ? `
                 <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
                     <i class="fas fa-building w-3.5 text-center shrink-0"></i><span class="truncate">${roomName}</span>
                 </p>
                 ` : ``}
-
-                <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
-                    <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${b.userName || '-'} (${b.dept || '-'})</span>
-                </p>
 
                 ${toolsGridHTML ? `
                 <div class="mt-0.5">
@@ -8804,15 +8804,15 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
             "${b.goal}"
         </p>
 
+        <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+            <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</span>
+        </p>
+
         ${b.type === 'room' ? `
         <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
             <i class="fas fa-building w-3.5 text-center shrink-0"></i><span class="truncate">${roomName}</span>
         </p>
         ` : ``}
-
-        <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
-            <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${(b.name || b.userName || '-')} (${(b.department || b.dept || '-')})</span>
-        </p>
 
         ${(b.tools && b.tools.length > 0) ? `
         <div class="mt-0.5">
