@@ -2134,11 +2134,25 @@ window.downloadQR = function () {
     class="w-full md:w-1/3 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm"
 />
 
-        <button 
-            onclick="exportAllBookingsExcel()" 
-            class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold">
-            Download Excel
-        </button>
+        <div class="flex items-center gap-3">
+
+            <!-- 🔥 Toggle: gabung pesanan multi-hari jadi 1 baris (rentang tanggal),
+                 atau tetap tampil per-hari (1 baris per tanggal, buat rekap/audit detail).
+                 Export Excel otomatis ngikutin mode ini juga. -->
+            <label class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 cursor-pointer select-none">
+                <input type="checkbox" id="all-bookings-group-toggle"
+                    onchange="window.allBookingsGroupMode = this.checked; window.saveAllBookingsGroupPref?.(); renderAllBookings();"
+                    class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                🔗 Gabung Multi-Hari
+            </label>
+
+            <button 
+                onclick="exportAllBookingsExcel()" 
+                class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+                Download Excel
+            </button>
+
+        </div>
 
     </div>
 
@@ -7315,19 +7329,17 @@ function getUsageStatus(b){
     };
 }
 
-window.renderAllBookings = function() {
-
+// 🔥 Data mentah "Semua Pesanan" (sesuai filter tanggal global + pencarian),
+// dipakai bareng oleh tampilan tabel & export Excel supaya selalu sinkron.
+window.getAllBookingsFilteredData = () => {
     let data = getFilteredBookings();
 
-    // ================= SEARCH =================
     const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
 
-    if(keyword){
+    if (keyword) {
         data = data.filter(b => {
-
             const room = localState.rooms.find(r => r.id == b.roomId);
             const roomName = room ? room.name : '';
-
             const tools = (b.tools || []).map(t => t.name).join(', ');
 
             return (
@@ -7340,29 +7352,101 @@ window.renderAllBookings = function() {
         });
     }
 
+    return data;
+};
+
+// 🔥 Simpan preferensi toggle "Gabung Multi-Hari" biar gak balik ke default
+// tiap kali pindah halaman/reload.
+window.saveAllBookingsGroupPref = () => {
+    try { localStorage.setItem('allBookingsGroupMode', window.allBookingsGroupMode ? '1' : '0'); } catch (e) {}
+};
+
+// 🔥 Baris final "Semua Pesanan" — hasil gabungan (kalau toggle ON, pesanan
+// multi-hari yang groupId+status-nya sama digabung jadi 1 baris rentang
+// tanggal) atau apa adanya per-dokumen (toggle OFF, 1 baris = 1 hari).
+// Fungsi INI yang dipakai render tabel MAUPUN export Excel, supaya kolom
+// yang kedownload selalu identik sama yang kelihatan di layar.
+window.buildAllBookingsRows = () => {
+    const data = window.getAllBookingsFilteredData();
+    const groupMode = !!window.allBookingsGroupMode;
+
+    let units = groupMode
+        ? window.groupBookingsForCards(data)
+        : data.map(b => ({ items: [b], first: b, last: b, isMultiDay: false }));
+
     // ================= SORT =================
-    if(sortField){
-        data.sort((a,b)=>{
-            let v1 = a[sortField] || '';
-            let v2 = b[sortField] || '';
-            return sortAsc 
-                ? v1.toString().localeCompare(v2.toString()) 
+    if (sortField) {
+        units.sort((a, c) => {
+            let v1 = a.first[sortField] || '';
+            let v2 = c.first[sortField] || '';
+            return sortAsc
+                ? v1.toString().localeCompare(v2.toString())
                 : v2.toString().localeCompare(v1.toString());
         });
     } else {
-        // 🔥 DEFAULT SORT
-        data.sort((a, b) => {
-            const aTime = new Date(`${a.date} ${a.start}`);
-            const bTime = new Date(`${b.date} ${b.start}`);
-            return aTime - bTime;
-        });
+        units.sort((a, c) => new Date(`${a.first.date} ${a.first.start}`) - new Date(`${c.first.date} ${c.first.start}`));
     }
+
+    return units.map((u, index) => {
+        const { items, first, last, isMultiDay } = u;
+
+        const room = localState.rooms.find(r => r.id == first.roomId);
+        const roomName = room ? room.name : (first.roomName || '-');
+        const roomImage = room?.image || '';
+
+        const toolsWithImage = (first.tools || []).map(t => {
+            const masterTool = localState.tools.find(x => x.id == t.id);
+            return { ...t, image: t.image || masterTool?.image || '' };
+        });
+
+        // 🔥 Status pasti sama untuk semua item dalam 1 grup (groupBookingsForCards
+        // ikut mengunci status jadi bagian key pengelompokan).
+        const ket = getUsageStatus(last);
+
+        const anyViolation = (typeof window.getBookingViolations === 'function')
+            ? items.some(it => window.getBookingViolations(it.id).length > 0)
+            : false;
+
+        return {
+            no: index + 1,
+            ids: items.map(x => x.id),
+            dateLabel: isMultiDay ? `${first.date} → ${last.date}` : first.date,
+            dayCount: items.length,
+            isMultiDay,
+            timeLabel: `${first.start} - ${last.end}`,
+            userName: first.userName || '-',
+            dept: first.dept || '-',
+            goal: first.goal || '-',
+            roomName,
+            roomImage,
+            tools: toolsWithImage,
+            mulai: first.startedAt ? formatTime(first.startedAt) : '-',
+            selesai: last.finishedAt ? formatTime(last.finishedAt) : '-',
+            fotoAwal: first.startPhoto,
+            fotoAkhir: last.finishPhoto,
+            ketText: ket.text,
+            ketClass: ket.class,
+            status: last.status || '-',
+            anyViolation,
+            violationTargetId: last.id,
+            violationEligible: ['Approved', 'Ongoing', 'Completed'].includes(last.status)
+        };
+    });
+};
+
+window.renderAllBookings = function() {
+
+    // 🔥 Sinkronkan posisi toggle sama state-nya (misal abis reload halaman)
+    const groupToggle = document.getElementById('all-bookings-group-toggle');
+    if (groupToggle) groupToggle.checked = !!window.allBookingsGroupMode;
+
+    const rows = window.buildAllBookingsRows();
 
     const tbody = document.getElementById('all-bookings-body');
 
     if(!tbody) return;
 
-    if(data.length === 0){
+    if(rows.length === 0){
         tbody.innerHTML = `
             <tr>
                 <td colspan="14" class="text-center py-6 text-slate-400">
@@ -7372,64 +7456,48 @@ window.renderAllBookings = function() {
         return;
     }
 
-    tbody.innerHTML = data.map((b, index) => {
-
-        const room = localState.rooms.find(r => r.id == b.roomId);
-        const roomName = room ? room.name : '-';
-		const roomImage =
-    room?.image || '';
-
-		const toolsWithImage = (b.tools || []).map(t => {
-
-    const masterTool =
-        localState.tools.find(x => x.id == t.id);
-
-    return {
-        ...t,
-        image:
-    t.image ||
-    masterTool?.image ||
-    ''
-    };
-
-});
-        const tools = (b.tools || []).map(t => t.name).join(', ') || '-';
-
-        const ket = getUsageStatus(b);
+    tbody.innerHTML = rows.map(r => {
 
         return `
         <tr class="hover:bg-slate-50">
 
             <!-- NO -->
             <td class="px-3 py-2 text-center font-bold">
-                ${index + 1}
+                ${r.no}
             </td>
-
-            <td class="px-3 py-2">${b.date}</td>
-
-            <td class="px-3 py-2">${b.start} - ${b.end}</td>
 
             <td class="px-3 py-2">
-                ${b.userName}
-                ${window.userRatingBadgeHTML ? window.userRatingBadgeHTML(b.userName) : ''}
+                ${r.dateLabel}
+                ${r.isMultiDay ? `
+                <span class="ml-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 whitespace-nowrap">
+                    <i class="fas fa-calendar-week mr-0.5"></i>${r.dayCount} Hari
+                </span>
+                ` : ``}
             </td>
 
-            <td class="px-3 py-2">${b.dept}</td>
+            <td class="px-3 py-2">${r.timeLabel}</td>
 
-            <td class="px-3 py-2 font-bold italic text-slate-800">${b.goal || '-'}</td>
+            <td class="px-3 py-2">
+                ${r.userName}
+                ${window.userRatingBadgeHTML ? window.userRatingBadgeHTML(r.userName) : ''}
+            </td>
+
+            <td class="px-3 py-2">${r.dept}</td>
+
+            <td class="px-3 py-2 font-bold italic text-slate-800">${r.goal}</td>
 
             <td class="px-3 py-2">
 
     <div class="flex items-center gap-2">
 
         <img
-            src="${roomImage}"
-            onclick="event.stopPropagation(); window.openImageLightbox('${roomImage || ''}', decodeURIComponent('${encodeURIComponent(roomName || '')}'))"
+            src="${r.roomImage}"
+            onclick="event.stopPropagation(); window.openImageLightbox('${r.roomImage || ''}', decodeURIComponent('${encodeURIComponent(r.roomName || '')}'))"
             class="w-10 h-10 rounded object-cover border cursor-zoom-in hover:opacity-80 transition"
         >
 
         <span>
-            ${roomName}
+            ${r.roomName}
         </span>
 
     </div>
@@ -7440,7 +7508,7 @@ window.renderAllBookings = function() {
 
 <div class="flex flex-col gap-1">
 
-${toolsWithImage.map(t => `
+${r.tools.map(t => `
 <div class="flex items-center gap-2">
 
     <img
@@ -7461,47 +7529,52 @@ ${toolsWithImage.map(t => `
 </td>
 
             <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
-                ${b.startedAt ? formatTime(b.startedAt) : '-'}
+                ${r.mulai}
             </td>
 
             <td class="px-3 py-2 text-xs text-center font-semibold text-slate-700">
-                ${b.finishedAt ? formatTime(b.finishedAt) : '-'}
+                ${r.selesai}
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.startPhoto && b.startPhoto !== 'AUTO_ADMIN'
-                    ? `<a href="${b.startPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-                    : (b.startPhoto === 'AUTO_ADMIN' ? '<span class="text-slate-400 italic">Auto Admin</span>' : '-')}
+                ${r.fotoAwal && r.fotoAwal !== 'AUTO_ADMIN'
+                    ? `<a href="${r.fotoAwal}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+                    : (r.fotoAwal === 'AUTO_ADMIN' ? '<span class="text-slate-400 italic">Auto Admin</span>' : '-')}
             </td>
 
             <td class="px-3 py-2 text-center">
-                ${b.finishPhoto && b.finishPhoto !== 'AUTO_ADMIN'
-                    ? `<a href="${b.finishPhoto}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
-                    : (b.finishPhoto === 'AUTO_ADMIN' ? '<span class="text-slate-400 italic">Auto Admin</span>' : '-')}
+                ${r.fotoAkhir && r.fotoAkhir !== 'AUTO_ADMIN'
+                    ? `<a href="${r.fotoAkhir}" target="_blank" class="text-blue-500 underline">Lihat</a>` 
+                    : (r.fotoAkhir === 'AUTO_ADMIN' ? '<span class="text-slate-400 italic">Auto Admin</span>' : '-')}
             </td>
 
             <!-- 🔥 KETERANGAN BERWARNA -->
             <td class="px-3 py-2 text-center">
-                <span class="px-2 py-1 rounded text-xs font-bold ${ket.class}">
-                    ${ket.text}
+                <span class="px-2 py-1 rounded text-xs font-bold ${r.ketClass}">
+                    ${r.ketText}
                 </span>
             </td>
 
             <td class="px-3 py-2 text-center font-bold">
-                ${b.status}
+                ${r.status}
             </td>
 
             <td class="px-3 py-2 text-center">
                 ${window.violationActionCellHTML(
-                    b.id,
-                    ['Approved', 'Ongoing', 'Completed'].includes(b.status)
+                    r.violationTargetId,
+                    r.violationEligible
                 )}
+                ${(r.isMultiDay && r.anyViolation) ? `
+                <span class="block mt-1 text-[9px] font-black text-rose-600">⚠ Ada di salah satu hari</span>
+                ` : ``}
             </td>
 
         </tr>
         `;
     }).join('');
 }
+
+
 
 		// 🔥 TAMPILKAN MODAL RIWAYAT RUANGAN / ALAT
 window.showAssetBookings = (id, type, name) => {
@@ -7624,54 +7697,29 @@ window.exportAllBookingsExcel = async () => {
         }
     }
 
-    let data = getFilteredBookings();
+    // 🔥 Pakai data yang SAMA PERSIS kayak yang lagi ditampilkan di tabel
+    // (ikut pencarian yang lagi diketik & mode "Gabung Multi-Hari" yang aktif),
+    // supaya file yang kedownload gak pernah beda sama yang kelihatan di layar.
+    const tableRows = window.buildAllBookingsRows();
 
-    const keyword = document.getElementById('search-all-bookings')?.value?.toLowerCase() || '';
+    const rows = tableRows.map(r => ({
+        No: r.no,
+        Tanggal: r.dateLabel + (r.isMultiDay ? ` (${r.dayCount} hari)` : ''),
+        Waktu: r.timeLabel,
+        Nama: r.userName,
+        Departemen: r.dept,
+        Agenda: r.goal,
+        Ruangan: r.roomName,
+        Alat: r.tools.map(t => t.name).join(', ') || '-',
+        Mulai: r.mulai,
+        Selesai: r.selesai,
+        "Foto Awal": r.fotoAwal && r.fotoAwal !== 'AUTO_ADMIN' ? r.fotoAwal : (r.fotoAwal === 'AUTO_ADMIN' ? 'Auto Admin' : '-'),
+        "Foto Akhir": r.fotoAkhir && r.fotoAkhir !== 'AUTO_ADMIN' ? r.fotoAkhir : (r.fotoAkhir === 'AUTO_ADMIN' ? 'Auto Admin' : '-'),
+        Keterangan: r.ketText,
+        Status: r.status,
+        Pelanggaran: r.anyViolation ? 'Ada' : '-'
+    }));
 
-    if(keyword){
-        data = data.filter(b => {
-
-            const room = localState.rooms.find(r => r.id == b.roomId);
-            const roomName = room ? room.name : '';
-
-            const tools = (b.tools || []).map(t => t.name).join(', ');
-
-            return (
-                (b.userName || '').toLowerCase().includes(keyword) ||
-                (b.dept || '').toLowerCase().includes(keyword) ||
-                (roomName || '').toLowerCase().includes(keyword) ||
-                (tools || '').toLowerCase().includes(keyword)
-            );
-        });
-    }
-
-    const rows = data.map((b, index) => {
-
-    const room = localState.rooms.find(r => r.id == b.roomId);
-    const ket = getUsageStatus(b);
-
-    return {
-        No: index + 1,
-        Tanggal: b.date,
-        Periode: (b.dayCount > 1 && b.dateRangeText) ? `${b.dateRangeText} (${b.dayCount} hari)` : '-',
-        Waktu: `${b.start} - ${b.end}`,
-        Nama: b.userName || '-',
-        Departemen: b.dept || b.department || '-',
-        Email: b.email || b.userEmail || b.mail || '-',
-        Agenda: b.goal || b.goals || b.agenda || b.purpose || '-',
-        Ruangan: room ? room.name : (b.roomName || '-'),
-        Alat: (b.tools || []).map(t => t.name).join(', ') || '-',
-        Mulai: b.startedAt ? formatTime(b.startedAt) : '-',
-        Selesai: b.finishedAt ? formatTime(b.finishedAt) : '-',
-        Keterangan: ket.text,
-        Status: b.status || '-',
-        "Catatan User": b.notes || '-',
-        "Catatan Admin": b.adminNote || '-',
-        "Foto Mulai": b.startPhoto && b.startPhoto !== 'AUTO_ADMIN' ? b.startPhoto : '-',
-        "Foto Selesai": b.finishPhoto && b.finishPhoto !== 'AUTO_ADMIN' ? b.finishPhoto : '-',
-        "Dibuat Pada": b.createdAt ? formatTime(b.createdAt) : '-'
-    };
-});
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
 
@@ -7680,6 +7728,14 @@ window.exportAllBookingsExcel = async () => {
     XLSX.writeFile(workbook, "semua_pesanan.xlsx");
 };
 		let searchTimeout;
+
+// 🔥 Default mode toggle "Gabung Multi-Hari" - ambil dari preferensi
+// terakhir yang disimpan (biar gak balik ke default tiap reload).
+try {
+    window.allBookingsGroupMode = localStorage.getItem('allBookingsGroupMode') === '1';
+} catch (e) {
+    window.allBookingsGroupMode = false;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -7695,6 +7751,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 200); // delay 200ms
         });
     }
+
+    const groupToggle = document.getElementById('all-bookings-group-toggle');
+    if (groupToggle) groupToggle.checked = !!window.allBookingsGroupMode;
 
 });
         window.deleteBooking = async (id) => {
