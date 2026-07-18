@@ -4433,7 +4433,7 @@ window.showStatTable = (category) => {
     if (list.length === 0) {
         body.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</div>`;
     } else {
-        body.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
+        body.innerHTML = window.groupBookingsForCards(list).map(g => window.assetBookingCardHTML(g.first, g)).join('');
     }
     document.getElementById('modal-stat-table').classList.remove('hide');
 };
@@ -4475,7 +4475,7 @@ window.showMyStatTable = (category) => {
     if (list.length === 0) {
         body.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-slate-400 italic">Tidak ada data ditemukan</div>`;
     } else {
-        body.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
+        body.innerHTML = window.groupBookingsForCards(list).map(g => window.assetBookingCardHTML(g.first, g)).join('');
     }
     document.getElementById('modal-stat-table').classList.remove('hide');
 };
@@ -4967,10 +4967,8 @@ window.showRoomHistory = (roomId, roomName) => {
     } else {
 
         container.innerHTML =
-            filtered
-            .slice()
-            .reverse()
-            .map(b => window.assetBookingCardHTML(b))
+            window.groupBookingsForCards(filtered.slice().reverse())
+            .map(g => window.assetBookingCardHTML(g.first, g))
             .join('');
 
     }
@@ -4995,7 +4993,7 @@ window.showRoomHistory = (roomId, roomName) => {
             </div>
         `;
     } else {
-        container.innerHTML = filtered.slice().reverse().map(b => window.assetBookingCardHTML(b)).join('');
+        container.innerHTML = window.groupBookingsForCards(filtered.slice().reverse()).map(g => window.assetBookingCardHTML(g.first, g)).join('');
     }
 
     document.getElementById('modal-room-history').classList.remove('hide');
@@ -6819,11 +6817,10 @@ const listenToData = () => {
         // "Pesanan Peralatan" (b.type === 'tool' / hanya alat, tanpa ruangan).
         window.bookingTypeLabelHTML = (b) => {
             const isRoom = b.type === 'room';
-            const roomName = (isRoom && b.roomId) ? (localState.rooms.find(r => String(r.id) === String(b.roomId))?.name || '') : '';
             return `
             <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full self-start
                 ${isRoom ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}">
-                <i class="fas ${isRoom ? 'fa-building' : 'fa-toolbox'} mr-1"></i>${isRoom ? 'Pesanan Ruangan' : 'Pesanan Peralatan'}${roomName ? ` - ${roomName}` : ''}
+                <i class="fas ${isRoom ? 'fa-building' : 'fa-toolbox'} mr-1"></i>${isRoom ? 'Pesanan Ruangan' : 'Pesanan Peralatan'}
             </span>`;
         };
 
@@ -6854,10 +6851,18 @@ const listenToData = () => {
         // 🔥 KARTU RIWAYAT/PESANAN 1 ASET — gaya SAMA PERSIS dengan kartu "Kalender",
         // dipakai bareng oleh SEMUA popup riwayat aset (Total Ruangan, Total Alat,
         // popup dari card ruangan/alat di dashboard user/admin), biar konsisten.
-        window.assetBookingCardHTML = (b) => {
+        window.assetBookingCardHTML = (b, group) => {
           try {
 
             b = b || {};
+            // 🔥 Kalau dikasih `group` (hasil window.groupBookingsForCards), pesanan
+            // multi-hari dirender jadi SATU kartu (pakai rentang first->last),
+            // bukan dipecah 1 kartu per hari. Kalau gak dikasih group, tetap
+            // jalan seperti biasa (1 hari = 1 kartu), gak ngerusak pemanggil lama.
+            const items = (group && group.items && group.items.length > 0) ? group.items : [b];
+            const isMultiDay = items.length > 1;
+            const first = (group && group.first) ? group.first : b;
+            const last = (group && group.last) ? group.last : b;
 
             const statusColor =
                 b.status === 'Pending' ? 'bg-amber-400 text-amber-900' :
@@ -6881,12 +6886,17 @@ const listenToData = () => {
             // Kalau salah satu belum ke-load, jangan biarkan kartu collapse diam-diam —
             // tampilkan placeholder yang jelas + log error ke console.
             const dateTimeHTML = (typeof window.bookingDateTimeBlockHTML === 'function')
-                ? window.bookingDateTimeBlockHTML({ date: b.date, start: b.start, end: b.end }, null, false)
+                ? window.bookingDateTimeBlockHTML({ date: first.date, start: first.start, end: first.end }, isMultiDay ? { date: last.date, start: last.start, end: last.end } : null, isMultiDay)
                 : `<p class="text-[10px] text-rose-500 font-bold">⚠ bookingDateTimeBlockHTML belum siap</p>`;
 
             const typeLabelHTML = (typeof window.bookingTypeLabelHTML === 'function')
                 ? window.bookingTypeLabelHTML(b)
                 : `<p class="text-[10px] text-rose-500 font-bold">⚠ bookingTypeLabelHTML belum siap</p>`;
+
+            const multiDayBadgeHTML = isMultiDay ? `
+                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
+                    <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+                </span>` : '';
 
             const toolsGridHTML = (b.tools && b.tools.length > 0)
                 ? (typeof window.bookingToolsGridHTML === 'function' ? window.bookingToolsGridHTML(b.tools) : `<p class="text-[10px] text-rose-500 font-bold">⚠ bookingToolsGridHTML belum siap</p>`)
@@ -6900,6 +6910,10 @@ const listenToData = () => {
                 <span class="self-start mt-1 text-[9px] font-black px-2 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200 whitespace-nowrap">
                     ⚠ Ada Pelanggaran / ${latestViolation.status}
                 </span>` : '';
+
+            const roomName = (b.type === 'room' && b.roomId)
+                ? (localState.rooms.find(r => String(r.id) === String(b.roomId))?.name || '')
+                : '';
 
             return `
             <div class="relative bg-white p-3 rounded-2xl border border-l-4 border-indigo-500 flex flex-col gap-1 overflow-visible min-h-[150px] h-full snap-start">
@@ -6915,12 +6929,20 @@ const listenToData = () => {
                 </div>
 
                 <div class="flex flex-wrap items-center justify-center gap-1">
-                    ${typeLabelHTML}
+                    <span class="inline-flex items-center gap-1 flex-nowrap">
+                        ${typeLabelHTML}${multiDayBadgeHTML}
+                    </span>
                 </div>
 
                 <p class="font-bold italic text-xs text-slate-800 leading-snug mt-3">
                     "${b.goal || '-'}"
                 </p>
+
+                ${roomName ? `
+                <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
+                    <i class="fas fa-building w-3.5 text-center shrink-0"></i><span class="truncate">${roomName}</span>
+                </p>
+                ` : ``}
 
                 <p class="text-xs text-slate-500 truncate flex items-center gap-1.5">
                     <i class="fas fa-user w-3.5 text-center shrink-0"></i><span class="truncate">${b.userName || '-'} (${b.dept || '-'})</span>
@@ -7051,12 +7073,14 @@ const listenToData = () => {
         ${window.bookingDateTimeBlockHTML(first, last, isMultiDay)}
 
         <div class="flex flex-wrap items-center justify-center gap-1">
-            ${window.bookingTypeLabelHTML(b)}
-            ${isMultiDay ? `
-            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
-                <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+            <span class="inline-flex items-center gap-1 flex-nowrap">
+                ${window.bookingTypeLabelHTML(b)}
+                ${isMultiDay ? `
+                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
+                    <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+                </span>
+                ` : ``}
             </span>
-            ` : ``}
         </div>
 
         <p class="font-bold italic text-xs text-slate-800 leading-snug mt-3">
@@ -7565,7 +7589,7 @@ window.showAssetBookings = (id, type, name) => {
 
     } else {
 
-        cardsEl.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
+        cardsEl.innerHTML = window.groupBookingsForCards(list).map(g => window.assetBookingCardHTML(g.first, g)).join('');
 
     }
 
@@ -8762,12 +8786,14 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
         ${window.bookingDateTimeBlockHTML(first, last, isMultiDay)}
 
         <div class="flex flex-wrap items-center justify-center gap-1">
-            ${window.bookingTypeLabelHTML(b)}
-            ${isMultiDay ? `
-            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
-                <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+            <span class="inline-flex items-center gap-1 flex-nowrap">
+                ${window.bookingTypeLabelHTML(b)}
+                ${isMultiDay ? `
+                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
+                    <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+                </span>
+                ` : ``}
             </span>
-            ` : ``}
         </div>
 
         <p class="font-bold italic text-xs text-slate-800 leading-snug mt-3">
@@ -11803,7 +11829,7 @@ window.showAssetBookings = (id, type, name) => {
 
     } else {
 
-        cardsEl.innerHTML = list.map(b => window.assetBookingCardHTML(b)).join('');
+        cardsEl.innerHTML = window.groupBookingsForCards(list).map(g => window.assetBookingCardHTML(g.first, g)).join('');
 
     }
 
