@@ -4026,13 +4026,11 @@ const appId = "booking-ruang-training";
 		return va.localeCompare(vb, 'id');
 	}
 
-	// 🔥 Tempel nomor baris (_no) berdasarkan urutan A-Z baseline (field `baseKey`),
-	// SEBELUM sorting tampilan diterapkan. Jadi nomor tetap ngurut A-Z apapun sort aktifnya.
-	function assignBaseRowNumbers(rows, baseKey) {
-		const baseSorted = [...rows].sort((a, b) => compareRows(a, b, baseKey, 'text'));
-		const noMap = new Map();
-		baseSorted.forEach((row, idx) => noMap.set(row, idx + 1));
-		rows.forEach(row => { row._no = noMap.get(row); });
+	// 🔥 Nomor baris (No) SELALU urut 1..N ngikutin urutan tampilan SAAT ITU.
+	// Jadi begitu tabel di-sort kolom lain, nomornya ikut nge-refresh urut dari 1 lagi
+	// (nomor gak "nempel" ke baris/data tertentu).
+	function numberRows(rows) {
+		rows.forEach((row, idx) => { row._no = idx + 1; });
 		return rows;
 	}
 
@@ -4132,13 +4130,13 @@ const appId = "booking-ruang-training";
 		});
 		let perAccountList = Object.values(perAccountMap);
 
-		// 🔥 Nomor baris (No) SELALU ngikutin urutan A-Z Username, gak peduli kolom apa yang lagi di-sort.
-		assignBaseRowNumbers(perAccountList, 'username');
-
 		// urutan tampilan: default rame-dulu (count desc), kecuali user klik header buat sort lain
 		perAccountList = visitorPerAccountSort.col
 			? applySortState(perAccountList, visitorPerAccountSort, { count: 'number', lastVisit: 'number' })
 			: perAccountList.sort((a, b) => b.count - a.count);
+
+		// 🔥 Nomor baris (No) urut 1..N ngikutin urutan tampilan SAAT INI (bukan nempel ke baris).
+		numberRows(perAccountList);
 
 		if (perAccountHead) {
 			perAccountHead.innerHTML = `
@@ -4240,14 +4238,9 @@ const appId = "booking-ruang-training";
 			});
 		}
 
-		// 🔥 Nomor baris (No) rincian kunjungan: SELALU ngikutin urutan A-Z Username.
-		const filteredForNo = filtered.map(v => ({ ...v })); // salinan biar aman ditempeli _no
-		assignBaseRowNumbers(filteredForNo, 'username');
-
-		let detailRows = filteredForNo.map(v => {
+		let detailRows = filtered.map(v => {
 			const d = v.timestamp?.seconds ? new Date(v.timestamp.seconds * 1000) : null;
 			return {
-				_no: v._no,
 				username: v.username || '-',
 				role: v.superAdmin ? 'Super Admin' : (v.role === 'admin' ? 'Admin' : 'User'),
 				dept: v.dept || '-',
@@ -4258,6 +4251,9 @@ const appId = "booking-ruang-training";
 		});
 
 		detailRows = applySortState(detailRows, visitorDetailSort, { ts: 'number' });
+
+		// 🔥 Nomor baris (No) urut 1..N ngikutin urutan tampilan SAAT INI (bukan nempel ke baris).
+		numberRows(detailRows);
 
 		if (head) {
 			head.innerHTML = `
@@ -4310,13 +4306,13 @@ const appId = "booking-ruang-training";
 
 		if (totalEl) totalEl.innerText = users.length;
 
-		// 🔥 Nomor baris (No) SELALU ngikutin urutan A-Z Username, gak peduli kolom apa yang lagi di-sort.
-		assignBaseRowNumbers(users, 'username');
-
 		// urutan tampilan: default A-Z username, kecuali user klik header buat sort lain
 		users = manageAccountsSort.col
 			? applySortState(users, manageAccountsSort, {})
 			: users.sort((a, b) => (a.username || '').localeCompare(b.username || '', 'id'));
+
+		// 🔥 Nomor baris (No) urut 1..N ngikutin urutan tampilan SAAT INI (bukan nempel ke baris).
+		numberRows(users);
 
 		if (head) {
 			head.innerHTML = `
