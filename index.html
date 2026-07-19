@@ -1062,8 +1062,9 @@ window.downloadQR = function () {
                         <i class="fas fa-user-shield w-5"></i> <span class="nav-label">Kelola Akun</span>
                     </button>
 
-                    <button onclick="window.openAdSettings()"
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left">
+                    <button onclick="window.showView('ad-settings', 'Iklan / Banner')"
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left"
+                        data-view="ad-settings">
                         <i class="fas fa-ad w-5"></i> <span class="nav-label">Iklan / Banner</span>
                     </button>
                 </div>
@@ -2529,6 +2530,264 @@ window.downloadQR = function () {
     </div>
 
 </div>
+
+<!-- ================= 🔥 VIEW: KELOLA IKLAN / BANNER (SUPER ADMIN) ================= -->
+<div id="view-ad-settings" class="view hide">
+
+    <!-- ================= 🔥 PANEL 1: REKAP IKLAN (DEFAULT) ================= -->
+    <div id="ad-recap-panel">
+
+        <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
+            <h4 class="font-bold flex items-center gap-2 text-base">
+                <i class="fas fa-rectangle-ad text-indigo-500"></i>
+                Rekap Iklan / Banner
+            </h4>
+            <button onclick="window.openAdForm(null)"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
+                <i class="fas fa-plus mr-1"></i> Iklan Baru
+            </button>
+        </div>
+
+        <p class="text-[11px] text-slate-400 mb-5 leading-relaxed max-w-2xl">
+            <i class="fas fa-circle-info mr-1"></i>Semua identitas iklan yang pernah dibuat tercatat di sini. Mengganti/edit gambar banner pada iklan yang sama <b>tidak</b> membuat catatan baru — tetap dihitung 1 identitas iklan. Hanya boleh 1 iklan yang berstatus "Tayang" ke user di waktu bersamaan.
+        </p>
+
+        <div id="ad-recap-loading" class="text-center py-14 text-slate-400 text-xs font-bold">
+            <i class="fas fa-circle-notch fa-spin mr-1"></i> Memuat rekap iklan...
+        </div>
+
+        <div id="ad-recap-list" class="hide grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+        <div id="ad-recap-empty" class="hide text-center py-16 text-slate-400">
+            <i class="fas fa-rectangle-ad text-4xl mb-3"></i>
+            <p class="text-sm font-bold">Belum ada iklan yang dibuat</p>
+            <p class="text-xs mt-1">Klik "Iklan Baru" untuk membuat identitas iklan pertama.</p>
+        </div>
+
+    </div>
+
+    <!-- ================= 🔥 PANEL 2: FORM BUAT/EDIT IDENTITAS IKLAN ================= -->
+    <div id="ad-form-panel" class="hide">
+
+        <button onclick="window.closeAdForm()"
+            class="mb-4 text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1.5 transition">
+            <i class="fas fa-arrow-left"></i> Kembali ke Rekap Iklan
+        </button>
+
+        <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+            <!-- ================= FORM PENGATURAN ================= -->
+            <div class="w-full lg:flex-1 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5 order-2 lg:order-1">
+
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <h4 id="ad-form-title" class="font-bold flex items-center gap-2">
+                        <i class="fas fa-ad text-indigo-500"></i>
+                        Buat Iklan Baru
+                    </h4>
+                    <p class="text-[10px] text-slate-400">
+                        <i class="fas fa-circle-info mr-1"></i>Perubahan langsung kelihatan di panel Pratinjau
+                    </p>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Nama / Identitas Iklan <span class="text-rose-500">*wajib</span></label>
+                    <input id="ad-name" type="text" placeholder="Contoh: Promo Lebaran 2026"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                    <p class="text-[10px] text-slate-400 mt-1">Cuma penanda internal buat rekap, tidak tampil ke user. Mengganti gambar banner nanti tetap 1 identitas yang sama.</p>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-50 rounded-xl p-3">
+                    <div>
+                        <p class="text-sm font-bold text-slate-700">Tayangkan Iklan Ini</p>
+                        <p class="text-[10px] text-slate-400">Kalau diaktifkan, iklan lain otomatis nonaktif (cuma 1 yang tayang)</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="ad-enabled-toggle" class="sr-only peer" onchange="window.refreshAdPreviewStatus()">
+                        <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-600 transition-all relative
+                            after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                    </label>
+                </div>
+
+                <!-- MOBILE IMAGE -->
+                <div class="border border-slate-200 rounded-2xl p-4 space-y-3 bg-slate-50/50">
+                    <p class="text-xs font-black text-slate-600 flex items-center gap-1.5">
+                        <i class="fas fa-mobile-screen text-indigo-500"></i> Gambar Versi HP (Mobile) <span class="text-rose-500">*wajib</span>
+                    </p>
+
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">URL Gambar</label>
+                        <input id="ad-image-url-mobile" type="text" placeholder="https://... link gambar iklan (HP)"
+                            oninput="window.previewAdImageFromUrl('mobile', this.value)"
+                            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Atau</span>
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Upload dari Perangkat</label>
+                        <input id="ad-image-file-mobile" type="file" accept="image/*"
+                            onchange="window.previewAdImageFromFile('mobile', this.files && this.files[0])"
+                            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100">
+                        <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                            <div id="ad-image-upload-progress-mobile" class="bg-indigo-500 h-1.5 w-0 transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DESKTOP IMAGE -->
+                <div class="border border-slate-200 rounded-2xl p-4 space-y-3 bg-slate-50/50">
+                    <p class="text-xs font-black text-slate-600 flex items-center gap-1.5">
+                        <i class="fas fa-display text-indigo-500"></i> Gambar Versi Laptop (Desktop) <span class="text-rose-500">*wajib</span>
+                    </p>
+                    <p class="text-[10px] text-slate-400 -mt-1">Disarankan gambar landscape lebar (rasio panjang, kira-kira 3x lebih lebar dari versi HP).</p>
+
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">URL Gambar</label>
+                        <input id="ad-image-url-desktop" type="text" placeholder="https://... link gambar iklan (Laptop)"
+                            oninput="window.previewAdImageFromUrl('desktop', this.value)"
+                            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Atau</span>
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Upload dari Perangkat</label>
+                        <input id="ad-image-file-desktop" type="file" accept="image/*"
+                            onchange="window.previewAdImageFromFile('desktop', this.files && this.files[0])"
+                            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100">
+                        <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                            <div id="ad-image-upload-progress-desktop" class="bg-indigo-500 h-1.5 w-0 transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Link Tujuan (dibuka saat gambar diklik)</label>
+                    <input id="ad-link-url" type="text" placeholder="https://contoh-tujuan-iklan.com"
+                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
+                </div>
+
+                <button id="btn-save-ad-settings" onclick="window.saveAdSettings()"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold text-sm transition">
+                    <i class="fas fa-floppy-disk mr-1"></i> Simpan Iklan
+                </button>
+
+            </div>
+
+            <!-- ================= PANEL PRATINJAU (LIVE, SESUAI SPACE ASLI DI WEB) ================= -->
+            <div class="w-full lg:w-[380px] lg:sticky lg:top-4 order-1 lg:order-2 space-y-4">
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-sm flex items-center gap-2">
+                            <i class="fas fa-eye text-indigo-500"></i> Pratinjau di Web
+                        </h4>
+                        <span id="ad-preview-status-badge" class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-500">
+                            Nonaktif
+                        </span>
+                    </div>
+
+                    <!-- FRAME HP -->
+                    <p class="text-[10px] font-bold uppercase text-slate-400 mb-1.5 flex items-center gap-1">
+                        <i class="fas fa-mobile-screen"></i> Tampilan HP
+                    </p>
+                    <div class="mx-auto w-[220px] bg-slate-800 rounded-[1.75rem] p-2 shadow-lg mb-6">
+                        <div class="w-8 h-1 bg-slate-600 rounded-full mx-auto mb-1.5"></div>
+                        <div class="bg-white rounded-[1.25rem] overflow-hidden">
+                            <!-- header mini app -->
+                            <div class="h-6 bg-slate-900 flex items-center px-2 gap-1">
+                                <div class="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                                <div class="w-8 h-1.5 rounded-full bg-slate-600"></div>
+                            </div>
+                            <!-- area banner: proporsi persis mengikuti banner asli (lebar layar - padding px-4 kiri/kanan) dibanding tinggi tetap 176px -->
+                            <div class="px-2 pt-2 bg-slate-50">
+                                <div class="relative rounded-lg overflow-hidden border border-slate-200 shadow-sm aspect-[358/176] bg-slate-100">
+                                    <span class="absolute top-1 left-1 z-10 bg-black/60 text-white text-[6px] font-bold px-1 py-[1px] rounded tracking-wider">Ads</span>
+                                    <span class="absolute top-1 right-1 z-10 w-3 h-3 rounded-full bg-black/50 text-white flex items-center justify-center text-[6px]">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                    <div id="ad-preview-wrap-mobile" class="w-full h-full flex items-center justify-center overflow-hidden relative">
+                                        <img id="ad-preview-img-mobile" class="w-full h-full object-contain hide">
+                                        <div id="ad-preview-empty-mobile" class="text-center px-2">
+                                            <i class="fas fa-image text-slate-300 text-lg mb-0.5"></i>
+                                            <p class="text-[7px] text-slate-400 font-bold">Belum ada gambar</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- skeleton konten di bawah banner -->
+                                <div class="py-2 space-y-1">
+                                    <div class="h-1.5 w-3/4 bg-slate-200 rounded-full"></div>
+                                    <div class="h-1.5 w-1/2 bg-slate-200 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME LAPTOP -->
+                    <p class="text-[10px] font-bold uppercase text-slate-400 mb-1.5 flex items-center gap-1">
+                        <i class="fas fa-display"></i> Tampilan Laptop
+                    </p>
+                    <div class="mx-auto w-full">
+                        <div class="bg-slate-800 rounded-t-lg p-1.5">
+                            <div class="flex gap-1 mb-1.5 px-0.5">
+                                <div class="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                            </div>
+                            <div class="bg-white rounded overflow-hidden">
+                                <!-- header mini app -->
+                                <div class="h-5 bg-slate-900 flex items-center px-2 gap-1.5">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                                    <div class="w-10 h-1.5 rounded-full bg-slate-600"></div>
+                                </div>
+                                <!-- area banner: proporsi mengikuti lebar konten (setelah sidebar+padding) dibanding tinggi tetap 176px, seperti aslinya -->
+                                <div class="px-2 pt-2 bg-slate-50">
+                                    <div class="relative rounded-lg overflow-hidden border border-slate-200 shadow-sm aspect-[1180/176] bg-slate-100">
+                                        <span class="absolute top-1 left-1 z-10 bg-black/60 text-white text-[7px] font-bold px-1 py-[1px] rounded tracking-wider">Ads</span>
+                                        <span class="absolute top-1 right-1 z-10 w-3.5 h-3.5 rounded-full bg-black/50 text-white flex items-center justify-center text-[7px]">
+                                            <i class="fas fa-times"></i>
+                                        </span>
+                                        <div id="ad-preview-wrap-desktop" class="w-full h-full flex items-center justify-center overflow-hidden relative">
+                                            <img id="ad-preview-img-desktop" class="w-full h-full object-contain hide">
+                                            <div id="ad-preview-empty-desktop" class="text-center px-3">
+                                                <i class="fas fa-image text-slate-300 text-xl mb-0.5"></i>
+                                                <p class="text-[8px] text-slate-400 font-bold">Belum ada gambar</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- skeleton konten di bawah banner -->
+                                    <div class="py-2 space-y-1">
+                                        <div class="h-1.5 w-1/3 bg-slate-200 rounded-full"></div>
+                                        <div class="h-1.5 w-1/4 bg-slate-200 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-2 bg-slate-700 rounded-b-lg mx-3"></div>
+                        <div class="h-1.5 bg-slate-300 rounded-b-lg mx-8"></div>
+                    </div>
+
+                    <p class="text-[10px] text-slate-400 mt-4 leading-relaxed">
+                        <i class="fas fa-circle-info mr-1"></i>Proporsi lebar : tinggi kotak banner di atas dibuat sama persis dengan ruang banner asli di web (tinggi tetap, mengikuti lebar layar). Gambar ditampilkan utuh (tidak dipotong) sesuai perilaku aslinya.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
             </div>
         </main>
     </div>
@@ -3261,15 +3520,18 @@ const appId = "booking-ruang-training";
 	window.onSnapshot = onSnapshot;
 
 	// ================= 🔥 IKLAN / AD BANNER (DIATUR ADMIN) =================
-	// Disimpan di Firestore biar setting-nya sama untuk SEMUA user & device,
-	// dan berubah real-time (begitu admin ganti gambar/link, user lain ikut update).
-	const adBannerRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'adBanner');
-	window.adBannerRef = adBannerRef;
+	// Disimpan di Firestore sebagai KOLEKSI "ads", jadi setiap iklan punya
+	// IDENTITAS-nya sendiri (1 dokumen = 1 identitas iklan). Ganti/edit gambar
+	// pada identitas yang sama TIDAK bikin data baru — tetap 1 identitas.
+	// Cuma 1 iklan yang boleh berstatus "enabled" (tayang) ke semua user di waktu bersamaan.
+	const adsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'ads');
+	window.adsCollectionRef = adsCollectionRef;
 
 	// 🔥 Ditutup cuma "sementara" (in-memory, bukan sessionStorage/localStorage),
 	// jadi begitu halaman di-refresh, banner iklan MUNCUL LAGI dari awal.
 	let adBannerClosedThisLoad = false;
 	let latestAdBannerData = null;
+	let currentEditingAdId = null; // null = mode "Iklan Baru", terisi = mode edit identitas yang sudah ada
 
 	function renderAdBanner(data) {
 		latestAdBannerData = data;
@@ -3312,60 +3574,267 @@ const appId = "booking-ruang-training";
 		if (container) container.classList.add('hide');
 	};
 
-	onSnapshot(adBannerRef, (snap) => {
-		renderAdBanner(snap.exists() ? snap.data() : null);
+	// 🔥 Live di sisi USER: dengarkan seluruh koleksi "ads", cari yang enabled=true,
+	// itu yang ditayangkan. Kalau lebih dari satu somehow ke-enable, ambil yang
+	// paling baru di-update biar tetap konsisten cuma 1 yang tampil.
+	let allAdsCache = [];
+	onSnapshot(adsCollectionRef, (snap) => {
+		const ads = [];
+		snap.forEach((d) => ads.push({ id: d.id, ...d.data() }));
+		allAdsCache = ads;
+
+		const activeAds = ads.filter((a) => a.enabled);
+		activeAds.sort((a, b) => {
+			const at = a.updatedAt && a.updatedAt.toMillis ? a.updatedAt.toMillis() : 0;
+			const bt = b.updatedAt && b.updatedAt.toMillis ? b.updatedAt.toMillis() : 0;
+			return bt - at;
+		});
+		renderAdBanner(activeAds[0] || null);
+
+		// Kalau panel rekap sedang kebuka, refresh listnya juga (real-time).
+		const recapPanel = document.getElementById('ad-recap-panel');
+		if (recapPanel && !recapPanel.classList.contains('hide')) {
+			window.renderAdRecapList(ads);
+		}
 	}, (err) => console.error('Gagal memuat data iklan:', err));
 
-	// 🔥 Admin: buka modal pengaturan iklan
+	// 🔥 Helper: tampilkan/sembunyikan gambar pratinjau vs placeholder "Belum ada gambar"
+	function setAdPreviewImage(type, src) {
+		const img = document.getElementById('ad-preview-img-' + type);
+		const empty = document.getElementById('ad-preview-empty-' + type);
+		if (!img || !empty) return;
+
+		if (src) {
+			img.src = src;
+			img.classList.remove('hide');
+			empty.classList.add('hide');
+		} else {
+			img.src = '';
+			img.classList.add('hide');
+			empty.classList.remove('hide');
+		}
+	}
+
+	// 🔥 PRATINJAU LANGSUNG dari URL yang diketik (real-time, gak perlu simpan dulu)
+	window.previewAdImageFromUrl = (type, value) => {
+		setAdPreviewImage(type, (value || '').trim());
+	};
+
+	// 🔥 PRATINJAU LANGSUNG dari file yang di-upload (pakai object URL lokal,
+	// jadi kelihatan LANGSUNG walau belum di-compress/upload/simpan ke server)
+	window.previewAdImageFromFile = (type, file) => {
+		if (!file) return;
+
+		// bersihin object URL lama biar gak numpuk di memori
+		const key = '__adPreviewObjectUrl_' + type;
+		if (window[key]) {
+			URL.revokeObjectURL(window[key]);
+		}
+
+		const objectUrl = URL.createObjectURL(file);
+		window[key] = objectUrl;
+
+		// kosongin field URL manual biar gak bentrok (file yang diupload jadi prioritas)
+		const urlInput = document.getElementById('ad-image-url-' + type);
+		if (urlInput) urlInput.value = '';
+
+		setAdPreviewImage(type, objectUrl);
+	};
+
+	// 🔥 Update badge status "Tayang/Nonaktif" di panel pratinjau, real-time ngikutin toggle
+	window.refreshAdPreviewStatus = () => {
+		const badge = document.getElementById('ad-preview-status-badge');
+		const enabled = document.getElementById('ad-enabled-toggle')?.checked;
+		if (!badge) return;
+
+		if (enabled) {
+			badge.innerText = 'Tayang';
+			badge.className = 'text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+		} else {
+			badge.innerText = 'Nonaktif';
+			badge.className = 'text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-500';
+		}
+	};
+
+	// 🔥 Format tanggal Firestore Timestamp -> "19 Jul 2026, 14:30"
+	function formatAdDate(ts) {
+		if (!ts) return '-';
+		const dt = ts.toDate ? ts.toDate() : new Date(ts);
+		return dt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) +
+			', ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+	}
+
+	function escapeAdText(str) {
+		const div = document.createElement('div');
+		div.innerText = str || '';
+		return div.innerHTML;
+	}
+
+	// 🔥 Render kartu-kartu rekap iklan (dipanggil pas buka panel & real-time saat ada perubahan)
+	window.renderAdRecapList = function (ads) {
+		const loading = document.getElementById('ad-recap-loading');
+		const listEl = document.getElementById('ad-recap-list');
+		const emptyEl = document.getElementById('ad-recap-empty');
+		if (!listEl) return;
+
+		if (loading) loading.classList.add('hide');
+
+		if (!ads || ads.length === 0) {
+			listEl.classList.add('hide');
+			listEl.innerHTML = '';
+			if (emptyEl) emptyEl.classList.remove('hide');
+			return;
+		}
+		if (emptyEl) emptyEl.classList.add('hide');
+		listEl.classList.remove('hide');
+
+		const sorted = [...ads].sort((a, b) => {
+			const at = a.updatedAt && a.updatedAt.toMillis ? a.updatedAt.toMillis() : 0;
+			const bt = b.updatedAt && b.updatedAt.toMillis ? b.updatedAt.toMillis() : 0;
+			return bt - at;
+		});
+
+		listEl.innerHTML = sorted.map((ad) => {
+			const thumb = ad.imageUrlMobile || ad.imageUrlDesktop || '';
+			const statusBadge = ad.enabled
+				? '<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700"><i class="fas fa-circle text-[6px] mr-1"></i>Tayang</span>'
+				: '<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-500">Nonaktif</span>';
+
+			return `
+			<div class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+				<div class="h-28 bg-slate-100 flex items-center justify-center overflow-hidden relative">
+					${thumb
+						? `<img src="${thumb}" class="w-full h-full object-contain">`
+						: `<div class="text-center px-3"><i class="fas fa-image text-slate-300 text-2xl mb-1"></i><p class="text-[9px] text-slate-400 font-bold">Belum ada gambar</p></div>`
+					}
+					<div class="absolute top-2 right-2">${statusBadge}</div>
+				</div>
+				<div class="p-4 flex-1 flex flex-col gap-2">
+					<p class="font-bold text-sm text-slate-700 truncate" title="${escapeAdText(ad.name || 'Tanpa Nama')}">${escapeAdText(ad.name || 'Tanpa Nama')}</p>
+					<div class="text-[10px] text-slate-400 space-y-0.5">
+						<p><i class="fas fa-plus-circle w-3.5"></i> Dibuat: ${formatAdDate(ad.createdAt)}</p>
+						<p><i class="fas fa-pen w-3.5"></i> Diedit terakhir: ${formatAdDate(ad.updatedAt)}</p>
+					</div>
+					<div class="flex items-center gap-1.5 mt-auto pt-2 flex-wrap">
+						<button onclick="window.openAdForm('${ad.id}')"
+							class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-bold py-2 rounded-lg transition">
+							<i class="fas fa-pen mr-1"></i>Edit
+						</button>
+						<button onclick="window.setAdActive('${ad.id}', ${ad.enabled ? 'false' : 'true'})"
+							class="flex-1 ${ad.enabled ? 'bg-amber-50 hover:bg-amber-100 text-amber-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600'} text-[10px] font-bold py-2 rounded-lg transition">
+							<i class="fas fa-${ad.enabled ? 'eye-slash' : 'play'} mr-1"></i>${ad.enabled ? 'Nonaktifkan' : 'Tayangkan'}
+						</button>
+						<button onclick="window.deleteAdIdentity('${ad.id}', '${escapeAdText(ad.name || 'iklan ini').replace(/'/g, "\\'")}')"
+							class="bg-rose-50 hover:bg-rose-100 text-rose-500 text-[10px] font-bold py-2 px-3 rounded-lg transition">
+							<i class="fas fa-trash"></i>
+						</button>
+					</div>
+				</div>
+			</div>`;
+		}).join('');
+	};
+
+	// 🔥 Tampilkan panel REKAP (default saat menu "Iklan / Banner" dibuka)
+	window.showAdRecapPanel = async function () {
+		const recapPanel = document.getElementById('ad-recap-panel');
+		const formPanel = document.getElementById('ad-form-panel');
+		const loading = document.getElementById('ad-recap-loading');
+		const listEl = document.getElementById('ad-recap-list');
+		if (!recapPanel || !formPanel) return;
+
+		formPanel.classList.add('hide');
+		recapPanel.classList.remove('hide');
+
+		if (loading) loading.classList.remove('hide');
+		if (listEl) listEl.classList.add('hide');
+
+		try {
+			const snap = await getDocs(adsCollectionRef);
+			const ads = [];
+			snap.forEach((d) => ads.push({ id: d.id, ...d.data() }));
+			allAdsCache = ads;
+			window.renderAdRecapList(ads);
+		} catch (err) {
+			console.error('Gagal memuat rekap iklan:', err);
+			if (loading) {
+				loading.classList.remove('hide');
+				loading.innerHTML = '<i class="fas fa-triangle-exclamation mr-1"></i> Gagal memuat rekap iklan.';
+			}
+		}
+	};
+
+	// 🔥 Entry point dipanggil window.showView('ad-settings', ...) -> tampilkan rekap dulu
 	window.openAdSettings = async function () {
 		// 🔒 Kelola Iklan/Banner sekarang KHUSUS Super Admin
 		if (!window.isSuperAdmin(currentUser)) {
 			alert("Fitur Kelola Iklan/Banner khusus untuk Super Admin.");
 			return;
 		}
-		const modal = document.getElementById('modal-ad-settings');
-		if (!modal) return;
-
-		try {
-			const snap = await getDoc(adBannerRef);
-			const data = snap.exists() ? snap.data() : {};
-
-			document.getElementById('ad-enabled-toggle').checked = !!data.enabled;
-			document.getElementById('ad-link-url').value = data.linkUrl || '';
-
-			document.getElementById('ad-image-url-mobile').value = data.imageUrlMobile || '';
-			document.getElementById('ad-image-file-mobile').value = '';
-			document.getElementById('ad-image-upload-progress-mobile').style.width = '0%';
-
-			document.getElementById('ad-image-url-desktop').value = data.imageUrlDesktop || '';
-			document.getElementById('ad-image-file-desktop').value = '';
-			document.getElementById('ad-image-upload-progress-desktop').style.width = '0%';
-
-			const previewWrapMobile = document.getElementById('ad-preview-wrap-mobile');
-			const previewImgMobile = document.getElementById('ad-preview-img-mobile');
-			if (data.imageUrlMobile) {
-				previewImgMobile.src = data.imageUrlMobile;
-				previewWrapMobile.classList.remove('hide');
-			} else {
-				previewWrapMobile.classList.add('hide');
-			}
-
-			const previewWrapDesktop = document.getElementById('ad-preview-wrap-desktop');
-			const previewImgDesktop = document.getElementById('ad-preview-img-desktop');
-			if (data.imageUrlDesktop) {
-				previewImgDesktop.src = data.imageUrlDesktop;
-				previewWrapDesktop.classList.remove('hide');
-			} else {
-				previewWrapDesktop.classList.add('hide');
-			}
-		} catch (err) {
-			console.error('Gagal ambil data iklan:', err);
-		}
-
-		modal.classList.remove('hide');
+		window.showAdRecapPanel();
 	};
 
-	// 🔥 Admin: simpan pengaturan iklan (URL gambar manual ATAU upload file) — WAJIB 2 versi: HP & Laptop
+	// 🔥 Buka FORM buat identitas iklan baru (adId = null) ATAU edit identitas yang sudah ada (adId terisi)
+	window.openAdForm = async function (adId) {
+		// 🔒 Kelola Iklan/Banner sekarang KHUSUS Super Admin
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur Kelola Iklan/Banner khusus untuk Super Admin.");
+			return;
+		}
+
+		const recapPanel = document.getElementById('ad-recap-panel');
+		const formPanel = document.getElementById('ad-form-panel');
+		const formTitle = document.getElementById('ad-form-title');
+		if (!recapPanel || !formPanel) return;
+
+		currentEditingAdId = adId || null;
+
+		// reset field-field form
+		document.getElementById('ad-name').value = '';
+		document.getElementById('ad-enabled-toggle').checked = false;
+		document.getElementById('ad-link-url').value = '';
+		document.getElementById('ad-image-url-mobile').value = '';
+		document.getElementById('ad-image-file-mobile').value = '';
+		document.getElementById('ad-image-upload-progress-mobile').style.width = '0%';
+		document.getElementById('ad-image-url-desktop').value = '';
+		document.getElementById('ad-image-file-desktop').value = '';
+		document.getElementById('ad-image-upload-progress-desktop').style.width = '0%';
+		setAdPreviewImage('mobile', '');
+		setAdPreviewImage('desktop', '');
+
+		if (currentEditingAdId) {
+			if (formTitle) formTitle.innerHTML = '<i class="fas fa-ad text-indigo-500"></i> Edit Iklan';
+			try {
+				const snap = await getDoc(doc(adsCollectionRef, currentEditingAdId));
+				const data = snap.exists() ? snap.data() : {};
+
+				document.getElementById('ad-name').value = data.name || '';
+				document.getElementById('ad-enabled-toggle').checked = !!data.enabled;
+				document.getElementById('ad-link-url').value = data.linkUrl || '';
+				document.getElementById('ad-image-url-mobile').value = data.imageUrlMobile || '';
+				document.getElementById('ad-image-url-desktop').value = data.imageUrlDesktop || '';
+
+				setAdPreviewImage('mobile', data.imageUrlMobile || '');
+				setAdPreviewImage('desktop', data.imageUrlDesktop || '');
+			} catch (err) {
+				console.error('Gagal ambil data iklan:', err);
+			}
+		} else {
+			if (formTitle) formTitle.innerHTML = '<i class="fas fa-ad text-indigo-500"></i> Buat Iklan Baru';
+		}
+
+		window.refreshAdPreviewStatus();
+
+		recapPanel.classList.add('hide');
+		formPanel.classList.remove('hide');
+	};
+
+	// 🔥 Tutup form, balik ke rekap
+	window.closeAdForm = function () {
+		currentEditingAdId = null;
+		window.showAdRecapPanel();
+	};
+
+	// 🔥 Admin: simpan pengaturan iklan (URL gambar manual ATAU upload file) — WAJIB nama + 2 versi: HP & Laptop
 	window.saveAdSettings = async function () {
 		// 🔒 Kelola Iklan/Banner sekarang KHUSUS Super Admin
 		if (!window.isSuperAdmin(currentUser)) {
@@ -3373,6 +3842,7 @@ const appId = "booking-ruang-training";
 			return;
 		}
 		const btn = document.getElementById('btn-save-ad-settings');
+		const nameInput = document.getElementById('ad-name');
 		const urlInputMobile = document.getElementById('ad-image-url-mobile');
 		const urlInputDesktop = document.getElementById('ad-image-url-desktop');
 		const linkInput = document.getElementById('ad-link-url');
@@ -3382,10 +3852,16 @@ const appId = "booking-ruang-training";
 		const progressBarMobile = document.getElementById('ad-image-upload-progress-mobile');
 		const progressBarDesktop = document.getElementById('ad-image-upload-progress-desktop');
 
+		const name = nameInput.value.trim();
 		let imageUrlMobile = urlInputMobile.value.trim();
 		let imageUrlDesktop = urlInputDesktop.value.trim();
 		const linkUrl = linkInput.value.trim();
 		const enabled = enabledInput.checked;
+
+		if (!name) {
+			alert('⚠ Nama/identitas iklan wajib diisi.');
+			return;
+		}
 
 		if (btn) btn.disabled = true;
 
@@ -3413,30 +3889,102 @@ const appId = "booking-ruang-training";
 			if (!imageUrlMobile || !imageUrlDesktop) {
 				alert('⚠ Wajib isi/upload 2 gambar iklan: versi HP (Mobile) DAN versi Laptop (Desktop).');
 				if (btn) btn.disabled = false;
-				btn.innerText = 'Simpan Pengaturan Iklan';
+				if (btn) btn.innerHTML = '<i class="fas fa-floppy-disk mr-1"></i> Simpan Iklan';
 				return;
 			}
 
-			await setDoc(adBannerRef, {
+			const payload = {
+				name,
 				imageUrlMobile,
 				imageUrlDesktop,
 				linkUrl,
 				enabled,
 				updatedAt: serverTimestamp()
-			}, { merge: true });
+			};
 
-			alert('✅ Pengaturan iklan berhasil disimpan.');
-			if (typeof closeModal === 'function') closeModal('modal-ad-settings');
+			if (currentEditingAdId) {
+				// 🔥 EDIT identitas yang sudah ada -> TIDAK bikin data baru, tetap 1 identitas iklan
+				await updateDoc(doc(adsCollectionRef, currentEditingAdId), payload);
+			} else {
+				// 🔥 BUAT identitas iklan baru
+				payload.createdAt = serverTimestamp();
+				const newDoc = await addDoc(adsCollectionRef, payload);
+				currentEditingAdId = newDoc.id;
+			}
+
+			// 🔥 Cuma 1 iklan boleh tayang bersamaan: kalau iklan ini diaktifkan,
+			// otomatis nonaktifkan identitas iklan lain yang sedang tayang.
+			if (enabled) {
+				await window.deactivateOtherAds(currentEditingAdId);
+			}
+
+			alert('✅ Iklan berhasil disimpan.');
+			currentEditingAdId = null;
+			window.showAdRecapPanel();
 		} catch (err) {
 			console.error('Gagal simpan pengaturan iklan:', err);
 			alert('❌ Gagal menyimpan pengaturan iklan. Coba lagi.');
 		} finally {
 			if (btn) {
 				btn.disabled = false;
-				btn.innerText = 'Simpan Pengaturan Iklan';
+				btn.innerHTML = '<i class="fas fa-floppy-disk mr-1"></i> Simpan Iklan';
 			}
 			progressBarMobile.style.width = '0%';
 			progressBarDesktop.style.width = '0%';
+		}
+	};
+
+	// 🔥 Nonaktifkan semua iklan lain selain "keepAdId" (dipakai biar cuma 1 yang tayang)
+	window.deactivateOtherAds = async function (keepAdId) {
+		try {
+			const snap = await getDocs(adsCollectionRef);
+			const jobs = [];
+			snap.forEach((d) => {
+				if (d.id !== keepAdId && d.data().enabled) {
+					jobs.push(updateDoc(doc(adsCollectionRef, d.id), { enabled: false }));
+				}
+			});
+			await Promise.all(jobs);
+		} catch (err) {
+			console.error('Gagal menonaktifkan iklan lain:', err);
+		}
+	};
+
+	// 🔥 Tayangkan / Nonaktifkan iklan langsung dari kartu rekap (tanpa buka form)
+	window.setAdActive = async function (adId, makeActive) {
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur Kelola Iklan/Banner khusus untuk Super Admin.");
+			return;
+		}
+		try {
+			await updateDoc(doc(adsCollectionRef, adId), {
+				enabled: makeActive,
+				updatedAt: serverTimestamp()
+			});
+			if (makeActive) {
+				await window.deactivateOtherAds(adId);
+			}
+			window.showAdRecapPanel();
+		} catch (err) {
+			console.error('Gagal mengubah status iklan:', err);
+			alert('❌ Gagal mengubah status iklan. Coba lagi.');
+		}
+	};
+
+	// 🔥 Hapus identitas iklan dari rekap (permanen)
+	window.deleteAdIdentity = async function (adId, adName) {
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur Kelola Iklan/Banner khusus untuk Super Admin.");
+			return;
+		}
+		if (!confirm('Hapus iklan "' + adName + '" dari rekap? Tindakan ini tidak bisa dibatalkan.')) return;
+
+		try {
+			await deleteDoc(doc(adsCollectionRef, adId));
+			window.showAdRecapPanel();
+		} catch (err) {
+			console.error('Gagal menghapus iklan:', err);
+			alert('❌ Gagal menghapus iklan. Coba lagi.');
 		}
 	};
 
@@ -5789,6 +6337,9 @@ if (activeView === 'visitor-log') {
 if (activeView === 'manage-accounts') {
     if (typeof window.renderManageAccounts === 'function') window.renderManageAccounts();
 }
+if (activeView === 'ad-settings') {
+    if (typeof window.openAdSettings === 'function') window.openAdSettings();
+}
 
 if (typeof updateViolationBadge === 'function') {
     updateViolationBadge();
@@ -6693,7 +7244,7 @@ if(id){
         window.showView = (id, titleText = null) => {
 
     // 🔒 Beberapa view KHUSUS Super Admin — blokir walau diakses manual lewat hash URL
-    if ((id === 'visitor-log' || id === 'manage-accounts') && !window.isSuperAdmin(currentUser)) {
+    if ((id === 'visitor-log' || id === 'manage-accounts' || id === 'ad-settings') && !window.isSuperAdmin(currentUser)) {
         alert("Halaman ini khusus untuk Super Admin.");
         id = 'dashboard';
         titleText = 'Dashboard';
@@ -13193,108 +13744,6 @@ window.showAssetBookings = (id, type, name) => {
             </button>
         </div>
     </div>
-</div>
-
-<!-- ================= 🔥 MODAL: KELOLA IKLAN / BANNER (ADMIN) ================= -->
-<div id="modal-ad-settings" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
-
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-
-        <div class="p-6 border-b flex justify-between items-center bg-indigo-50">
-            <h3 class="text-lg font-black text-indigo-600"><i class="fas fa-ad mr-1"></i> Kelola Iklan / Banner</h3>
-            <button onclick="closeModal('modal-ad-settings')" class="text-slate-400 hover:text-slate-700">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="p-6 overflow-y-auto space-y-4">
-
-            <div class="flex items-center justify-between bg-slate-50 rounded-xl p-3">
-                <div>
-                    <p class="text-sm font-bold text-slate-700">Aktifkan Iklan</p>
-                    <p class="text-[10px] text-slate-400">Tampilkan banner iklan ke semua user</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="ad-enabled-toggle" class="sr-only peer">
-                    <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-600 transition-all relative
-                        after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
-                </label>
-            </div>
-
-            <div class="border border-slate-200 rounded-2xl p-4 space-y-3 bg-slate-50/50">
-                <p class="text-xs font-black text-slate-600 flex items-center gap-1.5">
-                    <i class="fas fa-mobile-screen text-indigo-500"></i> Gambar Versi HP (Mobile) <span class="text-rose-500">*wajib</span>
-                </p>
-
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400">URL Gambar</label>
-                    <input id="ad-image-url-mobile" type="text" placeholder="https://... link gambar iklan (HP)"
-                        oninput="const p=document.getElementById('ad-preview-img-mobile'); const w=document.getElementById('ad-preview-wrap-mobile'); if(this.value.trim()){p.src=this.value.trim(); w.classList.remove('hide');} else {w.classList.add('hide');}"
-                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
-                </div>
-
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Atau Upload dari Perangkat</label>
-                    <input id="ad-image-file-mobile" type="file" accept="image/*"
-                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                        <div id="ad-image-upload-progress-mobile" class="bg-indigo-500 h-1.5 w-0 transition-all"></div>
-                    </div>
-                </div>
-
-                <div id="ad-preview-wrap-mobile" class="hide">
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Pratinjau (HP)</label>
-                    <div class="w-full h-40 bg-slate-100 rounded-xl mt-1 border border-slate-200 flex items-center justify-center overflow-hidden">
-                        <img id="ad-preview-img-mobile" class="max-w-full max-h-full object-contain">
-                    </div>
-                </div>
-            </div>
-
-            <div class="border border-slate-200 rounded-2xl p-4 space-y-3 bg-slate-50/50">
-                <p class="text-xs font-black text-slate-600 flex items-center gap-1.5">
-                    <i class="fas fa-display text-indigo-500"></i> Gambar Versi Laptop (Desktop) <span class="text-rose-500">*wajib</span>
-                </p>
-                <p class="text-[10px] text-slate-400 -mt-1">Disarankan gambar landscape lebar (rasio panjang, kira-kira 3x lebih lebar dari versi HP).</p>
-
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400">URL Gambar</label>
-                    <input id="ad-image-url-desktop" type="text" placeholder="https://... link gambar iklan (Laptop)"
-                        oninput="const p=document.getElementById('ad-preview-img-desktop'); const w=document.getElementById('ad-preview-wrap-desktop'); if(this.value.trim()){p.src=this.value.trim(); w.classList.remove('hide');} else {w.classList.add('hide');}"
-                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
-                </div>
-
-                <div>
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Atau Upload dari Perangkat</label>
-                    <input id="ad-image-file-desktop" type="file" accept="image/*"
-                        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                        <div id="ad-image-upload-progress-desktop" class="bg-indigo-500 h-1.5 w-0 transition-all"></div>
-                    </div>
-                </div>
-
-                <div id="ad-preview-wrap-desktop" class="hide">
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Pratinjau (Laptop)</label>
-                    <div class="w-full h-40 bg-slate-100 rounded-xl mt-1 border border-slate-200 flex items-center justify-center overflow-hidden">
-                        <img id="ad-preview-img-desktop" class="max-w-full max-h-full object-contain">
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <label class="text-[10px] font-bold uppercase text-slate-400">Link Tujuan (dibuka saat gambar diklik)</label>
-                <input id="ad-link-url" type="text" placeholder="https://contoh-tujuan-iklan.com"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mt-1 outline-none focus:ring-2 focus:ring-indigo-400">
-            </div>
-
-            <button id="btn-save-ad-settings" onclick="window.saveAdSettings()"
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold text-sm transition">
-                Simpan Pengaturan Iklan
-            </button>
-
-        </div>
-
-    </div>
-
 </div>
 
 <!-- ================= 🔥 MODAL: EDIT AKUN (SUPER ADMIN) ================= -->
