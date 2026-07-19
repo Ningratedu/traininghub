@@ -1045,7 +1045,7 @@ window.downloadQR = function () {
             <!-- 🔥 SUPER ADMIN MENU (hanya akun dengan flag superAdmin) -->
             <div id="superadmin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
 
-                <p class="px-4 text-[10px] font-black uppercase tracking-wide text-black mb-1">
+                <p class="px-4 text-[10px] font-black uppercase tracking-wide text-white mb-1">
                     <i class="fas fa-crown mr-1"></i> Super Admin
                 </p>
 
@@ -4181,6 +4181,24 @@ const appId = "booking-ruang-training";
 		}
 	};
 
+	// Hapus SATU baris kunjungan saja, berdasarkan doc id-nya di koleksi "visits".
+	window.deleteSingleVisitorLog = async function (docId) {
+		if (!window.isSuperAdmin(currentUser)) return;
+		if (!docId) return;
+
+		const sure = confirm("Hapus baris kunjungan ini secara permanen?\n\nData yang sudah dihapus TIDAK BISA dikembalikan lagi.");
+		if (!sure) return;
+
+		try {
+			const visitDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'visits', docId);
+			await deleteDoc(visitDocRef);
+			if (typeof window.renderVisitorLog === 'function') window.renderVisitorLog();
+		} catch (err) {
+			console.error('Gagal menghapus baris kunjungan:', err);
+			alert('Gagal menghapus baris kunjungan. Cek console untuk detail.');
+		}
+	};
+
 	// ================= 🔥 LOG PENGUNJUNG (SUPER ADMIN) — sekarang halaman penuh, diakses via showView('visitor-log') =================
 
 	let visitorPerAccountSort = { col: null, dir: 'asc' };
@@ -4369,6 +4387,7 @@ const appId = "booking-ruang-training";
 		let detailRows = filtered.map(v => {
 			const d = v.timestamp?.seconds ? new Date(v.timestamp.seconds * 1000) : null;
 			return {
+				id: v.id,
 				username: v.username || '-',
 				role: v.superAdmin ? 'Super Admin' : (v.role === 'admin' ? 'Admin' : 'User'),
 				dept: v.dept || '-',
@@ -4392,11 +4411,12 @@ const appId = "booking-ruang-training";
 	${sortableTh('Departemen', 'dept', visitorDetailSort, 'window.sortVisitorDetail')}
 	${sortableTh('Tanggal', 'ts', visitorDetailSort, 'window.sortVisitorDetail')}
 	${sortableTh('Jam', 'ts', visitorDetailSort, 'window.sortVisitorDetail')}
+	${window.__visitorLogSecretUnlocked ? '<th class="py-2.5 pl-2 pr-3 sticky top-0 z-10 bg-slate-50 text-center">Aksi</th>' : ''}
 </tr>`;
 		}
 
 		if (detailRows.length === 0) {
-			body.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">Belum ada data kunjungan.</td></tr>`;
+			body.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-400 italic">Belum ada data kunjungan.</td></tr>`;
 			return;
 		}
 
@@ -4408,6 +4428,12 @@ const appId = "booking-ruang-training";
     <td class="py-2 pr-2">${v.dept}</td>
     <td class="py-2 pr-2">${v.tanggal}</td>
     <td class="py-2 pr-2">${v.jam}</td>
+    ${window.__visitorLogSecretUnlocked ? `<td class="py-2 pl-2 pr-3 text-center">
+        <button onclick="window.deleteSingleVisitorLog('${v.id}')"
+            class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition">
+            <i class="fas fa-trash"></i>
+        </button>
+    </td>` : ''}
 </tr>`).join('');
 	};
 
