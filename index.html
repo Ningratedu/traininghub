@@ -1050,13 +1050,15 @@ window.downloadQR = function () {
                 </p>
 
                 <div class="menu-group">
-                    <button onclick="window.openVisitorLog()"
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left">
+                    <button onclick="window.showView('visitor-log', 'Log Pengunjung')"
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left"
+                        data-view="visitor-log">
                         <i class="fas fa-eye w-5"></i> <span class="nav-label">Log Pengunjung</span>
                     </button>
 
-                    <button onclick="window.openManageAccounts()"
-                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left">
+                    <button onclick="window.showView('manage-accounts', 'Kelola Akun')"
+                        class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-lg text-left"
+                        data-view="manage-accounts">
                         <i class="fas fa-user-shield w-5"></i> <span class="nav-label">Kelola Akun</span>
                     </button>
 
@@ -2385,6 +2387,148 @@ window.downloadQR = function () {
     </div>
 
 </div>
+
+<!-- ================= 🔥 VIEW: LOG PENGUNJUNG (SUPER ADMIN) ================= -->
+<div id="view-visitor-log" class="view hide">
+
+    <!-- STAT HEADER -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+        <div class="md:col-span-2 bg-gradient-to-br from-indigo-600 to-indigo-500 rounded-3xl p-6 text-white shadow-lg flex items-center justify-between">
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-wide text-indigo-100">Total Kunjungan Tercatat</p>
+                <p id="visitor-log-total" class="text-4xl font-black mt-1">0</p>
+                <p id="visitor-log-period-label" class="text-[11px] font-bold text-indigo-100 mt-2">
+                    <i class="fas fa-calendar-days mr-1"></i>Periode: Semua Data
+                </p>
+            </div>
+            <i class="fas fa-users text-6xl text-indigo-300/40"></i>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-center">
+            <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">
+                <i class="fas fa-circle-info mr-1"></i>Info Filter
+            </p>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Semua angka & grafik di halaman ini mengikuti <b>Filter Tanggal Global</b> yang aktif di header atas (Dashboard/Statistik/Jadwal juga pakai filter yang sama).
+            </p>
+        </div>
+
+    </div>
+
+    <!-- GRAFIK -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
+                <i class="fas fa-chart-line text-indigo-500"></i>
+                Trend Kunjungan per Hari
+            </h4>
+            <div class="h-[280px]">
+                <canvas id="visitorTrendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <h4 class="font-bold mb-6 flex items-center gap-2">
+                <i class="fas fa-ranking-star text-indigo-500"></i>
+                Top 8 Akun Paling Sering Berkunjung
+            </h4>
+            <div class="h-[280px]">
+                <canvas id="visitorAccountChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- REKAP PER AKUN -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-6">
+        <h4 class="font-bold mb-4 flex items-center gap-2">
+            <i class="fas fa-users-rectangle text-indigo-500"></i>
+            Total Kunjungan per Akun
+        </h4>
+        <div class="overflow-x-auto border border-slate-100 rounded-xl">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-left text-slate-400 uppercase text-[10px] border-b bg-slate-50">
+                        <th class="py-2.5 px-3">Username</th>
+                        <th class="py-2.5 px-3">Role</th>
+                        <th class="py-2.5 px-3 text-center">Total</th>
+                        <th class="py-2.5 px-3">Kunjungan Terakhir</th>
+                    </tr>
+                </thead>
+                <tbody id="visitor-log-per-account-body" class="divide-y"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- RINCIAN -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+            <h4 class="font-bold flex items-center gap-2">
+                <i class="fas fa-list text-indigo-500"></i>
+                Rincian Setiap Kunjungan
+            </h4>
+            <input id="visitor-log-search" type="text" placeholder="Cari username..." oninput="window.renderVisitorLog()"
+                class="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 w-full sm:w-64">
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-left text-slate-400 uppercase text-[10px] border-b">
+                        <th class="py-2 pr-2">Username</th>
+                        <th class="py-2 pr-2">Role</th>
+                        <th class="py-2 pr-2">Departemen</th>
+                        <th class="py-2 pr-2">Tanggal</th>
+                        <th class="py-2 pr-2">Jam</th>
+                    </tr>
+                </thead>
+                <tbody id="visitor-log-body" class="divide-y"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- ================= 🔥 VIEW: KELOLA AKUN (SUPER ADMIN) ================= -->
+<div id="view-manage-accounts" class="view hide">
+
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+
+        <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+            <div>
+                <h4 class="font-bold flex items-center gap-2">
+                    <i class="fas fa-user-shield text-indigo-500"></i>
+                    Kelola Akun
+                </h4>
+                <p class="text-[11px] text-slate-400 mt-1">
+                    Total akun: <span id="manage-accounts-total" class="font-bold text-slate-600">0</span>
+                </p>
+            </div>
+            <input id="manage-accounts-search" type="text" placeholder="Cari username / email / departemen..." oninput="window.renderManageAccounts()"
+                class="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 w-full sm:w-72">
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-left text-slate-400 uppercase text-[10px] border-b bg-slate-50">
+                        <th class="py-2.5 pr-3">Username</th>
+                        <th class="py-2.5 pr-3">Email</th>
+                        <th class="py-2.5 pr-3">Departemen</th>
+                        <th class="py-2.5 pr-3">Role</th>
+                        <th class="py-2.5 pr-3">Password</th>
+                        <th class="py-2.5 pr-3">Status</th>
+                        <th class="py-2.5 pr-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="manage-accounts-body" class="divide-y"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
             </div>
         </main>
     </div>
@@ -3329,28 +3473,40 @@ const appId = "booking-ruang-training";
 		}
 	};
 
-	// ================= 🔥 LOG PENGUNJUNG (SUPER ADMIN) =================
-	window.openVisitorLog = () => {
-		if (!window.isSuperAdmin(currentUser)) {
-			alert("Fitur Log Pengunjung khusus untuk Super Admin.");
-			return;
-		}
-		const search = document.getElementById('visitor-log-search');
-		if (search) search.value = '';
-		window.renderVisitorLog();
-		window.openModal('modal-visitor-log');
-	};
+	// ================= 🔥 LOG PENGUNJUNG (SUPER ADMIN) — sekarang halaman penuh, diakses via showView('visitor-log') =================
 
 	window.renderVisitorLog = () => {
 		const body = document.getElementById('visitor-log-body');
 		const totalEl = document.getElementById('visitor-log-total');
-		if (!body || !totalEl) return; // modal belum ke-render / belum dibuka
+		const perAccountBody = document.getElementById('visitor-log-per-account-body');
+		const periodLabel = document.getElementById('visitor-log-period-label');
+		if (!body || !totalEl) return; // view belum ke-render / belum dibuka
 
-		const visits = (localState.visits || []).slice().sort((a, b) => {
+		// 🔥 IKUT FILTER TANGGAL GLOBAL (filterMode/filterRange) yang sama dipakai
+		// Dashboard/Statistik/Jadwal, supaya Total Kunjungan di sini konsisten
+		// dengan periode yang lagi dipilih user di header.
+		const allVisits = (localState.visits || []).slice().sort((a, b) => {
 			const ta = a.timestamp?.seconds || 0;
 			const tb = b.timestamp?.seconds || 0;
 			return tb - ta; // terbaru dulu
 		});
+
+		const hasGlobalRange = !!(filterRange && filterRange.start && filterRange.end);
+
+		const visits = hasGlobalRange
+			? allVisits.filter(v => {
+				if (!v.timestamp?.seconds) return false;
+				const visitDate = formatLocalDate(new Date(v.timestamp.seconds * 1000));
+				return visitDate >= filterRange.start && visitDate <= filterRange.end;
+			})
+			: allVisits;
+
+		if (periodLabel) {
+			const labelText = document.getElementById('global-time-filter-label')?.innerText;
+			periodLabel.innerText = hasGlobalRange
+				? `Periode: ${labelText || (filterRange.start + ' s/d ' + filterRange.end)}`
+				: 'Periode: Semua Data';
+		}
 
 		totalEl.innerText = visits.length;
 
@@ -3359,6 +3515,113 @@ const appId = "booking-ruang-training";
 		const filtered = keyword
 			? visits.filter(v => (v.username || '').toLowerCase().includes(keyword))
 			: visits;
+
+		// 🔥 REKAP TOTAL KUNJUNGAN PER AKUN (sesuai periode filter global + pencarian di atas)
+		const perAccountMap = {};
+		filtered.forEach(v => {
+			const key = v.username || '(tidak diketahui)';
+			if (!perAccountMap[key]) {
+				perAccountMap[key] = {
+					username: key,
+					role: v.superAdmin ? 'Super Admin' : (v.role === 'admin' ? 'Admin' : 'User'),
+					dept: v.dept || '-',
+					count: 0,
+					lastVisit: 0
+				};
+			}
+			perAccountMap[key].count += 1;
+			const ts = v.timestamp?.seconds || 0;
+			if (ts > perAccountMap[key].lastVisit) perAccountMap[key].lastVisit = ts;
+		});
+		const perAccountList = Object.values(perAccountMap).sort((a, b) => b.count - a.count);
+
+		if (perAccountBody) {
+			if (perAccountList.length === 0) {
+				perAccountBody.innerHTML = `<tr><td colspan="4" class="py-3 text-center text-slate-400 italic">Belum ada data untuk periode ini.</td></tr>`;
+			} else {
+				perAccountBody.innerHTML = perAccountList.map(p => {
+					const lastVisitLabel = p.lastVisit
+						? new Date(p.lastVisit * 1000).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+						: '-';
+					return `
+<tr>
+    <td class="py-2 pr-2 font-bold text-slate-700">${p.username}</td>
+    <td class="py-2 pr-2">${p.role}</td>
+    <td class="py-2 pr-2 text-center"><span class="inline-flex items-center justify-center min-w-[1.75rem] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-black text-[11px]">${p.count}</span></td>
+    <td class="py-2 pr-2">${lastVisitLabel}</td>
+</tr>`;
+				}).join('');
+			}
+		}
+
+		// 🔥 GRAFIK 1: TREND KUNJUNGAN PER HARI (line chart)
+		const trendCanvas = document.getElementById('visitorTrendChart');
+		if (trendCanvas && typeof Chart !== 'undefined') {
+			const dayBuckets = {};
+			filtered.forEach(v => {
+				if (!v.timestamp?.seconds) return;
+				const key = formatLocalDate(new Date(v.timestamp.seconds * 1000));
+				dayBuckets[key] = (dayBuckets[key] || 0) + 1;
+			});
+			const sortedDays = Object.keys(dayBuckets).sort();
+			const dayLabels = sortedDays.map(k => {
+				const d = new Date(k + 'T00:00:00');
+				return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+			});
+			const dayData = sortedDays.map(k => dayBuckets[k]);
+
+			if (window.visitorTrendChartInstance) window.visitorTrendChartInstance.destroy();
+			window.visitorTrendChartInstance = new Chart(trendCanvas, {
+				type: 'line',
+				data: {
+					labels: dayLabels,
+					datasets: [{
+						label: 'Kunjungan',
+						data: dayData,
+						borderColor: '#4f46e5',
+						backgroundColor: 'rgba(79,70,229,0.15)',
+						tension: 0.35,
+						fill: true,
+						pointRadius: 3,
+						borderWidth: 2
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: { legend: { display: false } },
+					scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+				}
+			});
+		}
+
+		// 🔥 GRAFIK 2: TOP 8 AKUN PALING SERING BERKUNJUNG (bar chart horizontal)
+		const accountCanvas = document.getElementById('visitorAccountChart');
+		if (accountCanvas && typeof Chart !== 'undefined') {
+			const top = perAccountList.slice(0, 8);
+
+			if (window.visitorAccountChartInstance) window.visitorAccountChartInstance.destroy();
+			window.visitorAccountChartInstance = new Chart(accountCanvas, {
+				type: 'bar',
+				data: {
+					labels: top.map(p => p.username),
+					datasets: [{
+						label: 'Total Kunjungan',
+						data: top.map(p => p.count),
+						backgroundColor: '#6366f1',
+						borderRadius: 6,
+						maxBarThickness: 28
+					}]
+				},
+				options: {
+					indexAxis: 'y',
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: { legend: { display: false } },
+					scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+				}
+			});
+		}
 
 		if (filtered.length === 0) {
 			body.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400 italic">Belum ada data kunjungan.</td></tr>`;
@@ -3381,20 +3644,11 @@ const appId = "booking-ruang-training";
 		}).join('');
 	};
 
-	// ================= 🔥 KELOLA AKUN (SUPER ADMIN) =================
-	window.openManageAccounts = () => {
-		if (!window.isSuperAdmin(currentUser)) {
-			alert("Fitur Kelola Akun khusus untuk Super Admin.");
-			return;
-		}
-		const search = document.getElementById('manage-accounts-search');
-		if (search) search.value = '';
-		window.renderManageAccounts();
-		window.openModal('modal-manage-accounts');
-	};
+	// ================= 🔥 KELOLA AKUN (SUPER ADMIN) — halaman penuh, diakses via showView('manage-accounts') =================
 
 	window.renderManageAccounts = () => {
-		const list = document.getElementById('manage-accounts-list');
+		const list = document.getElementById('manage-accounts-body');
+		const totalEl = document.getElementById('manage-accounts-total');
 		if (!list) return;
 
 		const keyword = (document.getElementById('manage-accounts-search')?.value || '').toLowerCase().trim();
@@ -3404,39 +3658,98 @@ const appId = "booking-ruang-training";
 			.sort((a, b) => (a.username || '').localeCompare(b.username || ''))
 			.filter(u => !keyword ||
 				(u.username || '').toLowerCase().includes(keyword) ||
-				(u.email || '').toLowerCase().includes(keyword)
+				(u.email || '').toLowerCase().includes(keyword) ||
+				(u.dept || '').toLowerCase().includes(keyword)
 			);
 
+		if (totalEl) totalEl.innerText = users.length;
+
 		if (users.length === 0) {
-			list.innerHTML = `<p class="text-center text-slate-400 italic text-sm py-4">Tidak ada akun ditemukan.</p>`;
+			list.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 italic">Tidak ada akun ditemukan.</td></tr>`;
 			return;
 		}
 
 		list.innerHTML = users.map(u => {
 			const roleBadge = u.superAdmin
-				? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><i class="fas fa-crown mr-1"></i>Super Admin</span>`
+				? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap"><i class="fas fa-crown mr-1"></i>Super Admin</span>`
 				: u.role === 'admin'
-					? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600">Admin</span>`
-					: `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">User</span>`;
+					? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 whitespace-nowrap">Admin</span>`
+					: `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 whitespace-nowrap">User</span>`;
+
+			const isActive = u.active !== false; // default aktif kalau field belum ada
+			const statusBadge = isActive
+				? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">Aktif</span>`
+				: `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 whitespace-nowrap">Nonaktif</span>`;
+
+			const isSelf = currentUser && currentUser.uid === u.id;
+			const toggleIcon = isActive ? 'fa-user-slash' : 'fa-user-check';
+			const toggleColor = isActive
+				? 'text-amber-400 hover:text-amber-600 hover:bg-amber-50'
+				: 'text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50';
+			const toggleTitle = isActive ? 'Nonaktifkan Akun' : 'Aktifkan Akun';
 
 			return `
-<div class="flex items-center justify-between gap-2 bg-slate-50 rounded-xl p-3">
-    <div class="min-w-0">
-        <p class="text-sm font-bold text-slate-700 truncate">${u.username || '-'} ${roleBadge}</p>
-        <p class="text-[11px] text-slate-400 truncate">${u.email || '(belum ada email)'} • ${u.dept || '-'}</p>
-    </div>
-    <div class="flex items-center gap-1.5 flex-shrink-0">
-        <button onclick="window.openEditAccount('${u.id}')"
-            class="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
-            <i class="fas fa-pen text-sm"></i>
-        </button>
-        <button onclick="window.guardedClick(this, () => window.deleteAccount('${u.id}'))"
-            class="w-8 h-8 flex items-center justify-center rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition">
-            <i class="fas fa-trash-alt text-sm"></i>
-        </button>
-    </div>
-</div>`;
+<tr class="${isActive ? '' : 'opacity-60'}">
+    <td class="py-2.5 pr-3 font-bold text-slate-700 whitespace-nowrap">${u.username || '-'} ${isSelf ? '<span class=\"text-[9px] text-slate-400\">(Anda)</span>' : ''}</td>
+    <td class="py-2.5 pr-3 text-slate-500 max-w-[160px] truncate">${u.email || '(belum ada email)'}</td>
+    <td class="py-2.5 pr-3 text-slate-500 whitespace-nowrap">${u.dept || '-'}</td>
+    <td class="py-2.5 pr-3">${roleBadge}</td>
+    <td class="py-2.5 pr-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">${u.password || '-'}</td>
+    <td class="py-2.5 pr-3">${statusBadge}</td>
+    <td class="py-2.5 pr-3">
+        <div class="flex items-center gap-1.5">
+            <button onclick="window.openEditAccount('${u.id}')" title="Edit Akun"
+                class="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
+                <i class="fas fa-pen text-sm"></i>
+            </button>
+            <button ${isSelf ? 'disabled' : `onclick="window.guardedClick(this, () => window.toggleAccountActive('${u.id}'))"`} title="${toggleTitle}"
+                class="w-8 h-8 flex items-center justify-center rounded-lg ${isSelf ? 'text-slate-200 cursor-not-allowed' : toggleColor} transition">
+                <i class="fas ${toggleIcon} text-sm"></i>
+            </button>
+            <button ${isSelf ? 'disabled' : `onclick="window.guardedClick(this, () => window.deleteAccount('${u.id}'))"`} title="Hapus Akun"
+                class="w-8 h-8 flex items-center justify-center rounded-lg ${isSelf ? 'text-slate-200 cursor-not-allowed' : 'text-rose-400 hover:text-rose-600 hover:bg-rose-50'} transition">
+                <i class="fas fa-trash-alt text-sm"></i>
+            </button>
+        </div>
+    </td>
+</tr>`;
 		}).join('');
+	};
+
+	// 🔥 Toggle status Aktif/Nonaktif akun (Super Admin) — akun nonaktif tidak bisa login
+	window.toggleAccountActive = async (userId) => {
+		if (!window.isSuperAdmin(currentUser)) return;
+
+		const u = (localState.users || []).find(x => x.id === userId);
+		if (!u) { alert("Akun tidak ditemukan."); return; }
+
+		if (currentUser && currentUser.uid === userId) {
+			alert("Tidak bisa menonaktifkan akun yang sedang Anda gunakan sendiri.");
+			return;
+		}
+
+		const willBeActive = u.active === false; // kalau sekarang nonaktif -> mau diaktifkan
+		if (!willBeActive && u.superAdmin) {
+			const otherActiveSuperAdmins = (localState.users || []).filter(
+				x => x.id !== userId && x.superAdmin === true && x.active !== false
+			);
+			if (otherActiveSuperAdmins.length === 0) {
+				alert("Tidak bisa menonaktifkan Super Admin aktif terakhir.");
+				return;
+			}
+		}
+
+		if (!confirm(`${willBeActive ? 'Aktifkan kembali' : 'Nonaktifkan'} akun "${u.username}"?`)) return;
+
+		try {
+			await updateDoc(
+				doc(db, 'artifacts', appId, 'public', 'data', 'users', userId),
+				{ active: willBeActive }
+			);
+		} catch (err) {
+			console.error(err);
+			alert("Gagal mengubah status akun.");
+		}
 	};
 
 	window.openEditAccount = (userId) => {
@@ -5469,6 +5782,14 @@ if (activeView === 'rating-monitoring') {
     if (typeof renderRatingMonitoring === 'function') renderRatingMonitoring();
 }
 
+// 🔥 View Super Admin: Log Pengunjung & Kelola Akun
+if (activeView === 'visitor-log') {
+    if (typeof window.renderVisitorLog === 'function') window.renderVisitorLog();
+}
+if (activeView === 'manage-accounts') {
+    if (typeof window.renderManageAccounts === 'function') window.renderManageAccounts();
+}
+
 if (typeof updateViolationBadge === 'function') {
     updateViolationBadge();
 }
@@ -5858,6 +6179,12 @@ if (ctx3) {
         );
 
     if(found) {
+
+    // 🔒 CEK STATUS AKUN — akun yang dinonaktifkan Super Admin tidak boleh login
+    if (found.active === false) {
+        alert("Akun ini telah dinonaktifkan. Silakan hubungi Super Admin.");
+        return;
+    }
 
     // ✅ CEK EMAIL
     if(!found.email){
@@ -6364,6 +6691,13 @@ if(id){
         };
 
         window.showView = (id, titleText = null) => {
+
+    // 🔒 Beberapa view KHUSUS Super Admin — blokir walau diakses manual lewat hash URL
+    if ((id === 'visitor-log' || id === 'manage-accounts') && !window.isSuperAdmin(currentUser)) {
+        alert("Halaman ini khusus untuk Super Admin.");
+        id = 'dashboard';
+        titleText = 'Dashboard';
+    }
 
     if (location.hash !== "#" + id) {
         history.pushState({ id, titleText }, "", "#" + id);
@@ -12956,77 +13290,6 @@ window.showAssetBookings = (id, type, name) => {
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold text-sm transition">
                 Simpan Pengaturan Iklan
             </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ================= 🔥 MODAL: LOG PENGUNJUNG (SUPER ADMIN) ================= -->
-<div id="modal-visitor-log" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
-
-    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-
-        <div class="p-6 border-b flex justify-between items-center bg-indigo-50">
-            <h3 class="text-lg font-black text-indigo-600"><i class="fas fa-eye mr-1"></i> Log Pengunjung</h3>
-            <button onclick="closeModal('modal-visitor-log')" class="text-slate-400 hover:text-slate-700">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="p-6 overflow-y-auto space-y-4">
-
-            <div class="bg-indigo-50 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold uppercase text-indigo-400">Total Kunjungan Tercatat</p>
-                    <p id="visitor-log-total" class="text-3xl font-black text-indigo-600">0</p>
-                </div>
-                <i class="fas fa-users text-4xl text-indigo-200"></i>
-            </div>
-
-            <input id="visitor-log-search" type="text" placeholder="Cari username..." oninput="window.renderVisitorLog()"
-                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400">
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs">
-                    <thead>
-                        <tr class="text-left text-slate-400 uppercase text-[10px] border-b">
-                            <th class="py-2 pr-2">Username</th>
-                            <th class="py-2 pr-2">Role</th>
-                            <th class="py-2 pr-2">Departemen</th>
-                            <th class="py-2 pr-2">Tanggal</th>
-                            <th class="py-2 pr-2">Jam</th>
-                        </tr>
-                    </thead>
-                    <tbody id="visitor-log-body" class="divide-y"></tbody>
-                </table>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ================= 🔥 MODAL: KELOLA AKUN (SUPER ADMIN) ================= -->
-<div id="modal-manage-accounts" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
-
-    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-
-        <div class="p-6 border-b flex justify-between items-center bg-indigo-50">
-            <h3 class="text-lg font-black text-indigo-600"><i class="fas fa-user-shield mr-1"></i> Kelola Akun (Super Admin)</h3>
-            <button onclick="closeModal('modal-manage-accounts')" class="text-slate-400 hover:text-slate-700">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="p-6 overflow-y-auto space-y-3">
-
-            <input id="manage-accounts-search" type="text" placeholder="Cari username / email..." oninput="window.renderManageAccounts()"
-                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400">
-
-            <div id="manage-accounts-list" class="space-y-2"></div>
 
         </div>
 
