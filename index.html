@@ -1045,7 +1045,7 @@ window.downloadQR = function () {
             <!-- 🔥 SUPER ADMIN MENU (hanya akun dengan flag superAdmin) -->
             <div id="superadmin-menu-section" class="mt-4 pt-4 border-t border-slate-100 hide">
 
-                <p class="px-4 text-[10px] font-black uppercase tracking-wide text-white mb-1">
+                <p class="px-4 text-[10px] font-black uppercase tracking-wide text-black mb-1">
                     <i class="fas fa-crown mr-1"></i> Super Admin
                 </p>
 
@@ -2460,12 +2460,21 @@ window.downloadQR = function () {
     <!-- RINCIAN -->
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
         <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
-            <h4 class="font-bold flex items-center gap-2">
+            <h4 id="visitor-log-detail-title" class="font-bold flex items-center gap-2 select-none">
                 <i class="fas fa-list text-indigo-500"></i>
                 Rincian Setiap Kunjungan
             </h4>
-            <input id="visitor-log-search" type="text" placeholder="Cari username..." oninput="window.renderVisitorLog()"
-                class="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 w-full sm:w-64">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <input id="visitor-log-search" type="text" placeholder="Cari username..." oninput="window.renderVisitorLog()"
+                    class="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 flex-1 sm:w-64">
+                <!-- 🔒 Tombol rahasia: hapus SEMUA log kunjungan (termasuk punya Super Admin).
+                     Sengaja disembunyikan (class "hide"), cuma nongol lewat gesture tersembunyi.
+                     Lihat window.__revealVisitorLogWipe di bagian script untuk cara munculinnya. -->
+                <button id="visitor-log-wipe-btn" onclick="window.wipeAllVisitorLogs()"
+                    class="hide bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition items-center gap-1.5 shrink-0">
+                    <i class="fas fa-trash"></i> Hapus Semua Log
+                </button>
+            </div>
         </div>
         <!-- 🔥 Tinggi kontainer dipatok ~10 baris (header freeze/sticky, sisanya scroll) -->
         <div class="overflow-auto border border-slate-100 rounded-xl max-h-[420px]">
@@ -3437,7 +3446,7 @@ window.downloadQR = function () {
     <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
     getStorage,
@@ -4074,6 +4083,104 @@ const appId = "booking-ruang-training";
 		return `<th class="py-2.5 pl-3 pr-2 sticky top-0 z-10 bg-slate-50 w-10 text-center">No</th>`;
 	}
 
+	// ================= 🔒 TOMBOL RAHASIA: HAPUS SEMUA LOG KUNJUNGAN =================
+	// Cara munculin (khusus developer/Super Admin, sengaja gak didokumentasikan di UI):
+	// Di halaman "Log Pengunjung", klik CEPAT 5x berturut-turut pada judul
+	// "Rincian Setiap Kunjungan" (teksnya, bukan tombol lain) dalam waktu 2 detik.
+	// Begitu kepencet 5x, tombol merah "Hapus Semua Log" nongol di sebelah kolom
+	// pencarian, DAN kolom "Aksi" (hapus per akun) nongol di tabel "Total
+	// Kunjungan per Akun" di atasnya. Semua otomatis sembunyi lagi begitu
+	// pindah halaman (balik ke keadaan default setiap kali reload / ganti view).
+	window.__visitorLogSecretUnlocked = false;
+	(function () {
+		let clickCount = 0;
+		let resetTimer = null;
+		const title = document.getElementById('visitor-log-detail-title');
+		if (!title) return;
+		title.addEventListener('click', () => {
+			clickCount++;
+			clearTimeout(resetTimer);
+			resetTimer = setTimeout(() => { clickCount = 0; }, 2000);
+			if (clickCount >= 5) {
+				clickCount = 0;
+				const btn = document.getElementById('visitor-log-wipe-btn');
+				if (btn) btn.classList.remove('hide');
+				window.__visitorLogSecretUnlocked = true;
+				if (typeof window.renderVisitorLog === 'function') window.renderVisitorLog();
+			}
+		});
+	})();
+
+	// Hapus SEMUA dokumen di koleksi "visits" (termasuk log kunjungan akun Super
+	// Admin sendiri — tidak difilter, benar-benar bersih semua). Pakai writeBatch
+	// biar hapusnya efisien (maks 500 operasi per batch, di-chunk otomatis).
+	window.wipeAllVisitorLogs = async function () {
+		if (!window.isSuperAdmin(currentUser)) return;
+
+		const sure1 = confirm("⚠️ Ini akan MENGHAPUS SEMUA log kunjungan (termasuk milik akun Super Admin) secara permanen.\n\nLanjutkan?");
+		if (!sure1) return;
+		const sure2 = confirm("Beneran yakin? Data yang sudah dihapus TIDAK BISA dikembalikan lagi.");
+		if (!sure2) return;
+
+		const btn = document.getElementById('visitor-log-wipe-btn');
+		if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Menghapus...'; }
+
+		try {
+			const visitsRef = collection(db, 'artifacts', appId, 'public', 'data', 'visits');
+			const snap = await getDocs(visitsRef);
+			const docs = snap.docs;
+
+			// Firestore batch dibatasi 500 operasi, jadi di-pecah per 500 dokumen.
+			for (let i = 0; i < docs.length; i += 500) {
+				const chunk = docs.slice(i, i + 500);
+				const batch = writeBatch(db);
+				chunk.forEach(d => batch.delete(d.ref));
+				await batch.commit();
+			}
+
+			alert(`Berhasil menghapus ${docs.length} log kunjungan.`);
+			if (btn) btn.classList.add('hide');
+			if (typeof window.renderVisitorLog === 'function') window.renderVisitorLog();
+		} catch (err) {
+			console.error('Gagal menghapus log kunjungan:', err);
+			alert('Gagal menghapus log kunjungan. Cek console untuk detail.');
+		} finally {
+			if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash"></i> Hapus Semua Log'; }
+		}
+	};
+
+	// Hapus log kunjungan milik SATU akun tertentu saja (berdasarkan username).
+	// Tetap dibatasi Super Admin, tetap 2x konfirmasi, tetap pakai writeBatch.
+	window.deleteVisitorLogsForAccount = async function (username) {
+		if (!window.isSuperAdmin(currentUser)) return;
+		if (!username) return;
+
+		const sure1 = confirm(`⚠️ Ini akan MENGHAPUS SEMUA log kunjungan milik akun "${username}" secara permanen.\n\nLanjutkan?`);
+		if (!sure1) return;
+		const sure2 = confirm("Beneran yakin? Data yang sudah dihapus TIDAK BISA dikembalikan lagi.");
+		if (!sure2) return;
+
+		try {
+			const visitsRef = collection(db, 'artifacts', appId, 'public', 'data', 'visits');
+			const q = query(visitsRef, where('username', '==', username));
+			const snap = await getDocs(q);
+			const docs = snap.docs;
+
+			for (let i = 0; i < docs.length; i += 500) {
+				const chunk = docs.slice(i, i + 500);
+				const batch = writeBatch(db);
+				chunk.forEach(d => batch.delete(d.ref));
+				await batch.commit();
+			}
+
+			alert(`Berhasil menghapus ${docs.length} log kunjungan milik "${username}".`);
+			if (typeof window.renderVisitorLog === 'function') window.renderVisitorLog();
+		} catch (err) {
+			console.error('Gagal menghapus log kunjungan akun:', err);
+			alert('Gagal menghapus log kunjungan. Cek console untuk detail.');
+		}
+	};
+
 	// ================= 🔥 LOG PENGUNJUNG (SUPER ADMIN) — sekarang halaman penuh, diakses via showView('visitor-log') =================
 
 	let visitorPerAccountSort = { col: null, dir: 'asc' };
@@ -4160,12 +4267,13 @@ const appId = "booking-ruang-training";
 	${sortableTh('Role', 'role', visitorPerAccountSort, 'window.sortVisitorPerAccount')}
 	${sortableTh('Total', 'count', visitorPerAccountSort, 'window.sortVisitorPerAccount', 'text-center')}
 	${sortableTh('Kunjungan Terakhir', 'lastVisit', visitorPerAccountSort, 'window.sortVisitorPerAccount')}
+	${window.__visitorLogSecretUnlocked ? '<th class="py-2.5 pl-2 pr-3 sticky top-0 z-10 bg-slate-50 text-center">Aksi</th>' : ''}
 </tr>`;
 		}
 
 		if (perAccountBody) {
 			if (perAccountList.length === 0) {
-				perAccountBody.innerHTML = `<tr><td colspan="5" class="py-3 text-center text-slate-400 italic">Belum ada data untuk periode ini.</td></tr>`;
+				perAccountBody.innerHTML = `<tr><td colspan="6" class="py-3 text-center text-slate-400 italic">Belum ada data untuk periode ini.</td></tr>`;
 			} else {
 				perAccountBody.innerHTML = perAccountList.map(p => {
 					const lastVisitLabel = p.lastVisit
@@ -4178,6 +4286,12 @@ const appId = "booking-ruang-training";
     <td class="py-2 pr-2">${p.role}</td>
     <td class="py-2 pr-2 text-center"><span class="inline-flex items-center justify-center min-w-[1.75rem] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-black text-[11px]">${p.count}</span></td>
     <td class="py-2 pr-2">${lastVisitLabel}</td>
+    ${window.__visitorLogSecretUnlocked ? `<td class="py-2 pl-2 pr-3 text-center">
+        <button onclick="window.deleteVisitorLogsForAccount('${p.username.replace(/'/g, "\\'")}')"
+            class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition">
+            <i class="fas fa-trash"></i>
+        </button>
+    </td>` : ''}
 </tr>`;
 				}).join('');
 			}
