@@ -2448,16 +2448,10 @@ window.downloadQR = function () {
             <i class="fas fa-users-rectangle text-indigo-500"></i>
             Total Kunjungan per Akun
         </h4>
-        <div class="overflow-x-auto border border-slate-100 rounded-xl">
+        <!-- 🔥 Tinggi kontainer dipatok ~10 baris (header freeze/sticky, sisanya scroll) -->
+        <div class="overflow-auto border border-slate-100 rounded-xl max-h-[420px]">
             <table class="w-full text-xs">
-                <thead>
-                    <tr class="text-left text-slate-400 uppercase text-[10px] border-b bg-slate-50">
-                        <th class="py-2.5 px-3">Username</th>
-                        <th class="py-2.5 px-3">Role</th>
-                        <th class="py-2.5 px-3 text-center">Total</th>
-                        <th class="py-2.5 px-3">Kunjungan Terakhir</th>
-                    </tr>
-                </thead>
+                <thead id="visitor-log-per-account-head"></thead>
                 <tbody id="visitor-log-per-account-body" class="divide-y"></tbody>
             </table>
         </div>
@@ -2473,17 +2467,10 @@ window.downloadQR = function () {
             <input id="visitor-log-search" type="text" placeholder="Cari username..." oninput="window.renderVisitorLog()"
                 class="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 w-full sm:w-64">
         </div>
-        <div class="overflow-x-auto">
+        <!-- 🔥 Tinggi kontainer dipatok ~10 baris (header freeze/sticky, sisanya scroll) -->
+        <div class="overflow-auto border border-slate-100 rounded-xl max-h-[420px]">
             <table class="w-full text-xs">
-                <thead>
-                    <tr class="text-left text-slate-400 uppercase text-[10px] border-b">
-                        <th class="py-2 pr-2">Username</th>
-                        <th class="py-2 pr-2">Role</th>
-                        <th class="py-2 pr-2">Departemen</th>
-                        <th class="py-2 pr-2">Tanggal</th>
-                        <th class="py-2 pr-2">Jam</th>
-                    </tr>
-                </thead>
+                <thead id="visitor-log-head"></thead>
                 <tbody id="visitor-log-body" class="divide-y"></tbody>
             </table>
         </div>
@@ -2510,24 +2497,17 @@ window.downloadQR = function () {
                 class="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 w-full sm:w-72">
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- 🔥 Tinggi kontainer dipatok ~10 baris (header freeze/sticky, sisanya scroll) -->
+        <div class="overflow-auto border border-slate-100 rounded-xl max-h-[420px]">
             <table class="w-full text-xs">
-                <thead>
-                    <tr class="text-left text-slate-400 uppercase text-[10px] border-b bg-slate-50">
-                        <th class="py-2.5 pr-3">Username</th>
-                        <th class="py-2.5 pr-3">Email</th>
-                        <th class="py-2.5 pr-3">Departemen</th>
-                        <th class="py-2.5 pr-3">Role</th>
-                        <th class="py-2.5 pr-3">Password</th>
-                        <th class="py-2.5 pr-3">Status</th>
-                        <th class="py-2.5 pr-3">Action</th>
-                    </tr>
-                </thead>
+                <thead id="manage-accounts-head"></thead>
                 <tbody id="manage-accounts-body" class="divide-y"></tbody>
             </table>
         </div>
 
     </div>
+
+</div>
 
 </div>
 
@@ -4021,12 +4001,81 @@ const appId = "booking-ruang-training";
 		}
 	};
 
+	// ================= 🔥 HELPER UMUM: SORTING TABEL (dipakai semua tabel Super Admin) =================
+	// Klik header kolom -> toggle A-Z / Z-A. Kolom "No" TIDAK ikut sorting ini,
+	// nomornya selalu ngikutin urutan A-Z (baseline), walau tabel lagi di-sort kolom lain.
+	function toggleSortState(state, col) {
+		if (state.col === col) {
+			state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+		} else {
+			state.col = col;
+			state.dir = 'asc';
+		}
+	}
+
+	function compareRows(a, b, col, type) {
+		let va = a[col];
+		let vb = b[col];
+		if (type === 'number') {
+			va = Number(va) || 0;
+			vb = Number(vb) || 0;
+			return va - vb;
+		}
+		va = (va === undefined || va === null) ? '' : String(va).toLowerCase();
+		vb = (vb === undefined || vb === null) ? '' : String(vb).toLowerCase();
+		return va.localeCompare(vb, 'id');
+	}
+
+	// 🔥 Tempel nomor baris (_no) berdasarkan urutan A-Z baseline (field `baseKey`),
+	// SEBELUM sorting tampilan diterapkan. Jadi nomor tetap ngurut A-Z apapun sort aktifnya.
+	function assignBaseRowNumbers(rows, baseKey) {
+		const baseSorted = [...rows].sort((a, b) => compareRows(a, b, baseKey, 'text'));
+		const noMap = new Map();
+		baseSorted.forEach((row, idx) => noMap.set(row, idx + 1));
+		rows.forEach(row => { row._no = noMap.get(row); });
+		return rows;
+	}
+
+	function applySortState(rows, state, typeMap) {
+		if (!state.col) return rows;
+		const type = (typeMap && typeMap[state.col]) || 'text';
+		const sorted = [...rows].sort((a, b) => compareRows(a, b, state.col, type));
+		return state.dir === 'desc' ? sorted.reverse() : sorted;
+	}
+
+	// 🔥 Bangun 1 elemen <th> yang bisa diklik buat sort, lengkap ikon panah arah sort aktif.
+	function sortableTh(label, col, state, sortFnName, extraClass) {
+		const active = state.col === col;
+		const icon = !active ? 'fa-sort' : (state.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+		const iconColor = active ? 'text-indigo-500' : 'text-slate-300';
+		return `<th class="py-2.5 px-3 sticky top-0 z-10 bg-slate-50 cursor-pointer select-none hover:text-slate-600 transition ${extraClass || ''}" onclick="${sortFnName}('${col}')">
+			<span class="inline-flex items-center gap-1.5 whitespace-nowrap">${label}<i class="fas ${icon} ${iconColor} text-[9px]"></i></span>
+		</th>`;
+	}
+
+	function plainTh(label, extraClass) {
+		return `<th class="py-2.5 px-3 sticky top-0 z-10 bg-slate-50 ${extraClass || ''}">${label}</th>`;
+	}
+
+	// Kolom "No": header statis, gak bisa di-sort.
+	function noTh() {
+		return `<th class="py-2.5 pl-3 pr-2 sticky top-0 z-10 bg-slate-50 w-10 text-center">No</th>`;
+	}
+
 	// ================= 🔥 LOG PENGUNJUNG (SUPER ADMIN) — sekarang halaman penuh, diakses via showView('visitor-log') =================
+
+	let visitorPerAccountSort = { col: null, dir: 'asc' };
+	let visitorDetailSort = { col: null, dir: 'asc' };
+
+	window.sortVisitorPerAccount = (col) => { toggleSortState(visitorPerAccountSort, col); window.renderVisitorLog(); };
+	window.sortVisitorDetail = (col) => { toggleSortState(visitorDetailSort, col); window.renderVisitorLog(); };
 
 	window.renderVisitorLog = () => {
 		const body = document.getElementById('visitor-log-body');
-		const totalEl = document.getElementById('visitor-log-total');
+		const head = document.getElementById('visitor-log-head');
 		const perAccountBody = document.getElementById('visitor-log-per-account-body');
+		const perAccountHead = document.getElementById('visitor-log-per-account-head');
+		const totalEl = document.getElementById('visitor-log-total');
 		const periodLabel = document.getElementById('visitor-log-period-label');
 		if (!body || !totalEl) return; // view belum ke-render / belum dibuka
 
@@ -4081,11 +4130,30 @@ const appId = "booking-ruang-training";
 			const ts = v.timestamp?.seconds || 0;
 			if (ts > perAccountMap[key].lastVisit) perAccountMap[key].lastVisit = ts;
 		});
-		const perAccountList = Object.values(perAccountMap).sort((a, b) => b.count - a.count);
+		let perAccountList = Object.values(perAccountMap);
+
+		// 🔥 Nomor baris (No) SELALU ngikutin urutan A-Z Username, gak peduli kolom apa yang lagi di-sort.
+		assignBaseRowNumbers(perAccountList, 'username');
+
+		// urutan tampilan: default rame-dulu (count desc), kecuali user klik header buat sort lain
+		perAccountList = visitorPerAccountSort.col
+			? applySortState(perAccountList, visitorPerAccountSort, { count: 'number', lastVisit: 'number' })
+			: perAccountList.sort((a, b) => b.count - a.count);
+
+		if (perAccountHead) {
+			perAccountHead.innerHTML = `
+<tr class="text-left text-slate-400 uppercase text-[10px] border-b bg-slate-50">
+	${noTh()}
+	${sortableTh('Username', 'username', visitorPerAccountSort, 'window.sortVisitorPerAccount')}
+	${sortableTh('Role', 'role', visitorPerAccountSort, 'window.sortVisitorPerAccount')}
+	${sortableTh('Total', 'count', visitorPerAccountSort, 'window.sortVisitorPerAccount', 'text-center')}
+	${sortableTh('Kunjungan Terakhir', 'lastVisit', visitorPerAccountSort, 'window.sortVisitorPerAccount')}
+</tr>`;
+		}
 
 		if (perAccountBody) {
 			if (perAccountList.length === 0) {
-				perAccountBody.innerHTML = `<tr><td colspan="4" class="py-3 text-center text-slate-400 italic">Belum ada data untuk periode ini.</td></tr>`;
+				perAccountBody.innerHTML = `<tr><td colspan="5" class="py-3 text-center text-slate-400 italic">Belum ada data untuk periode ini.</td></tr>`;
 			} else {
 				perAccountBody.innerHTML = perAccountList.map(p => {
 					const lastVisitLabel = p.lastVisit
@@ -4093,6 +4161,7 @@ const appId = "booking-ruang-training";
 						: '-';
 					return `
 <tr>
+    <td class="py-2 pl-3 pr-2 text-center text-slate-400 font-bold">${p._no}</td>
     <td class="py-2 pr-2 font-bold text-slate-700">${p.username}</td>
     <td class="py-2 pr-2">${p.role}</td>
     <td class="py-2 pr-2 text-center"><span class="inline-flex items-center justify-center min-w-[1.75rem] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-black text-[11px]">${p.count}</span></td>
@@ -4146,7 +4215,7 @@ const appId = "booking-ruang-training";
 		// 🔥 GRAFIK 2: TOP 8 AKUN PALING SERING BERKUNJUNG (bar chart horizontal)
 		const accountCanvas = document.getElementById('visitorAccountChart');
 		if (accountCanvas && typeof Chart !== 'undefined') {
-			const top = perAccountList.slice(0, 8);
+			const top = [...perAccountList].sort((a, b) => b.count - a.count).slice(0, 8);
 
 			if (window.visitorAccountChartInstance) window.visitorAccountChartInstance.destroy();
 			window.visitorAccountChartInstance = new Chart(accountCanvas, {
@@ -4171,39 +4240,68 @@ const appId = "booking-ruang-training";
 			});
 		}
 
-		if (filtered.length === 0) {
-			body.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400 italic">Belum ada data kunjungan.</td></tr>`;
+		// 🔥 Nomor baris (No) rincian kunjungan: SELALU ngikutin urutan A-Z Username.
+		const filteredForNo = filtered.map(v => ({ ...v })); // salinan biar aman ditempeli _no
+		assignBaseRowNumbers(filteredForNo, 'username');
+
+		let detailRows = filteredForNo.map(v => {
+			const d = v.timestamp?.seconds ? new Date(v.timestamp.seconds * 1000) : null;
+			return {
+				_no: v._no,
+				username: v.username || '-',
+				role: v.superAdmin ? 'Super Admin' : (v.role === 'admin' ? 'Admin' : 'User'),
+				dept: v.dept || '-',
+				ts: v.timestamp?.seconds || 0,
+				tanggal: d ? d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
+				jam: d ? d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'
+			};
+		});
+
+		detailRows = applySortState(detailRows, visitorDetailSort, { ts: 'number' });
+
+		if (head) {
+			head.innerHTML = `
+<tr class="text-left text-slate-400 uppercase text-[10px] border-b">
+	${noTh()}
+	${sortableTh('Username', 'username', visitorDetailSort, 'window.sortVisitorDetail')}
+	${sortableTh('Role', 'role', visitorDetailSort, 'window.sortVisitorDetail')}
+	${sortableTh('Departemen', 'dept', visitorDetailSort, 'window.sortVisitorDetail')}
+	${sortableTh('Tanggal', 'ts', visitorDetailSort, 'window.sortVisitorDetail')}
+	${sortableTh('Jam', 'ts', visitorDetailSort, 'window.sortVisitorDetail')}
+</tr>`;
+		}
+
+		if (detailRows.length === 0) {
+			body.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">Belum ada data kunjungan.</td></tr>`;
 			return;
 		}
 
-		body.innerHTML = filtered.map(v => {
-			const d = v.timestamp?.seconds ? new Date(v.timestamp.seconds * 1000) : null;
-			const tanggal = d ? d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
-			const jam = d ? d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
-			const roleLabel = v.superAdmin ? 'Super Admin' : (v.role === 'admin' ? 'Admin' : 'User');
-			return `
+		body.innerHTML = detailRows.map(v => `
 <tr>
-    <td class="py-2 pr-2 font-bold text-slate-700">${v.username || '-'}</td>
-    <td class="py-2 pr-2">${roleLabel}</td>
-    <td class="py-2 pr-2">${v.dept || '-'}</td>
-    <td class="py-2 pr-2">${tanggal}</td>
-    <td class="py-2 pr-2">${jam}</td>
-</tr>`;
-		}).join('');
+    <td class="py-2 pl-3 pr-2 text-center text-slate-400 font-bold">${v._no}</td>
+    <td class="py-2 pr-2 font-bold text-slate-700">${v.username}</td>
+    <td class="py-2 pr-2">${v.role}</td>
+    <td class="py-2 pr-2">${v.dept}</td>
+    <td class="py-2 pr-2">${v.tanggal}</td>
+    <td class="py-2 pr-2">${v.jam}</td>
+</tr>`).join('');
 	};
 
 	// ================= 🔥 KELOLA AKUN (SUPER ADMIN) — halaman penuh, diakses via showView('manage-accounts') =================
 
+	let manageAccountsSort = { col: null, dir: 'asc' };
+	window.sortManageAccounts = (col) => { toggleSortState(manageAccountsSort, col); window.renderManageAccounts(); };
+
 	window.renderManageAccounts = () => {
 		const list = document.getElementById('manage-accounts-body');
+		const head = document.getElementById('manage-accounts-head');
 		const totalEl = document.getElementById('manage-accounts-total');
 		if (!list) return;
 
 		const keyword = (document.getElementById('manage-accounts-search')?.value || '').toLowerCase().trim();
 
-		const users = (localState.users || [])
+		let users = (localState.users || [])
 			.slice()
-			.sort((a, b) => (a.username || '').localeCompare(b.username || ''))
 			.filter(u => !keyword ||
 				(u.username || '').toLowerCase().includes(keyword) ||
 				(u.email || '').toLowerCase().includes(keyword) ||
@@ -4212,8 +4310,30 @@ const appId = "booking-ruang-training";
 
 		if (totalEl) totalEl.innerText = users.length;
 
+		// 🔥 Nomor baris (No) SELALU ngikutin urutan A-Z Username, gak peduli kolom apa yang lagi di-sort.
+		assignBaseRowNumbers(users, 'username');
+
+		// urutan tampilan: default A-Z username, kecuali user klik header buat sort lain
+		users = manageAccountsSort.col
+			? applySortState(users, manageAccountsSort, {})
+			: users.sort((a, b) => (a.username || '').localeCompare(b.username || '', 'id'));
+
+		if (head) {
+			head.innerHTML = `
+<tr class="text-left text-slate-400 uppercase text-[10px] border-b bg-slate-50">
+	${noTh()}
+	${sortableTh('Username', 'username', manageAccountsSort, 'window.sortManageAccounts')}
+	${sortableTh('Email', 'email', manageAccountsSort, 'window.sortManageAccounts')}
+	${sortableTh('Departemen', 'dept', manageAccountsSort, 'window.sortManageAccounts')}
+	${sortableTh('Role', 'role', manageAccountsSort, 'window.sortManageAccounts')}
+	${sortableTh('Password', 'password', manageAccountsSort, 'window.sortManageAccounts')}
+	${sortableTh('Status', 'active', manageAccountsSort, 'window.sortManageAccounts')}
+	${plainTh('Action')}
+</tr>`;
+		}
+
 		if (users.length === 0) {
-			list.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 italic">Tidak ada akun ditemukan.</td></tr>`;
+			list.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-400 italic">Tidak ada akun ditemukan.</td></tr>`;
 			return;
 		}
 
@@ -4238,6 +4358,7 @@ const appId = "booking-ruang-training";
 
 			return `
 <tr class="${isActive ? '' : 'opacity-60'}">
+    <td class="py-2.5 pl-3 pr-2 text-center text-slate-400 font-bold">${u._no}</td>
     <td class="py-2.5 pr-3 font-bold text-slate-700 whitespace-nowrap">${u.username || '-'} ${isSelf ? '<span class=\"text-[9px] text-slate-400\">(Anda)</span>' : ''}</td>
     <td class="py-2.5 pr-3 text-slate-500 max-w-[160px] truncate">${u.email || '(belum ada email)'}</td>
     <td class="py-2.5 pr-3 text-slate-500 whitespace-nowrap">${u.dept || '-'}</td>
