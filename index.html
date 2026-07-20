@@ -6,6 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrainingHub - Training Aset Management</title>
 
+    <!-- 🔥 FIX: BUKA APP/LINK INI = SELALU SAMA SEPERTI "HARD REFRESH".
+         Beberapa meta tag ini kasih sinyal ke browser supaya HTML halaman ini
+         sendiri tidak disimpan dari cache lama (best-effort, tetap tergantung
+         header dari server juga). Pembersihan Cache Storage & Service Worker
+         LAMA dilakukan lewat script di bawah ini supaya asset (JS/CSS/gambar)
+         juga selalu ke-fetch ulang dari server, bukan dari versi lama yang
+         ke-cache -> user selalu lihat versi TERBARU tiap buka app/link. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script>
+    (function () {
+        // Hapus semua Cache Storage punya Service Worker (kalau ada) supaya
+        // asset yang sempat ke-cache offline gak "nyangkut" jadi versi lama.
+        if ('caches' in window) {
+            caches.keys().then(function (names) {
+                names.forEach(function (name) { caches.delete(name); });
+            }).catch(function () {});
+        }
+        // Lepas registrasi Service Worker LAMA. Nanti didaftarkan ulang FRESH
+        // oleh script di akhir <body>, jadi tiap buka app selalu mulai "bersih".
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+                regs.forEach(function (reg) { reg.unregister(); });
+            }).catch(function () {});
+        }
+    })();
+    </script>
+
     <!-- 📱 PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
@@ -477,6 +506,30 @@ body {
     position: relative;
 }		
 
+/* 🔥 SIDEBAR DESKTOP: SEKARANG BISA DIBUKA/TUTUP JUGA (SEPERTI DI HP) */
+@media (min-width: 768px) {
+
+    /* Default: kebuka (sama seperti perilaku sebelumnya) */
+    #mobile-sidebar {
+        transform: translateX(0);
+    }
+
+    /* Ditutup lewat tombol toggle -> geser keluar layar */
+    #mobile-sidebar.sidebar-closed-desktop {
+        transform: translateX(-100%) !important;
+    }
+
+    /* Konten utama ikut geser mengisi ruang bekas sidebar saat ditutup */
+    #main-content-wrap {
+        transition: margin-left 0.3s ease-in-out;
+        margin-left: 16rem; /* selebar sidebar (w-64) saat kebuka */
+    }
+
+    #main-content-wrap.sidebar-closed-desktop-margin {
+        margin-left: 0;
+    }
+}
+
 </style>
 
 </head>
@@ -936,7 +989,7 @@ window.downloadQR = function () {
 
     <div class="flex min-h-screen">
         <!-- SIDEBAR (Responsive) -->
-       <aside id="mobile-sidebar" style="height:100dvh" class="fixed md:sticky top-0 left-0 h-screen w-64 border-r border-slate-200 z-[100] -translate-x-full md:translate-x-0 flex flex-col overflow-hidden">
+       <aside id="mobile-sidebar" style="height:100dvh" class="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 z-[100] -translate-x-full flex flex-col overflow-hidden">
 
     <div class="p-6 flex-1 overflow-y-auto min-h-0">
 
@@ -1096,17 +1149,22 @@ window.downloadQR = function () {
 
 </aside>
 
-        <main class="flex-1 flex flex-col min-w-0 min-h-0">
+        <main id="main-content-wrap" class="flex-1 flex flex-col min-w-0 min-h-0">
             <header class="glass-header sticky top-0 z-40 px-4 md:px-8 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <!-- MOBILE MENU TOGGLE -->
-                    <button onclick="toggleMobileSidebar()" class="md:hidden w-12 h-12 flex items-center justify-center bg-white/80 backdrop-blur border border-slate-200 rounded-lg text-slate-700 shadow"
-                        <i class="text-lg">☰</i>
+                    <!-- 🔥 TOMBOL TOGGLE SIDEBAR: sekarang tampil juga di desktop,
+                         bukan cuma di HP (md:hidden dihapus). Ikon pakai Font Awesome
+                         (fa-bars) supaya garis 3-nya presisi/simetris, gak kayak
+                         karakter "☰" yang render-nya beda-beda tergantung font.
+                         Keterangan (title) ikut berubah sesuai kondisi sidebar. -->
+                    <button id="sidebar-toggle-btn" onclick="toggleMobileSidebar()" title="Tutup Sidebar"
+                        class="w-12 h-12 flex items-center justify-center bg-white/80 backdrop-blur border border-slate-200 rounded-lg text-slate-700 shadow">
+                        <i class="fas fa-bars text-lg"></i>
                     </button>
                     <h2 class="text-base md:text-xl font-bold text-slate-900" id="view-title">Dashboard</h2>
                     <div class="hidden sm:block h-6 w-px bg-slate-200"></div>
                     <div class="relative" id="global-time-filter-wrap">
-                        <button type="button" id="global-time-filter-btn" onclick="window.toggleTimeFilterDropdown()"
+                        <button type="button" id="global-time-filter-btn" onclick="window.toggleTimeFilterDropdown()" title="Filter Periode"
                             class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500 max-w-[160px] sm:max-w-none">
                             <span id="global-time-filter-label" class="truncate">Bulan Ini</span>
                             <i class="fas fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
@@ -5567,6 +5625,34 @@ let localState = {
     const overlay =
         document.getElementById('mobile-sidebar-overlay');
 
+    const mainWrap =
+        document.getElementById('main-content-wrap');
+
+    // 🔥 DESKTOP (>=768px): sidebar buka/tutup dengan geser konten,
+    // TANPA overlay gelap (karena sidebar-nya "mendorong" konten, bukan
+    // menutupinya seperti di HP).
+    if (window.innerWidth >= 768) {
+
+        sidebar.classList.toggle('sidebar-closed-desktop');
+
+        if (mainWrap) {
+            mainWrap.classList.toggle('sidebar-closed-desktop-margin');
+        }
+
+        const isOpen =
+            !sidebar.classList.contains('sidebar-closed-desktop');
+
+        localStorage.setItem(
+            "sidebarOpenDesktop",
+            isOpen ? "1" : "0"
+        );
+
+        window.updateSidebarToggleTitle();
+
+        return;
+    }
+
+    // 🔥 MOBILE (<768px): perilaku lama, sidebar overlay di atas konten
     sidebar.classList.toggle('sidebar-open');
     overlay.classList.toggle('hide');
 
@@ -5579,8 +5665,37 @@ let localState = {
         isOpen ? "1" : "0"
     );
 
+    window.updateSidebarToggleTitle();
 
 };
+
+        // 🔥 Keterangan (tooltip) tombol toggle sidebar, berubah sesuai kondisi
+        // saat ini: "Tutup Sidebar" kalau lagi kebuka, "Buka Sidebar" kalau
+        // lagi tertutup. Dipanggil tiap kali sidebar di-toggle atau saat app
+        // baru dimuat, supaya keterangannya selalu sesuai kondisi terkini.
+        window.updateSidebarToggleTitle = () => {
+
+            const btn = document.getElementById('sidebar-toggle-btn');
+            const sidebar = document.getElementById('mobile-sidebar');
+
+            if (!btn || !sidebar) return;
+
+            const isDesktop = window.innerWidth >= 768;
+
+            const isOpen = isDesktop
+                ? !sidebar.classList.contains('sidebar-closed-desktop')
+                : sidebar.classList.contains('sidebar-open');
+
+            const label = isOpen ? 'Tutup Sidebar' : 'Buka Sidebar';
+
+            btn.title = label;
+            btn.setAttribute('aria-label', label);
+
+        };
+
+        window.addEventListener('resize', () => {
+            window.updateSidebarToggleTitle && window.updateSidebarToggleTitle();
+        });
 
         window.openRegister = () => document.getElementById('modal-register').classList.remove('hide');
 
@@ -13320,6 +13435,44 @@ window.logout = () => {
 
 };
 
+// ================= 🔥 AUTO LOGOUT KARENA TIDAK ADA AKTIVITAS (IDLE 1 JAM) =================
+// Kalau akun sedang login TAPI tidak ada interaksi apa pun (mouse, keyboard,
+// scroll, tap layar) selama 1 jam berturut-turut, akun otomatis di-logout.
+// Timer di-reset tiap kali ada aktivitas, jadi selama user aktif memakai
+// app, sesi TIDAK akan pernah timeout.
+(function () {
+    const IDLE_LIMIT_MS = 60 * 60 * 1000; // 1 jam
+
+    let idleTimer = null;
+
+    function isLoggedIn() {
+        return !!localStorage.getItem("traininghub_user");
+    }
+
+    function handleIdleTimeout() {
+        if (!isLoggedIn()) return;
+        alert("Sesi Anda berakhir karena tidak ada aktivitas selama 1 jam. Silakan login kembali.");
+        window.logout();
+    }
+
+    function resetIdleTimer() {
+        if (idleTimer) clearTimeout(idleTimer);
+        if (!isLoggedIn()) return;
+        idleTimer = setTimeout(handleIdleTimeout, IDLE_LIMIT_MS);
+    }
+
+    ["mousemove", "mousedown", "keydown", "wheel", "scroll", "touchstart", "click"].forEach(function (evt) {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    // Kalau tab sempat di-background lalu dibuka lagi, cek ulang timer-nya.
+    document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") resetIdleTimer();
+    });
+
+    resetIdleTimer();
+})();
+
 window.onpopstate = (event) => {
 
     // 🔥 Jika popup detail pesanan sedang terbuka, tombol/gestur "back" di device
@@ -13365,7 +13518,27 @@ window.addEventListener('load', () => {
 
             }
 
+        } else {
+
+            // 🔥 Di desktop: pulihkan status buka/tutup sidebar terakhir
+            // (default-nya tetap TERBUKA kalau belum pernah di-toggle).
+            const sidebar =
+                document.getElementById('mobile-sidebar');
+
+            const mainWrap =
+                document.getElementById('main-content-wrap');
+
+            const savedDesktopState =
+                localStorage.getItem('sidebarOpenDesktop');
+
+            if (sidebar && mainWrap && savedDesktopState === '0') {
+                sidebar.classList.add('sidebar-closed-desktop');
+                mainWrap.classList.add('sidebar-closed-desktop-margin');
+            }
+
         }
+
+        window.updateSidebarToggleTitle && window.updateSidebarToggleTitle();
 
     },300);
 
