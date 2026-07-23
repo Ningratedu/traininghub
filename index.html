@@ -6180,7 +6180,7 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
                 <p class="text-[11px] mt-1 ${ratingInfo.blocked ? 'text-rose-600 font-bold' : 'text-slate-500'}">
                     ${ratingInfo.blocked
                         ? `⛔ Collectability Anda sudah 0/${ratingInfo.maxViolations} (${ratingInfo.violationCount}x pelanggaran aktif). Akun Anda saat ini DIBLOKIR dari pengajuan peminjaman baru.`
-                        : `${ratingInfo.violationCount}x pelanggaran aktif tercatat • Collectability dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin.`}
+                        : `${ratingInfo.violationCount}x pelanggaran aktif tercatat • ⚠ Collectability dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin. Jika mencapai 0, akun Anda akan DIBLOKIR dari pengajuan peminjaman baru.`}
                 </p>
             </div>`;
         } else {
