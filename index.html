@@ -6,13 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrainingHub - Training Aset Management</title>
 
-    <!-- 🔥 FIX: BUKA APP/LINK INI = SELALU SAMA SEPERTI "HARD REFRESH".
-         Beberapa meta tag ini kasih sinyal ke browser supaya HTML halaman ini
-         sendiri tidak disimpan dari cache lama (best-effort, tetap tergantung
-         header dari server juga). Pembersihan Cache Storage & Service Worker
-         LAMA dilakukan lewat script di bawah ini supaya asset (JS/CSS/gambar)
-         juga selalu ke-fetch ulang dari server, bukan dari versi lama yang
-         ke-cache -> user selalu lihat versi TERBARU tiap buka app/link. -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -9957,6 +9950,20 @@ window.deleteBookingMany = async (ids) => {
                             </div>
                         </div>
 
+                        ${isMultiDay ? `
+                        <div class="bg-amber-50/60 rounded-2xl p-4 border border-amber-100">
+                            <p class="text-[10px] font-black uppercase text-amber-600 mb-3">Rincian Jam Per Hari:</p>
+                            <div class="flex flex-col gap-1.5">
+                                ${items.map(m => `
+                                <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-amber-100 text-xs">
+                                    <span class="font-bold italic">${new Date(m.date + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                    <span class="font-bold text-indigo-600">${m.start} - ${m.end}</span>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+
                         <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                             <p class="text-[10px] font-black uppercase text-slate-400 mb-3">Unit Persetujuan:</p>
                             <div class="space-y-2">
@@ -11207,6 +11214,21 @@ ${
 <span class="font-bold italic">${b.dept || '-'}</span>
 </div>
 
+${(() => {
+
+    // 🔥 MULTI-HARI: kumpulkan semua dokumen segrup (1 dokumen = 1 tanggal), urutkan by tanggal,
+    // supaya bisa ditampilkan rincian jam mulai/selesai per hari (berguna kalau pesanan pakai
+    // mode "Jam Beda Tiap Hari" pada ruangan, atau sekadar mau lihat rentang lengkapnya).
+    const groupMembers = b.groupId
+        ? localState.bookings.filter(x => x.groupId === b.groupId).sort((a, c) => a.date.localeCompare(c.date))
+        : [b];
+
+    const isMultiDay = groupMembers.length > 1;
+
+    const fmtTgl = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+    if (!isMultiDay) {
+        return `
 <div class="col-span-2 text-xs">
 <span class="text-slate-500">Tanggal :</span>
 <span class="font-bold italic">${b.date}</span>
@@ -11215,7 +11237,32 @@ ${
 <div class="col-span-2 text-xs">
 <span class="text-slate-500">Waktu :</span>
 <span class="font-bold italic">${b.start} - ${b.end}</span>
+</div>`;
+    }
+
+    return `
+<div class="col-span-2 text-xs">
+<span class="text-slate-500">Tanggal :</span>
+<span class="font-bold italic">${groupMembers[0].date} s/d ${groupMembers[groupMembers.length - 1].date} (${groupMembers.length} hari)</span>
 </div>
+
+<div class="col-span-2">
+<label class="text-[10px] font-bold uppercase text-slate-400">
+Rincian Jam Per Hari
+</label>
+
+<div class="flex flex-col gap-1.5 mt-1">
+${groupMembers.map(m => `
+<div class="flex items-center justify-between bg-slate-50 border p-2 rounded-lg text-xs">
+    <span class="font-bold italic">${fmtTgl(m.date)}</span>
+    <span class="font-bold text-indigo-600">${m.start} - ${m.end}</span>
+</div>
+`).join('')}
+</div>
+
+</div>`;
+
+})()}
 
 <div class="col-span-2 bg-slate-50 p-2 rounded">
 <span class="text-xs text-slate-500">Agenda :</span>
