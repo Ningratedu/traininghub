@@ -11150,8 +11150,14 @@ window.openDetail = (id) => {
 
     let qrSection = '';
 
+    // 🔥 FIX: pakai isSuperAdmin() juga (bukan cuma role === 'admin') supaya
+    // QR "Selesai" tetap tampil walau field role akun super admin ternyata
+    // tidak persis string 'admin' (mis. beda kapitalisasi/spasi di data lama).
     if(
-        currentUser.role === 'admin'
+        (
+            currentUser.role === 'admin'
+            || (window.isSuperAdmin && window.isSuperAdmin(currentUser))
+        )
         && status === 'ongoing'
     ) {
 
@@ -11422,7 +11428,10 @@ ${qrSection}
 `;
 
     if(
-        currentUser.role === 'admin'
+        (
+            currentUser.role === 'admin'
+            || (window.isSuperAdmin && window.isSuperAdmin(currentUser))
+        )
         && status === 'ongoing'
     ) {
 
