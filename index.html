@@ -3436,6 +3436,47 @@ window.downloadQR = function () {
                 Untuk pesanan 1 hari, isi tanggal mulai & selesai sama. Untuk pesanan beberapa hari, isi tanggal selesai lebih akhir — sistem akan mengecek bentrok di setiap harinya.
             </p>
 
+            <!-- 🔥 MULTI-HARI RUANGAN: PILIH JAM SAMA TIAP HARI / BEDA TIAP HARI -->
+            <!-- Hanya relevan untuk booking Ruangan (bukan "Hanya Alat", karena alat dikunci
+                 total sepanjang rentang tanggal-jam, bukan per-hari). Muncul otomatis kalau
+                 rentang tanggalnya lebih dari 1 hari. -->
+            <div id="daily-time-mode-wrap" class="col-span-2 hide bg-amber-50 rounded-2xl p-3 -mt-2">
+
+                <label class="text-[10px] font-bold uppercase text-amber-600">
+                    Jam Pemakaian Ruangan Tiap Hari
+                </label>
+
+                <div class="grid grid-cols-2 gap-2 mt-2">
+
+                    <button
+                        type="button"
+                        id="btn-daily-mode-same"
+                        onclick="window.setDailyTimeMode('same')"
+                        class="py-2 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-[11px]"
+                    >
+                        Jam Sama Tiap Hari
+                    </button>
+
+                    <button
+                        type="button"
+                        id="btn-daily-mode-custom"
+                        onclick="window.setDailyTimeMode('custom')"
+                        class="py-2 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-[11px]"
+                    >
+                        Jam Beda Tiap Hari
+                    </button>
+
+                </div>
+
+                <p class="text-[9px] text-slate-400 mt-2">
+                    "Jam Sama Tiap Hari" = pakai jam Mulai/Selesai di atas untuk semua tanggal (tidak perlu isi satu-satu).
+                    "Jam Beda Tiap Hari" = atur jam pemakaian sendiri untuk tiap tanggal.
+                </p>
+
+                <div id="daily-time-custom-list" class="flex flex-col gap-2 mt-3 hide"></div>
+
+            </div>
+
 
 
             <!-- PILIH ALAT -->
@@ -5396,6 +5437,13 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 		
 let bookingType = 'room';
+
+// 🔥 MULTI-HARI RUANGAN: mode jam harian ('same' = pakai jam Mulai/Selesai global untuk
+// semua tanggal, 'custom' = tiap tanggal punya jam sendiri) + penyimpanan jam per-tanggal
+// saat mode custom dipilih. Direset tiap kali form booking dibuka baru.
+let dailyTimeMode = 'same';
+let customDailyTimes = {};
+
 
 // ================= ADMIN BOOTSTRAP (TIDAK HARDCODE LAGI) =================
 // Akun admin sekarang adalah dokumen biasa di koleksi Firestore "users",
@@ -7624,6 +7672,9 @@ if(id){
                 btnTool.className = "py-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-sm";
                 document.getElementById('booking-room-field').classList.add('hide');
             }
+            if (typeof window.refreshDailyTimeModeVisibility === 'function') {
+                window.refreshDailyTimeModeVisibility();
+            }
             window.validateToolSelection();
         };
 
@@ -7782,6 +7833,14 @@ if(window.innerWidth < 768){
         dateEndEl.value = "";
     }
 
+    // 🔥 Reset mode jam harian ke default ("sama tiap hari") tiap form dibuka baru
+    dailyTimeMode = 'same';
+    customDailyTimes = {};
+    const dailyWrap = document.getElementById('daily-time-mode-wrap');
+    if (dailyWrap) dailyWrap.classList.add('hide');
+    const dailyList = document.getElementById('daily-time-custom-list');
+    if (dailyList) dailyList.classList.add('hide');
+
 
 
     // Load Room List (checkbox, bisa pilih lebih dari 1 ruangan)
@@ -7906,6 +7965,178 @@ document.addEventListener('DOMContentLoaded', () => {
             return dates;
         };
 
+        // 🔥 UTIL: generate <option> jam 00:00-23:30 tiap 30 menit (dipakai ulang untuk
+        // select jam Mulai/Selesai global maupun baris jam custom per-tanggal).
+        window.timeOptionsHTML = (selectedValue = '') => {
+            let html = `<option value="" disabled ${selectedValue ? '' : 'selected'}>-- Pilih Jam --</option>`;
+            for (let h = 0; h < 24; h++) {
+                for (const m of [0, 30]) {
+                    const v = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                    html += `<option value="${v}" ${v === selectedValue ? 'selected' : ''}>${v}</option>`;
+                }
+            }
+            return html;
+        };
+
+        // 🔥 MULTI-HARI RUANGAN: tampil/sembunyikan blok pilihan mode jam harian.
+        // Cuma relevan untuk booking Ruangan & kalau rentang tanggalnya > 1 hari.
+        window.refreshDailyTimeModeVisibility = () => {
+            const wrap = document.getElementById('daily-time-mode-wrap');
+            if (!wrap) return;
+
+            const date = document.getElementById('book-date')?.value || '';
+            const dateEndRaw = document.getElementById('book-date-end')?.value || '';
+            const dateList = window.getBookingDateRange(date, dateEndRaw);
+            const isMultiDay = dateList.length > 1;
+
+            if (bookingType === 'room' && isMultiDay) {
+                wrap.classList.remove('hide');
+            } else {
+                wrap.classList.add('hide');
+                // kalau bukan lagi multi-hari/ruangan, paksa balik ke mode "sama" biar tidak nyangkut
+                dailyTimeMode = 'same';
+                document.getElementById('daily-time-custom-list')?.classList.add('hide');
+            }
+
+            if (dailyTimeMode === 'custom') {
+                window.renderDailyTimeRows();
+            }
+        };
+
+        // 🔥 Ganti mode jam harian ('same' / 'custom')
+        window.setDailyTimeMode = (mode) => {
+            dailyTimeMode = mode;
+
+            const btnSame = document.getElementById('btn-daily-mode-same');
+            const btnCustom = document.getElementById('btn-daily-mode-custom');
+            const list = document.getElementById('daily-time-custom-list');
+
+            if (mode === 'same') {
+                btnSame.className = "py-2 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-[11px]";
+                btnCustom.className = "py-2 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-[11px]";
+                list.classList.add('hide');
+            } else {
+                btnSame.className = "py-2 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold text-[11px]";
+                btnCustom.className = "py-2 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-[11px]";
+                list.classList.remove('hide');
+                window.renderDailyTimeRows();
+            }
+
+            window.validateToolSelection();
+        };
+
+        // 🔥 Render baris jam per-tanggal untuk mode "Jam Beda Tiap Hari".
+        // Default tiap baris diisi dari jam Mulai/Selesai global (biar user tinggal
+        // sesuaikan yang perlu diubah saja, tidak wajib isi ulang semua dari kosong).
+        window.renderDailyTimeRows = () => {
+            const list = document.getElementById('daily-time-custom-list');
+            if (!list) return;
+
+            const date = document.getElementById('book-date')?.value || '';
+            const dateEndRaw = document.getElementById('book-date-end')?.value || '';
+            const dateList = window.getBookingDateRange(date, dateEndRaw);
+            const globalStart = document.getElementById('book-start')?.value || '';
+            const globalEnd = document.getElementById('book-end')?.value || '';
+
+            list.innerHTML = dateList.map(d => {
+                const existing = customDailyTimes[d] || {};
+                const s = existing.start || globalStart || '';
+                const e = existing.end || globalEnd || '';
+                // simpan default ke state supaya konsisten dgn yang tampil
+                customDailyTimes[d] = { start: s, end: e };
+
+                const dLabel = new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short' });
+
+                return `
+                <div class="flex items-center gap-2 bg-white rounded-xl p-2 border">
+                    <span class="text-[10px] font-bold w-20 shrink-0">${dLabel}</span>
+                    <select
+                        class="flex-1 bg-slate-100 rounded-lg px-2 py-2 text-[11px]"
+                        onchange="window.updateDailyTime('${d}','start',this.value)"
+                    >${window.timeOptionsHTML(s)}</select>
+                    <span class="text-[10px] text-slate-400">s/d</span>
+                    <select
+                        class="flex-1 bg-slate-100 rounded-lg px-2 py-2 text-[11px]"
+                        onchange="window.updateDailyTime('${d}','end',this.value)"
+                    >${window.timeOptionsHTML(e)}</select>
+                </div>`;
+            }).join('');
+        };
+
+        // 🔥 Simpan perubahan jam custom per-tanggal + validasi ulang (jam selesai > jam mulai per hari)
+        window.updateDailyTime = (date, field, value) => {
+            if (!customDailyTimes[date]) customDailyTimes[date] = { start: '', end: '' };
+            customDailyTimes[date][field] = value;
+
+            const { start: s, end: e } = customDailyTimes[date];
+            if (s && e && e <= s) {
+                alert(`Jam selesai tanggal ${date} tidak boleh sama dengan atau sebelum jam mulai.`);
+                customDailyTimes[date].end = '';
+                window.renderDailyTimeRows();
+            }
+
+            window.validateToolSelection();
+        };
+
+        // 🔥 Ambil jam efektif (start/end) untuk 1 tanggal, sesuai mode yang sedang aktif.
+        // Dipakai di validasi bentrok & saat menyimpan dokumen per-tanggal.
+        window.getEffectiveDailyTime = (date, globalStart, globalEnd) => {
+            if (bookingType === 'room' && dailyTimeMode === 'custom') {
+                const c = customDailyTimes[date];
+                return { start: (c && c.start) || '', end: (c && c.end) || '' };
+            }
+            return { start: globalStart, end: globalEnd };
+        };
+
+        // 🔥 ALAT DIKUNCI TOTAL SEPANJANG RENTANG (bukan per-hari): fungsi ini menghitung
+        // rentang waktu kontinu 1 pesanan (dari tanggal+jam mulai PALING AWAL sampai
+        // tanggal+jam selesai PALING AKHIR dalam grup yang sama), supaya alat yang
+        // "dibawa pergi" beberapa hari dianggap tidak tersedia SELAMA rentang itu penuh —
+        // bukan cuma di jam-jam tertentu tiap harinya (yang cuma cocok untuk ruangan).
+        window.getGroupContinuousRange = (bookingsList, groupId, fallbackDate, fallbackStart, fallbackEnd) => {
+            const members = groupId ? bookingsList.filter(b => b.groupId === groupId) : [];
+
+            if (!members.length) {
+                return [
+                    new Date(`${fallbackDate}T${fallbackStart || '00:00'}`),
+                    new Date(`${fallbackDate}T${fallbackEnd || '00:00'}`)
+                ];
+            }
+
+            const minMember = members.reduce((a, b) => (a.date < b.date ? a : b));
+            const maxMember = members.reduce((a, b) => (a.date > b.date ? a : b));
+
+            return [
+                new Date(`${minMember.date}T${minMember.start}`),
+                new Date(`${maxMember.date}T${maxMember.end}`)
+            ];
+        };
+
+        // 🔥 Cek apakah 1 alat bentrok dgn rentang kontinu pesanan lain yang masih aktif.
+        window.isToolContinuousConflict = (bookingsList, toolId, newRangeStart, newRangeEnd, excludeId, excludeGroupId) => {
+            const activeStatuses = ['Pending', 'Approved', 'Ongoing'];
+            const seenGroups = new Set();
+
+            for (const b of bookingsList) {
+                if (b.id === excludeId) continue;
+                if (excludeGroupId && b.groupId && b.groupId === excludeGroupId) continue;
+                if (!activeStatuses.includes(b.status)) continue;
+                if (!(b.tools && b.tools.some(t => t.id === toolId))) continue;
+
+                const gKey = b.groupId || b.id;
+                if (seenGroups.has(gKey)) continue;
+                seenGroups.add(gKey);
+
+                const [existStart, existEnd] = window.getGroupContinuousRange(bookingsList, b.groupId, b.date, b.start, b.end);
+
+                if (newRangeStart < existEnd && existStart < newRangeEnd) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
         // 🔥 ANTI BENTROK ANTAR-USER (RACE CONDITION FIX):
         // Cek `localState.bookings` SAJA tidak cukup karena data itu dari cache real-time
         // listener yang bisa telat beberapa ratus ms. Kalau 2 user submit pesanan yang
@@ -7972,6 +8203,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 endEl.value = startEl.value;
             }
 
+            if (typeof window.refreshDailyTimeModeVisibility === 'function') {
+                window.refreshDailyTimeModeVisibility();
+            }
+
             window.handleBookTimeChange();
         };
 
@@ -7983,6 +8218,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (startEl.value && endEl.value < startEl.value) {
                 alert("Tanggal selesai tidak boleh sebelum tanggal mulai.");
                 endEl.value = startEl.value;
+            }
+
+            if (typeof window.refreshDailyTimeModeVisibility === 'function') {
+                window.refreshDailyTimeModeVisibility();
             }
 
             window.handleBookTimeChange();
@@ -8061,16 +8300,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
-            
+
+            // 🔥 MULTI-HARI RUANGAN MODE "BEDA TIAP HARI": pastikan semua tanggal sudah diisi jam-nya
+            // dan urutannya valid (jam selesai > jam mulai per tanggal) sebelum lanjut cek bentrok.
+            let dailyTimesIncomplete = false;
+            if (bookingType === 'room' && dailyTimeMode === 'custom') {
+                dailyTimesIncomplete = dateList.some(d => {
+                    const t = customDailyTimes[d];
+                    return !t || !t.start || !t.end || t.end <= t.start;
+                });
+            }
+
+            if (dailyTimesIncomplete) {
+                errorMsg.innerText = 'Lengkapi jam mulai & selesai untuk setiap tanggal (mode "Jam Beda Tiap Hari").';
+                errorMsg.classList.remove('hide');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
+                return;
+            }
+
             let roomBentrok = false;
             if (bookingType === 'room' && roomIds.length > 0) {
-                roomBentrok = localState.bookings.some(b => 
-                    b.id !== editId &&
-                    dateList.includes(b.date) && 
-                    roomIds.includes(b.roomId) &&
-                    (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing') &&
-                    isOverlapping(start, end, b.start, b.end)
-                );
+                roomBentrok = localState.bookings.some(b => {
+                    if (b.id === editId) return false;
+                    if (!dateList.includes(b.date)) return false;
+                    if (!roomIds.includes(b.roomId)) return false;
+                    if (!(b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing')) return false;
+                    const t = window.getEffectiveDailyTime(b.date, start, end);
+                    return isOverlapping(t.start, t.end, b.start, b.end);
+                });
             }
             
             if (roomBentrok) {
@@ -8085,11 +8343,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const container = document.getElementById('tool-selection');
-            const activeBookingsForTools = localState.bookings.filter(b => 
-                b.id !== editId &&
-                dateList.includes(b.date) && 
-                (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Ongoing')
-            );
+
+            // 🔥 ALAT: rentang kontinu (paling awal -> paling akhir) dari pesanan yang sedang diisi,
+            // supaya bentrok dicek "alat lagi dibawa terus" bukan cuma jam-jam tertentu per hari.
+            const firstDate = dateList[0];
+            const lastDate = dateList[dateList.length - 1];
+            const firstTimes = window.getEffectiveDailyTime(firstDate, start, end);
+            const lastTimes = window.getEffectiveDailyTime(lastDate, start, end);
+            const newToolRangeStart = firstTimes.start ? new Date(`${firstDate}T${firstTimes.start}`) : null;
+            const newToolRangeEnd = lastTimes.end ? new Date(`${lastDate}T${lastTimes.end}`) : null;
+
+            const editBooking = editId ? localState.bookings.find(x => x.id === editId) : null;
+            const editGroupId = editBooking ? editBooking.groupId : null;
 
             let currentSelectedToolIds = [];
             if(editId) {
@@ -8139,11 +8404,9 @@ const finalTools = [
 container.innerHTML =
 finalTools.map(t => {
 
-    const isToolBentrok = activeBookingsForTools.some(b => 
-        b.tools && 
-        b.tools.some(bt => bt.id === t.id) && 
-        isOverlapping(start, end, b.start, b.end)
-    );
+    const isToolBentrok = (newToolRangeStart && newToolRangeEnd)
+        ? window.isToolContinuousConflict(localState.bookings, t.id, newToolRangeStart, newToolRangeEnd, editId, editGroupId)
+        : false;
 
 	// 🔥 AUTO REMOVE TOOL YANG BENTROK DARI CHECKLIST
 if (isToolBentrok) {
@@ -8159,6 +8422,7 @@ if (isToolBentrok) {
 <label class="bg-slate-50 hover:border-indigo-300 cursor-pointer p-2 rounded-lg border flex items-center gap-3 min-w-[240px]">
 
     <input
+
         type="checkbox"
         name="tools"
         value="${t.id}"
@@ -9412,6 +9676,13 @@ window.editBooking = (bookingId) => {
         return;
 
     }
+
+    // 🔥 EDIT selalu 1 tanggal saja -> pastikan mode jam balik ke "sama" & sembunyikan
+    // blok custom, biar tidak nyangkut dari sesi buat-pesanan-baru sebelumnya.
+    dailyTimeMode = 'same';
+    customDailyTimes = {};
+    document.getElementById('daily-time-mode-wrap')?.classList.add('hide');
+    document.getElementById('daily-time-custom-list')?.classList.add('hide');
 
     // =========================
     // LOAD ROOM LIST ULANG
@@ -11816,6 +12087,19 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
         const isOverlapping = (s1, e1, s2, e2) => (s1 < e2 && s2 < e1);
 
+        // 🔥 MULTI-HARI RUANGAN MODE "BEDA TIAP HARI": jaga-jaga terakhir sebelum simpan,
+        // pastikan semua tanggal sudah ada jam mulai/selesai yang valid.
+        if (bookingType === 'room' && dailyTimeMode === 'custom') {
+            const incomplete = dateList.some(d => {
+                const t = customDailyTimes[d];
+                return !t || !t.start || !t.end || t.end <= t.start;
+            });
+            if (incomplete) {
+                alert('❌ Lengkapi jam mulai & selesai untuk setiap tanggal (mode "Jam Beda Tiap Hari").');
+                return;
+            }
+        }
+
         // 🔥 CEK ULANG BENTROK UNTUK SEMUA TANGGAL SEBELUM DISIMPAN (JAGA-JAGA DARI RACE CONDITION)
         const activeStatuses = ['Pending', 'Approved', 'Ongoing'];
 
@@ -11826,6 +12110,14 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
         const liveBookings = await window.fetchLiveActiveBookingsForDates(dateList);
         const bookingsForConflictCheck = liveBookings !== null ? liveBookings : localState.bookings;
 
+        // 🔥 ALAT DIKUNCI TOTAL SEPANJANG RENTANG: untuk menghitung rentang kontinu pesanan LAIN
+        // yang mungkin sebagian tanggalnya di luar dateList kita (mis. pesanan lain mulai
+        // sebelum & berakhir sesudah rentang yang sedang kita cek), gabungkan hasil live-fetch
+        // dengan cache lokal supaya seluruh anggota grupnya tetap kelihatan.
+        const toolConflictPoolMap = new Map();
+        [...bookingsForConflictCheck, ...localState.bookings].forEach(b => toolConflictPoolMap.set(b.id, b));
+        const toolConflictPool = Array.from(toolConflictPoolMap.values());
+
         if (bookingType === 'room') {
 
             const targetsToCheck = editId ? [editRoomId].filter(Boolean) : roomTargets;
@@ -11833,13 +12125,14 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
             for (const rId of targetsToCheck) {
 
-                const roomBentrok = bookingsForConflictCheck.some(b =>
-                    b.id !== editId &&
-                    dateList.includes(b.date) &&
-                    b.roomId === rId &&
-                    activeStatuses.includes(b.status) &&
-                    isOverlapping(start, end, b.start, b.end)
-                );
+                const roomBentrok = bookingsForConflictCheck.some(b => {
+                    if (b.id === editId) return false;
+                    if (!dateList.includes(b.date)) return false;
+                    if (b.roomId !== rId) return false;
+                    if (!activeStatuses.includes(b.status)) return false;
+                    const t = window.getEffectiveDailyTime(b.date, start, end);
+                    return isOverlapping(t.start, t.end, b.start, b.end);
+                });
 
                 if (roomBentrok) {
                     const rName = localState.rooms.find(r => r.id === rId)?.name || rId;
@@ -11855,22 +12148,35 @@ document.getElementById('form-booking').addEventListener('submit', async (e) => 
 
         }
 
+// 🔥 ALAT: rentang kontinu dari tanggal+jam paling awal s/d paling akhir pesanan ini.
+const editBookingObjForTools = editId ? localState.bookings.find(x => x.id === editId) : null;
+const editGroupIdForTools = editBookingObjForTools ? editBookingObjForTools.groupId : null;
+
+const toolFirstDate = dateList[0];
+const toolLastDate = dateList[dateList.length - 1];
+const toolFirstTimes = window.getEffectiveDailyTime(toolFirstDate, start, end);
+const toolLastTimes = window.getEffectiveDailyTime(toolLastDate, start, end);
+const newToolRangeStart = new Date(`${toolFirstDate}T${toolFirstTimes.start}`);
+const newToolRangeEnd = new Date(`${toolLastDate}T${toolLastTimes.end}`);
+
 for (const t of selectedTools) {
 
-    const toolBentrok = bookingsForConflictCheck.some(b =>
-        b.id !== editId &&
-        dateList.includes(b.date) &&
-        activeStatuses.includes(b.status) &&
-        (b.tools || []).some(bt => bt.id === t.id) &&
-        isOverlapping(start, end, b.start, b.end)
+    const toolBentrok = window.isToolContinuousConflict(
+        toolConflictPool,
+        t.id,
+        newToolRangeStart,
+        newToolRangeEnd,
+        editId,
+        editGroupIdForTools
     );
 
     if (toolBentrok) {
-        alert(`❌ Gagal menyimpan: alat "${t.name}" sudah dipesan di salah satu tanggal yang dipilih. Silakan cek kembali.`);
+        alert(`❌ Gagal menyimpan: alat "${t.name}" sedang dipinjam/dipesan pada rentang tanggal-jam tersebut. Silakan cek kembali.`);
         return;
     }
 
 }
+
 
 // 🔥 DATA DASAR YANG SAMA UNTUK SEMUA RUANGAN/TARGET (belum termasuk roomId/roomName/tanggal)
 const commonBookingData = {
@@ -11934,8 +12240,15 @@ if (editId) {
 
         for (let i = 0; i < dateList.length; i++) {
 
+            // 🔥 MULTI-HARI RUANGAN MODE "BEDA TIAP HARI": tiap dokumen/tanggal pakai jamnya
+            // sendiri-sendiri. Mode "sama tiap hari" & booking "Hanya Alat" tetap pakai
+            // jam Mulai/Selesai global (baseBookingData.start/end) seperti sebelumnya.
+            const dailyTime = window.getEffectiveDailyTime(dateList[i], start, end);
+
             const bookingData = {
                 ...baseBookingData,
+                start: dailyTime.start,
+                end: dailyTime.end,
                 date: dateList[i],
                 groupId,
                 dayIndex: i + 1,
