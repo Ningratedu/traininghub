@@ -13041,7 +13041,6 @@ window.markViolationStatus = async (id, status) => {
         alert('Gagal update status: ' + err.message);
     }
 };
-
 // ================= 🔥 UPDATE PENYELESAIAN PELANGGARAN + EVIDENCE =================
 window.openResolveViolationModal = (id) => {
     const v = (localState.violations || []).find(x => x.id === id);
