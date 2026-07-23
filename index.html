@@ -1027,6 +1027,7 @@ window.downloadQR = function () {
     data-view="riwayat">
         <i class="fas fa-history w-5"></i>
         <span class="nav-label">Pesanan Saya</span>
+        <span id="badge-my-violation" class="ml-auto flex-shrink-0 bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hide">0</span>
     </button>
 
     <button onclick="showView('statistik-saya', 'Statistik Saya')" 
@@ -6872,6 +6873,10 @@ if (typeof updateViolationBadge === 'function') {
     updateViolationBadge();
 }
 
+if (typeof updateMyViolationBadge === 'function') {
+    updateMyViolationBadge();
+}
+
 if (typeof updateRatingAttentionBadge === 'function') {
     updateRatingAttentionBadge();
 }
@@ -8655,6 +8660,27 @@ const listenToData = () => {
             const count = (localState.violations || []).filter(v => v.status === 'Baru').length;
             const badge = document.getElementById('badge-violation');
             if(badge) { badge.innerText = count; badge.classList.toggle('hide', count === 0); }
+        }
+
+        // 🔥 Badge "Pesanan Saya" (POV user): nunjukin jumlah pelanggaran milik
+        // user ini yang statusnya BELUM 'Selesai'. Terus nempel selama belum
+        // diselesaikan, beda sama popup login yang cuma muncul sekali per sesi.
+        function updateMyViolationBadge() {
+            const badge = document.getElementById('badge-my-violation');
+            if (!badge) return;
+
+            if (!currentUser || currentUser.role === 'admin') {
+                badge.classList.add('hide');
+                return;
+            }
+
+            const count = (localState.violations || []).filter(v =>
+                (v.userName || '').toLowerCase() === (currentUser.username || '').toLowerCase()
+                && v.status !== 'Selesai'
+            ).length;
+
+            badge.innerText = count;
+            badge.classList.toggle('hide', count === 0);
         }
 
         // 🔥 STATUS FILTER (dipakai bareng di "Pesanan Saya" & "Kalender")
