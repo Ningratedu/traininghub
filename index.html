@@ -6217,6 +6217,99 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
     document.getElementById('modal-my-violations').classList.remove('hide');
 };
 
+// ================= 🔥 POPUP PELANGGARAN SAAT LOGIN (USER) =================
+// Ditrigger dari refreshUI() setiap kali data Firestore sinkron. Cuma benar-benar
+// tampil SEKALI per sesi login (ditandai window.__violationLoginPopupShown),
+// jadi tidak muncul berulang tiap kali ada update data lain di aplikasi.
+window.__violationLoginPopupShown = false;
+
+window.maybeShowLoginViolationPopup = function () {
+
+    if (!currentUser) return;
+    if (window.__violationLoginPopupShown) return;
+
+    // 🔥 Cuma relevan buat user biasa (pemesan) — admin/superadmin yang justru
+    // MENCATAT pelanggaran, bukan pihak yang perlu diingatkan menyelesaikannya.
+    if (currentUser.role === 'admin') return;
+
+    // 🔥 listenToData() jalan async (Firestore onSnapshot), jadi tunggu dulu
+    // sampai localState.violations benar-benar sudah kesinkron sebelum
+    // menyimpulkan "tidak ada pelanggaran".
+    if (!Array.isArray(localState.violations)) return;
+
+    const myUnresolved = localState.violations.filter(v =>
+        (v.userName || '').toLowerCase() === (currentUser.username || '').toLowerCase()
+        && v.status !== 'Selesai'
+    );
+
+    // 🔥 Tandai sudah dicek supaya refreshUI() berikutnya tidak menghitung ulang
+    // terus-menerus (baik saat memang tidak ada pelanggaran, maupun setelah
+    // popup berhasil ditampilkan sekali).
+    window.__violationLoginPopupShown = true;
+
+    if (myUnresolved.length === 0) return;
+
+    myUnresolved.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+    document.getElementById('violation-login-popup-subtitle').innerText =
+        myUnresolved.length === 1
+            ? 'Ditemukan 1 pelanggaran pada akun Anda'
+            : `Ditemukan ${myUnresolved.length} pelanggaran pada akun Anda`;
+
+    const container = document.getElementById('violation-login-popup-list');
+
+    container.innerHTML = myUnresolved.map(v => {
+
+        const date = v.createdAt?.seconds
+            ? new Date(v.createdAt.seconds * 1000).toLocaleDateString('id-ID')
+            : '-';
+
+        const levelColor =
+            v.level === 'Berat' ? 'bg-rose-100 text-rose-600' :
+            v.level === 'Sedang' ? 'bg-amber-100 text-amber-600' :
+            'bg-slate-100 text-slate-600';
+
+        // 🔥 Teks WA sama persis polanya dengan window.showMyViolations() supaya
+        // konsisten di seluruh aplikasi.
+        const waText = encodeURIComponent(
+            `Halo Admin TrainingHub, saya ${currentUser.username || '-'} ingin menindaklanjuti penyelesaian pelanggaran peminjaman:\n` +
+            `• Aset: ${v.assetLabel || '-'}\n` +
+            `• Jenis Pelanggaran: ${v.type || '-'} (${v.level || '-'})\n` +
+            `• Tanggal: ${date}\n` +
+            `Mohon informasi langkah penyelesaiannya. Terima kasih.`
+        );
+
+        return `
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 mb-3">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[9px] font-black px-2 py-1 rounded-full ${levelColor}">${v.level}</span>
+                <span class="text-[10px] text-slate-400">${date}</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mb-1">📍 ${v.assetLabel || '-'} • ${v.type || '-'}</p>
+            <p class="text-xs text-slate-600 italic mb-1">${v.description || '-'}</p>
+            <p class="text-[11px] text-rose-500 bg-rose-50 rounded-lg p-2 mb-2"><b>Konsekuensi:</b> ${v.consequence || '-'}</p>
+            <a href="https://wa.me/6282116444887?text=${waText}" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-bold shadow transition">
+                <i class="fa-brands fa-whatsapp"></i> Selesaikan via WhatsApp Admin
+            </a>
+        </div>
+        `;
+
+    }).join('');
+
+    document.getElementById('modal-violation-login-popup').classList.remove('hide');
+
+};
+
+window.closeViolationLoginPopup = function () {
+    window.closeModal('modal-violation-login-popup');
+};
+
+window.openMyViolationsFromLoginPopup = function () {
+    window.closeModal('modal-violation-login-popup');
+    window.showMyViolations('all');
+};
+
 function renderStatistikSaya() {
     if (!currentUser) return;
     const mine = getMyBookings();
@@ -6655,6 +6748,13 @@ window.showRoomHistory = (roomId, roomName) => {
         function refreshUI() {
 
     if (!currentUser) return;
+
+    // 🔥 Cek & tampilkan popup peringatan pelanggaran (kalau ada & belum
+    // dicek di sesi login ini). Aman dipanggil berkali-kali karena fungsi ini
+    // sendiri sudah punya guard "hanya sekali per sesi".
+    if (typeof window.maybeShowLoginViolationPopup === 'function') {
+        window.maybeShowLoginViolationPopup();
+    }
 
     // 🔥 ambil menu aktif
     let activeBtn = document.querySelector('.nav-btn.sidebar-item-active');
@@ -7256,6 +7356,10 @@ if (ctx3) {
 
     // 🔥 PENGAMAN WAJIB
     if (!currentUser) return;
+
+    // 🔥 Reset guard popup peringatan pelanggaran supaya dicek ulang di sesi
+    // login ini (relevan kalau user logout lalu login lagi, atau ganti akun).
+    window.__violationLoginPopupShown = false;
 
     // 🔥 AMBIL ELEMEN UTAMA
     const sidebar = document.getElementById('sidebar');
@@ -14465,6 +14569,42 @@ window.showAssetBookings = (id, type, name) => {
         </div>
 
         <div id="my-violations-list" class="p-6 overflow-y-auto space-y-3"></div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 POPUP: PERINGATAN PELANGGARAN SAAT LOGIN (USER) =================
+     Muncul otomatis begitu user (bukan admin/superadmin) login & masih punya
+     pelanggaran dengan status != 'Selesai'. Ditrigger dari refreshUI() lewat
+     window.maybeShowLoginViolationPopup(), lihat definisinya di dekat
+     window.showMyViolations(). -->
+<div id="modal-violation-login-popup" class="fixed inset-0 z-[9999] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div class="p-5 border-b flex items-center gap-3 bg-rose-100">
+            <div class="w-9 h-9 rounded-full bg-rose-500 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-white text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-black text-rose-700">Pelanggaran belum selesai</h3>
+                <p id="violation-login-popup-subtitle" class="text-[11px] text-rose-600">-</p>
+            </div>
+        </div>
+
+        <div id="violation-login-popup-list" class="p-5 overflow-y-auto"></div>
+
+        <div class="p-5 pt-0 flex flex-col gap-2">
+            <button onclick="window.openMyViolationsFromLoginPopup()"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold text-xs transition">
+                Lihat Detail Lengkap
+            </button>
+            <button onclick="window.closeViolationLoginPopup()"
+                class="w-full text-slate-400 hover:text-slate-600 py-2 rounded-2xl font-bold text-[11px] transition">
+                Nanti saja
+            </button>
+        </div>
 
     </div>
 
