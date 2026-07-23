@@ -6160,6 +6160,34 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
                     ? '⭐ Rating Peminjam Saya - Semua Riwayat Pelanggaran'
                     : '⚠ Pelanggaran Saya - Belum Selesai'));
 
+    // 🔥 Info Collectability existing (sama persis logikanya dengan kartu "Statistik Saya")
+    // supaya user langsung lihat dampak pelanggaran ini ke rating peminjamnya di modal ini juga.
+    const collectabilityEl = document.getElementById('my-violations-collectability');
+    if (collectabilityEl) {
+        const ratingInfo = window.getUserObjectiveRating
+            ? window.getUserObjectiveRating(currentUser.username)
+            : null;
+
+        if (ratingInfo) {
+            const starsText = '★'.repeat(ratingInfo.stars) + '☆'.repeat(ratingInfo.maxViolations - ratingInfo.stars);
+
+            collectabilityEl.innerHTML = `
+            <div class="rounded-2xl border p-3 ${ratingInfo.blocked ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase text-slate-400">⭐ Collectability Anda</span>
+                    <span class="text-sm font-black ${ratingInfo.blocked ? 'text-rose-600' : 'text-slate-700'}">${starsText} (${ratingInfo.stars}/${ratingInfo.maxViolations})</span>
+                </div>
+                <p class="text-[11px] mt-1 ${ratingInfo.blocked ? 'text-rose-600 font-bold' : 'text-slate-500'}">
+                    ${ratingInfo.blocked
+                        ? `⛔ Collectability Anda sudah 0/${ratingInfo.maxViolations} (${ratingInfo.violationCount}x pelanggaran aktif). Akun Anda saat ini DIBLOKIR dari pengajuan peminjaman baru.`
+                        : `${ratingInfo.violationCount}x pelanggaran aktif tercatat • Collectability dihitung otomatis dari riwayat pelanggaran, bukan penilaian subjektif Admin.`}
+                </p>
+            </div>`;
+        } else {
+            collectabilityEl.innerHTML = '';
+        }
+    }
+
     const container = document.getElementById('my-violations-list');
 
     if (list.length === 0) {
@@ -6168,7 +6196,7 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
         // urutkan terbaru dulu supaya mudah dilihat
         list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-        container.innerHTML = list.map(v => {
+        container.innerHTML = list.map((v, idx) => {
             const date = v.createdAt?.seconds
                 ? new Date(v.createdAt.seconds * 1000).toLocaleDateString('id-ID')
                 : '-';
@@ -6176,6 +6204,10 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
                 v.level === 'Berat' ? 'bg-rose-100 text-rose-600' :
                 v.level === 'Sedang' ? 'bg-amber-100 text-amber-600' :
                 'bg-slate-100 text-slate-600';
+
+            // 🔥 Nomor urut pelanggaran (terbaru = #1) supaya user gampang mereferensikan
+            // pelanggaran mana yang dimaksud, terutama kalau jumlahnya lebih dari satu.
+            const violationNumber = idx + 1;
 
             // 🔥 Tombol aksi penyelesaian: WA ke Tim TrainingHub dengan teks otomatis
             // yang relevan (nama peminjam, aset, jenis & tanggal pelanggaran),
@@ -6195,6 +6227,7 @@ window.showMyViolations = (filterStatus = null, bookingId = null) => {
 
             return `
             <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <p class="text-[9px] font-black text-indigo-400 uppercase mb-1">Pelanggaran #${violationNumber} dari ${list.length}</p>
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-[9px] font-black px-2 py-1 rounded-full ${levelColor}">${v.level}</span>
                     <span class="text-[10px] text-slate-400">${date}</span>
@@ -14593,6 +14626,8 @@ window.showAssetBookings = (id, type, name) => {
                 <i class="fas fa-times"></i>
             </button>
         </div>
+
+        <div id="my-violations-collectability" class="px-6 pt-4"></div>
 
         <div id="my-violations-list" class="p-6 overflow-y-auto space-y-3"></div>
 
