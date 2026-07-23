@@ -11382,13 +11382,21 @@ if(decodedText === `finish-booking-${bookingId}`){
 
 window.stopScanner();
 
-await updateDoc(
-doc(db,'artifacts',appId,'public','data','bookings',bookingId),
-{
-status: 'Completed',
-finishedAt: serverTimestamp()
-}
-);
+// 🔥 MULTI-HARI: satu scan QR menyelesaikan SEMUA dokumen/hari dalam grup pesanan yang sama.
+const gb = localState.bookings.find(x => x.id === bookingId);
+const finishIds = (gb && gb.groupId)
+    ? localState.bookings.filter(x => x.groupId === gb.groupId).map(x => x.id)
+    : [bookingId];
+
+await Promise.all(finishIds.map(fid =>
+    updateDoc(
+        doc(db,'artifacts',appId,'public','data','bookings',fid),
+        {
+            status: 'Completed',
+            finishedAt: serverTimestamp()
+        }
+    )
+));
 
 alert("✅ Pesanan selesai!");
 
@@ -11474,13 +11482,21 @@ const decodedText = await html5QrCode.scanFile(file, true);
 
 if(decodedText === `finish-booking-${bookingId}`){
 
-await updateDoc(
-doc(db,'artifacts',appId,'public','data','bookings',bookingId),
-{
-status: 'Completed',
-finishedAt: serverTimestamp()
-}
-);
+// 🔥 MULTI-HARI: satu scan QR menyelesaikan SEMUA dokumen/hari dalam grup pesanan yang sama.
+const gb = localState.bookings.find(x => x.id === bookingId);
+const finishIds = (gb && gb.groupId)
+    ? localState.bookings.filter(x => x.groupId === gb.groupId).map(x => x.id)
+    : [bookingId];
+
+await Promise.all(finishIds.map(fid =>
+    updateDoc(
+        doc(db,'artifacts',appId,'public','data','bookings',fid),
+        {
+            status: 'Completed',
+            finishedAt: serverTimestamp()
+        }
+    )
+));
 
 alert("✅ Pesanan selesai!");
 window.closeModal('modal-detail');
@@ -11516,14 +11532,25 @@ window.startBooking = async (id) => {
             `btn-start-${id}`
         );
 
-        await updateDoc(
-            doc(db,'artifacts',appId,'public','data','bookings',id),
-            {
-                startPhoto: url,
-                status: "Ongoing",
-                startedAt: serverTimestamp()
-            }
-        );
+        // 🔥 MULTI-HARI: pesanan multi-hari disimpan sebagai beberapa dokumen (1 per
+        // tanggal) yang berbagi groupId yang sama. Supaya user cukup upload foto &
+        // klik "Mulai" SEKALI SAJA untuk seluruh pesanan (bukan per hari), kita cari
+        // semua dokumen segrup lalu tandai "Ongoing" semuanya sekaligus.
+        const b = localState.bookings.find(x => x.id === id);
+        const groupIds = (b && b.groupId)
+            ? localState.bookings.filter(x => x.groupId === b.groupId).map(x => x.id)
+            : [id];
+
+        await Promise.all(groupIds.map(bookingId =>
+            updateDoc(
+                doc(db,'artifacts',appId,'public','data','bookings',bookingId),
+                {
+                    startPhoto: url,
+                    status: "Ongoing",
+                    startedAt: serverTimestamp()
+                }
+            )
+        ));
 
         alert("Mulai berhasil");
         window.closeModal('modal-detail');
@@ -11552,13 +11579,22 @@ window.finishBooking = async (id) => {
             `btn-finish-${id}`
         );
 
-        await updateDoc(
-            doc(db,'artifacts',appId,'public','data','bookings',id),
-            {
-                finishPhoto: url,
-                finishedAt: serverTimestamp()
-            }
-        );
+        // 🔥 MULTI-HARI: sama seperti startBooking(), upload foto akhir & klik
+        // "Selesai" SEKALI SAJA berlaku untuk semua dokumen/hari dalam 1 grup pesanan.
+        const b = localState.bookings.find(x => x.id === id);
+        const groupIds = (b && b.groupId)
+            ? localState.bookings.filter(x => x.groupId === b.groupId).map(x => x.id)
+            : [id];
+
+        await Promise.all(groupIds.map(bookingId =>
+            updateDoc(
+                doc(db,'artifacts',appId,'public','data','bookings',bookingId),
+                {
+                    finishPhoto: url,
+                    finishedAt: serverTimestamp()
+                }
+            )
+        ));
 
         alert("Selesai upload");
 
@@ -11585,36 +11621,45 @@ window.finishBookingByAdmin = async (id) => {
 
     try {
 
-        await updateDoc(
-            doc(
-                db,
-                'artifacts',
-                appId,
-                'public',
-                'data',
-                'bookings',
-                id
-            ),
-            {
+        // 🔥 MULTI-HARI: admin menyelesaikan SEMUA dokumen/hari dalam grup pesanan sekaligus,
+        // bukan cuma dokumen (hari) yang lagi dibuka.
+        const b = localState.bookings.find(x => x.id === id);
+        const finishIds = (b && b.groupId)
+            ? localState.bookings.filter(x => x.groupId === b.groupId).map(x => x.id)
+            : [id];
 
-                status: 'Completed',
+        await Promise.all(finishIds.map(bookingId =>
+            updateDoc(
+                doc(
+                    db,
+                    'artifacts',
+                    appId,
+                    'public',
+                    'data',
+                    'bookings',
+                    bookingId
+                ),
+                {
 
-                // AUTO FOTO
-                startPhoto: "AUTO_ADMIN",
+                    status: 'Completed',
 
-                finishPhoto: "AUTO_ADMIN",
+                    // AUTO FOTO
+                    startPhoto: "AUTO_ADMIN",
 
-                // CATATAN
-                note:
-                    "Diselesaikan oleh Admin (Lewat waktu)",
+                    finishPhoto: "AUTO_ADMIN",
 
-                finishedByAdmin: true,
+                    // CATATAN
+                    note:
+                        "Diselesaikan oleh Admin (Lewat waktu)",
 
-                finishedAt:
-                    serverTimestamp()
+                    finishedByAdmin: true,
 
-            }
-        );
+                    finishedAt:
+                        serverTimestamp()
+
+                }
+            )
+        ));
 
         refreshUI();
 
