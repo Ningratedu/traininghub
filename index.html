@@ -1247,14 +1247,20 @@ window.downloadQR = function () {
             </header>
 
             <!-- ================= 🔥 RUNNING TEKS CTA "PASANG IKLAN" - Tampil/sembunyi diatur Super Admin ================= -->
-            <div id="ads-running-text-bar" class="hide px-4 md:px-8 pt-4">
+            <div id="ads-running-text-bar" class="hide relative w-full bg-gradient-to-r from-indigo-600 to-violet-600">
+                <button onclick="window.closeAdsRunningTextBar()"
+                    title="Tutup"
+                    class="absolute top-1/2 -translate-y-1/2 right-2 z-10 w-6 h-6 rounded-full bg-black/25 hover:bg-black/40 text-white flex items-center justify-center text-[10px] transition">
+                    <i class="fas fa-times"></i>
+                </button>
                 <a id="ads-running-text-link" href="javascript:void(0)" target="_blank" rel="noopener noreferrer"
-                    class="block max-w-4xl md:max-w-[168rem] mx-auto rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md px-4 py-2 text-xs font-bold tracking-wide hover:opacity-90 transition">
+                    class="block w-full text-white shadow-md pl-4 pr-9 py-2 text-xs font-bold tracking-wide hover:opacity-90 transition">
                     <span id="ads-running-text-track">
                         <span class="mx-6"><i class="fas fa-bullhorn mr-1.5"></i>Mau pasang iklan Anda di sini? Klik teks ini untuk chat Admin via WhatsApp sekarang! 🚀</span><span class="mx-6"><i class="fas fa-bullhorn mr-1.5"></i>Mau pasang iklan Anda di sini? Klik teks ini untuk chat Admin via WhatsApp sekarang! 🚀</span>
                     </span>
                 </a>
             </div>
+
 
             <!-- ================= 🔥 AD BANNER (IKLAN) - Gambar & Link diatur Admin ================= -->
             <!-- Mobile: lebar mengikuti layar (max-w-4xl). Desktop (md+): 3x lebih panjang lebarnya, tinggi tetap sama (h-44). -->
@@ -3750,7 +3756,14 @@ const appId = "booking-ruang-training";
 	const ADS_RUNNING_TEXT_WA_NUMBER = '6282116444887';
 	const ADS_RUNNING_TEXT_WA_MESSAGE = 'Halo Admin TrainingHub, saya tertarik untuk pasang iklan di aplikasi TrainingHub. Boleh minta info lebih lanjut?';
 
+	// 🔥 Sama seperti banner iklan: ditutup cuma "sementara" (in-memory, bukan
+	// localStorage), jadi begitu halaman di-refresh, running teks MUNCUL LAGI dari awal.
+	let adsRunningTextClosedThisLoad = false;
+	let latestAdsRunningTextEnabled = false;
+
 	function renderAdsRunningTextBar(enabled) {
+		latestAdsRunningTextEnabled = enabled;
+
 		const bar = document.getElementById('ads-running-text-bar');
 		const link = document.getElementById('ads-running-text-link');
 		if (!bar || !link) return;
@@ -3760,13 +3773,21 @@ const appId = "booking-ruang-training";
 			link.dataset.waReady = '1';
 		}
 
-		if (enabled) {
+		if (enabled && !adsRunningTextClosedThisLoad) {
 			bar.classList.remove('hide');
 		} else {
 			bar.classList.add('hide');
 		}
 		window.__reflowContentArea();
 	}
+
+	// 🔥 Tutup running teks (sementara, sampai halaman di-refresh) — persis pola window.closeAdBanner()
+	window.closeAdsRunningTextBar = function () {
+		adsRunningTextClosedThisLoad = true;
+		const bar = document.getElementById('ads-running-text-bar');
+		if (bar) bar.classList.add('hide');
+		window.__reflowContentArea();
+	};
 
 	// 🔥 Live di sisi USER: dengarkan doc setting, tampilkan/sembunyikan bar sesuai status.
 	// Juga sinkronkan toggle di panel Super Admin (kalau lagi kebuka) biar selalu real-time.
