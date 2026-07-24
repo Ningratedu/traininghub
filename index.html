@@ -1274,7 +1274,7 @@ window.downloadQR = function () {
                         class="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center text-xs transition">
                         <i class="fas fa-times"></i>
                     </button>
-                    <a id="ad-banner-link" href="javascript:void(0)" target="_blank" rel="noopener noreferrer sponsored" class="h-44 bg-slate-100 flex items-center justify-center overflow-hidden">
+                    <a id="ad-banner-link" href="javascript:void(0)" target="_blank" rel="noopener noreferrer sponsored" onclick="window.logAdClick && window.logAdClick()" class="h-44 bg-slate-100 flex items-center justify-center overflow-hidden">
                         <img id="ad-banner-img-mobile" src="" alt="Iklan" class="block md:hidden max-w-full max-h-full object-contain ad-banner-pulse">
                         <img id="ad-banner-img-desktop" src="" alt="Iklan" class="hidden md:block max-w-full max-h-full object-contain ad-banner-pulse">
                     </a>
@@ -3722,6 +3722,26 @@ const appId = "booking-ruang-training";
 		window.__reflowContentArea();
 	};
 
+	// 🔥 Catat setiap kali banner iklan diklik: siapa (username+dept) & kapan (timestamp server).
+	// Fire-and-forget (tidak nge-block/menunda navigasi ke link tujuan iklan yang buka di tab baru).
+	window.logAdClick = function () {
+		if (!latestAdBannerData || !latestAdBannerData.id) return;
+		try {
+			addDoc(
+				collection(db, 'artifacts', appId, 'public', 'data', 'adClicks'),
+				{
+					adId: latestAdBannerData.id,
+					adName: latestAdBannerData.name || '',
+					username: currentUser ? (currentUser.username || '-') : '(belum login)',
+					dept: currentUser ? (currentUser.dept || '-') : '-',
+					timestamp: serverTimestamp(),
+				}
+			).catch((err) => console.error('Gagal mencatat klik iklan:', err));
+		} catch (err) {
+			console.error('Gagal mencatat klik iklan:', err);
+		}
+	};
+
 	// 🔥 Live di sisi USER: dengarkan seluruh koleksi "ads", cari yang enabled=true,
 	// itu yang ditayangkan. Kalau lebih dari satu somehow ke-enable, ambil yang
 	// paling baru di-update biar tetap konsisten cuma 1 yang tampil.
@@ -3897,6 +3917,21 @@ const appId = "booking-ruang-training";
 		return div.innerHTML;
 	}
 
+	// 🔥 Ambil daftar klik iklan untuk 1 identitas iklan, DIFILTER sesuai FILTER GLOBAL
+	// (filterRange) yang lagi aktif di header — sama seperti Rekap Kunjungan di Log
+	// Pengunjung. Kalau filter global lagi "Semua Data" (filterRange kosong), semua
+	// klik sepanjang masa ikut dihitung.
+	function getAdClicksInRange(adId) {
+		const clicksForAd = (localState.adClicks || []).filter(c => c.adId === adId);
+		const hasGlobalRange = !!(filterRange && filterRange.start && filterRange.end);
+		if (!hasGlobalRange) return clicksForAd;
+		return clicksForAd.filter(c => {
+			if (!c.timestamp?.seconds) return false;
+			const clickDate = formatLocalDate(new Date(c.timestamp.seconds * 1000));
+			return clickDate >= filterRange.start && clickDate <= filterRange.end;
+		});
+	}
+
 	// 🔥 Render kartu-kartu rekap iklan (dipanggil pas buka panel & real-time saat ada perubahan)
 	window.renderAdRecapList = function (ads) {
 		const loading = document.getElementById('ad-recap-loading');
@@ -3927,6 +3962,9 @@ const appId = "booking-ruang-training";
 				? '<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700"><i class="fas fa-circle text-[6px] mr-1"></i>Tayang</span>'
 				: '<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-500">Nonaktif</span>';
 
+			const clickCount = getAdClicksInRange(ad.id).length;
+			const adNameEscaped = escapeAdText(ad.name || 'Tanpa Nama').replace(/'/g, "\\'");
+
 			return `
 			<div class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 				<div class="h-28 bg-slate-100 flex items-center justify-center overflow-hidden relative">
@@ -3942,6 +3980,12 @@ const appId = "booking-ruang-training";
 						<p><i class="fas fa-plus-circle w-3.5"></i> Dibuat: ${formatAdDate(ad.createdAt)}</p>
 						<p><i class="fas fa-pen w-3.5"></i> Diedit terakhir: ${formatAdDate(ad.updatedAt)}</p>
 					</div>
+					<button onclick="window.openAdClickDetail('${ad.id}', '${adNameEscaped}')"
+						title="Lihat detail siapa saja & kapan mengklik iklan ini (sesuai filter periode aktif)"
+						class="w-full flex items-center justify-between bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-bold px-3 py-2 rounded-lg transition">
+						<span><i class="fas fa-arrow-pointer mr-1.5"></i>${clickCount} Klik <span class="font-medium text-indigo-400">(sesuai filter)</span></span>
+						<i class="fas fa-chevron-right text-[9px]"></i>
+					</button>
 					<div class="flex items-center gap-1.5 mt-auto pt-2 flex-wrap">
 						<button onclick="window.openAdForm('${ad.id}')"
 							class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-bold py-2 rounded-lg transition">
@@ -3951,7 +3995,7 @@ const appId = "booking-ruang-training";
 							class="flex-1 ${ad.enabled ? 'bg-amber-50 hover:bg-amber-100 text-amber-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600'} text-[10px] font-bold py-2 rounded-lg transition">
 							<i class="fas fa-${ad.enabled ? 'eye-slash' : 'play'} mr-1"></i>${ad.enabled ? 'Nonaktifkan' : 'Tayangkan'}
 						</button>
-						<button onclick="window.deleteAdIdentity('${ad.id}', '${escapeAdText(ad.name || 'iklan ini').replace(/'/g, "\\'")}')"
+						<button onclick="window.deleteAdIdentity('${ad.id}', '${adNameEscaped}')"
 							class="bg-rose-50 hover:bg-rose-100 text-rose-500 text-[10px] font-bold py-2 px-3 rounded-lg transition">
 							<i class="fas fa-trash"></i>
 						</button>
@@ -3959,6 +4003,74 @@ const appId = "booking-ruang-training";
 				</div>
 			</div>`;
 		}).join('');
+	};
+
+	// 🔥 Modal detail klik iklan: siapa saja & kapan mengklik 1 identitas iklan tertentu,
+	// tetap sesuai FILTER GLOBAL yang aktif (sama seperti badge jumlah klik di kartu).
+	let currentAdClickDetailId = null;
+
+	window.openAdClickDetail = function (adId, adName) {
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur ini khusus untuk Super Admin.");
+			return;
+		}
+		currentAdClickDetailId = adId;
+		const titleEl = document.getElementById('ad-click-detail-title');
+		if (titleEl) titleEl.innerText = 'Detail Klik: ' + (adName || 'Iklan');
+		window.renderAdClickDetail();
+		document.getElementById('modal-ad-click-detail')?.classList.remove('hide');
+	};
+
+	window.renderAdClickDetail = function () {
+		if (!currentAdClickDetailId) return;
+
+		const body = document.getElementById('ad-click-detail-body');
+		const totalEl = document.getElementById('ad-click-detail-total');
+		const periodEl = document.getElementById('ad-click-detail-period');
+		const emptyEl = document.getElementById('ad-click-detail-empty');
+		if (!body) return;
+
+		const clicks = getAdClicksInRange(currentAdClickDetailId).slice().sort((a, b) => {
+			const ta = a.timestamp?.seconds || 0;
+			const tb = b.timestamp?.seconds || 0;
+			return tb - ta; // terbaru dulu
+		});
+
+		if (totalEl) totalEl.innerText = clicks.length;
+
+		if (periodEl) {
+			const hasGlobalRange = !!(filterRange && filterRange.start && filterRange.end);
+			const labelText = document.getElementById('global-time-filter-label')?.innerText;
+			periodEl.innerText = hasGlobalRange
+				? `Periode: ${labelText || (filterRange.start + ' s/d ' + filterRange.end)}`
+				: 'Periode: Semua Data';
+		}
+
+		if (clicks.length === 0) {
+			body.innerHTML = '';
+			body.classList.add('hide');
+			if (emptyEl) emptyEl.classList.remove('hide');
+			return;
+		}
+		if (emptyEl) emptyEl.classList.add('hide');
+		body.classList.remove('hide');
+
+		body.innerHTML = clicks.map((c, idx) => `
+			<tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}">
+				<td class="px-3 py-2 text-xs font-bold text-slate-700">${escapeAdText(c.username || '-')}</td>
+				<td class="px-3 py-2 text-xs text-slate-500">${escapeAdText(c.dept || '-')}</td>
+				<td class="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">${formatAdDate(c.timestamp)}</td>
+			</tr>
+		`).join('');
+	};
+
+	// 🔥 Dipanggil dari listener real-time koleksi adClicks: kalau modal detail ini
+	// lagi kebuka, refresh isinya juga biar langsung update tanpa perlu tutup-buka lagi.
+	window.refreshOpenAdClickDetail = function () {
+		const modal = document.getElementById('modal-ad-click-detail');
+		if (modal && !modal.classList.contains('hide')) {
+			window.renderAdClickDetail();
+		}
 	};
 
 	// 🔥 Tampilkan panel REKAP (default saat menu "Iklan / Banner" dibuka)
@@ -5721,7 +5833,8 @@ let localState = {
     rooms: [],
     tools: [],
     bookings: [],
-    visits: []
+    visits: [],
+    adClicks: []
 };
 
         // FILTER STATE
@@ -8781,7 +8894,7 @@ onAuthStateChanged(auth, (user) => {
 
 });
 const listenToData = () => {
-    ['rooms', 'tools', 'bookings', 'users', 'ratings', 'violations', 'assetFollowUps', 'visits'].forEach(coll => {
+    ['rooms', 'tools', 'bookings', 'users', 'ratings', 'violations', 'assetFollowUps', 'visits', 'adClicks'].forEach(coll => {
 
         onSnapshot(
             collection(
@@ -8808,6 +8921,15 @@ const listenToData = () => {
 
                 if (coll === 'visits' && typeof window.renderVisitorLog === 'function') {
                     window.renderVisitorLog();
+                }
+
+                if (coll === 'adClicks') {
+                    // 🔥 Kalau panel rekap iklan lagi kebuka, refresh badge jumlah klik & modal detail (kalau kebuka) real-time.
+                    const recapPanel = document.getElementById('ad-recap-panel');
+                    if (recapPanel && !recapPanel.classList.contains('hide') && typeof window.renderAdRecapList === 'function') {
+                        window.renderAdRecapList(allAdsCache || []);
+                    }
+                    if (typeof window.refreshOpenAdClickDetail === 'function') window.refreshOpenAdClickDetail();
                 }
 
                 refreshUI();
@@ -15065,6 +15187,54 @@ window.showAssetBookings = (id, type, name) => {
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold text-sm transition">
                 Simpan Perubahan
             </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= 🔥 MODAL: DETAIL KLIK IKLAN (SUPER ADMIN) ================= -->
+<div id="modal-ad-click-detail" class="fixed inset-0 z-[10000] hide modal-overlay flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+
+        <div class="p-6 border-b flex justify-between items-start bg-indigo-50">
+            <div>
+                <h3 id="ad-click-detail-title" class="text-lg font-black text-indigo-600 flex items-center gap-2">
+                    <i class="fas fa-arrow-pointer"></i> Detail Klik
+                </h3>
+                <p class="text-xs text-slate-500 mt-1">
+                    Total: <span id="ad-click-detail-total" class="font-bold text-slate-700">0</span> klik
+                    &nbsp;•&nbsp;
+                    <span id="ad-click-detail-period">Periode: Semua Data</span>
+                </p>
+            </div>
+            <button onclick="closeModal('modal-ad-click-detail')" class="text-slate-400 hover:text-slate-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto">
+
+            <div class="overflow-x-auto border border-slate-100 rounded-2xl">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-3 py-2 text-[10px] font-black uppercase text-slate-400">Nama</th>
+                            <th class="px-3 py-2 text-[10px] font-black uppercase text-slate-400">Departemen</th>
+                            <th class="px-3 py-2 text-[10px] font-black uppercase text-slate-400">Waktu Klik</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ad-click-detail-body" class="hide divide-y"></tbody>
+                </table>
+            </div>
+
+            <div id="ad-click-detail-empty" class="hide text-center py-14 text-slate-400">
+                <i class="fas fa-arrow-pointer text-3xl mb-2"></i>
+                <p class="text-sm font-bold">Belum ada klik pada periode ini</p>
+                <p class="text-xs mt-1">Coba ganti filter periode di bagian atas kalau perlu lihat rentang waktu lain.</p>
+            </div>
 
         </div>
 
