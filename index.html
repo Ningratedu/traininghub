@@ -7332,6 +7332,40 @@ if (ctx3) {
         JSON.stringify(currentUser)
     );
 
+    // 🔥 HARD REFRESH SETELAH LOGIN: kalau akun ini sebelumnya ke-logout otomatis
+    // karena idle 1 jam (lihat AUTO LOGOUT KARENA TIDAK ADA AKTIVITAS), begitu dia
+    // login lagi, JANGAN lanjut pakai sesi JS lama di tab yang sama -- langsung
+    // hard refresh (bersihkan Cache Storage & Service Worker, lalu reload halaman
+    // dengan cache-buster) supaya fitur/perubahan terbaru yang sudah di-deploy
+    // selama akun ini idle langsung kepakai/kelihatan, bukan versi lama yang
+    // "nyangkut" di memori tab.
+    if (localStorage.getItem("traininghub_force_hard_refresh")) {
+
+        localStorage.removeItem("traininghub_force_hard_refresh");
+
+        document
+            .getElementById('login-screen')
+            .classList.add('hide');
+
+        Promise.resolve()
+            .then(() => ('caches' in window)
+                ? caches.keys().then(names => Promise.all(names.map(n => caches.delete(n))))
+                : null)
+            .catch(() => {})
+            .then(() => ('serviceWorker' in navigator)
+                ? navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister())))
+                : null)
+            .catch(() => {})
+            .finally(() => {
+                // cache-buster di URL supaya browser gak pakai bfcache/disk cache lama
+                const url = new URL(window.location.href);
+                url.searchParams.set('_hr', Date.now());
+                window.location.replace(url.toString());
+            });
+
+        return;
+    }
+
     document
         .getElementById('login-screen')
         .classList.add('hide');
@@ -12398,21 +12432,31 @@ for (const t of selectedTools) {
 
 
 // 🔥 DATA DASAR YANG SAMA UNTUK SEMUA RUANGAN/TARGET (belum termasuk roomId/roomName/tanggal)
+// 🔥 FIX: field KEPEMILIKAN (userName/email/userUid/dept/name/department) DIPISAH dari sini.
+// Alasannya: kalau field ini selalu diisi dari currentUser, maka saat SUPER ADMIN mengedit
+// pesanan milik user lain, pemilik pesanan ikut tertimpa jadi akun super admin. Field
+// kepemilikan untuk kasus EDIT diambil dari data pesanan yang sudah ada (owner asli),
+// sedangkan untuk pesanan BARU tetap diisi dari currentUser seperti biasa (lihat
+// newBookingOwnerFields di bawah).
 const commonBookingData = {
     type: bookingType,
     toolsText: (selectedTools || []).map(t => t.name).join(", "),
 
-    userName: currentUser.username,
-	email: currentUser.email,
-    userUid: currentUser.uid,
-    dept: currentUser.dept || 'Umum',
-    name: currentUser.username,
-    department: currentUser.dept || 'Umum',
     goal: document.getElementById('book-goal').value,
     notes: document.getElementById('book-notes').value,
     start,
     end,
     tools: selectedTools,
+};
+
+// 🔥 Field kepemilikan untuk pesanan BARU (bukan edit): tetap pakai currentUser seperti semula.
+const newBookingOwnerFields = {
+    userName: currentUser.username,
+    email: currentUser.email,
+    userUid: currentUser.uid,
+    dept: currentUser.dept || 'Umum',
+    name: currentUser.username,
+    department: currentUser.dept || 'Umum',
 };
 
 if (editId) {
@@ -12422,8 +12466,23 @@ if (editId) {
         ? (localState.rooms.find(r => r.id === editRoomId)?.name || "")
         : "";
 
+    // 🔥 PERTAHANKAN PEMILIK ASLI PESANAN: ambil dari dokumen pesanan yang sedang
+    // diedit (editBookingObjForTools), BUKAN dari currentUser yang sedang login/edit.
+    // Kalau karena suatu hal data owner lama tidak ketemu di cache, fallback ke
+    // currentUser supaya field tetap terisi (jaga-jaga, seharusnya jarang terjadi).
+    const originalOwner = editBookingObjForTools || {};
+    const ownerFields = {
+        userName: originalOwner.userName ?? currentUser.username,
+        email: originalOwner.email ?? currentUser.email,
+        userUid: originalOwner.userUid ?? currentUser.uid,
+        dept: originalOwner.dept ?? (currentUser.dept || 'Umum'),
+        name: originalOwner.name ?? currentUser.username,
+        department: originalOwner.department ?? (currentUser.dept || 'Umum'),
+    };
+
     const bookingData = {
         ...commonBookingData,
+        ...ownerFields,
         roomId: editRoomId,
         roomName,
         date,
@@ -12450,6 +12509,7 @@ if (editId) {
 
         const baseBookingData = {
             ...commonBookingData,
+            ...newBookingOwnerFields,
             roomId: rId,
             roomName,
         };
@@ -14027,6 +14087,11 @@ window.logout = () => {
 
     function handleIdleTimeout() {
         if (!isLoggedIn()) return;
+        // 🔥 Tandai: begitu akun ini login LAGI setelah ke-logout otomatis karena idle,
+        // paksa HARD REFRESH (bukan cuma lanjut di sesi JS yang sama) supaya kalau ada
+        // fitur/update terbaru yang sudah di-deploy selama akun ini idle, langsung
+        // kepakai/kelihatan tanpa user harus refresh manual sendiri.
+        localStorage.setItem("traininghub_force_hard_refresh", "true");
         alert("Sesi Anda berakhir karena tidak ada aktivitas selama 1 jam. Silakan login kembali.");
         window.logout();
     }
