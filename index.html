@@ -9108,13 +9108,28 @@ const listenToData = () => {
             });
             return Array.from(map.values()).map(items => {
                 items.sort((a, c) => new Date(`${a.date}T${a.start || '00:00'}`) - new Date(`${c.date}T${c.start || '00:00'}`));
+
+                // 🔥 FIX: dulu "isMultiDay" dihitung dari items.length > 1 -- ini SALAH
+                // sejak 1 pesanan bisa berisi lebih dari 1 ruangan, karena items.length
+                // sekarang = jumlah TANGGAL x jumlah RUANGAN, bukan cuma jumlah tanggal.
+                // Akibatnya pesanan "1 hari, 2 ruangan" (2 dokumen) ikut kebaca sebagai
+                // "2 Hari" padahal harusnya cuma dianggap "2 Ruangan". Sekarang dihitung
+                // terpisah: dayCount dari tanggal UNIK, roomCount dari roomId UNIK.
+                const uniqueDates = Array.from(new Set(items.map(x => x.date)));
+                const uniqueRoomIds = Array.from(new Set(items.filter(x => x.roomId).map(x => String(x.roomId))));
+                const dayCount = uniqueDates.length;
+                const roomCount = uniqueRoomIds.length;
+
                 return {
                     key: items[0].groupId || items[0].id,
                     ids: items.map(x => x.id),
                     items,
                     first: items[0],
                     last: items[items.length - 1],
-                    isMultiDay: items.length > 1
+                    dayCount,
+                    roomCount,
+                    isMultiDay: dayCount > 1,
+                    isMultiRoom: roomCount > 1
                 };
             });
         };
@@ -9223,7 +9238,15 @@ const listenToData = () => {
             // bukan dipecah 1 kartu per hari. Kalau gak dikasih group, tetap
             // jalan seperti biasa (1 hari = 1 kartu), gak ngerusak pemanggil lama.
             const items = (group && group.items && group.items.length > 0) ? group.items : [b];
-            const isMultiDay = items.length > 1;
+            // 🔥 FIX: pakai dayCount/roomCount dari group (dihitung dari tanggal/ruangan
+            // UNIK) kalau tersedia, bukan items.length -- karena items.length sekarang
+            // bisa mencakup lebih dari 1 ruangan per tanggal (1 pesanan, >1 ruangan).
+            const dayCount = (group && typeof group.dayCount === 'number') ? group.dayCount : items.length;
+            const roomCount = (group && typeof group.roomCount === 'number')
+                ? group.roomCount
+                : Array.from(new Set(items.filter(x => x.roomId).map(x => String(x.roomId)))).length;
+            const isMultiDay = (group && typeof group.isMultiDay === 'boolean') ? group.isMultiDay : dayCount > 1;
+            const isMultiRoom = (group && typeof group.isMultiRoom === 'boolean') ? group.isMultiRoom : roomCount > 1;
             const first = (group && group.first) ? group.first : b;
             const last = (group && group.last) ? group.last : b;
 
@@ -9258,7 +9281,14 @@ const listenToData = () => {
 
             const multiDayBadgeHTML = isMultiDay ? `
                 <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
-                    <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+                    <i class="fas fa-calendar-week mr-1"></i>${dayCount} Hari
+                </span>` : '';
+
+            // 🔥 Badge terpisah kalau 1 pesanan ini mencakup lebih dari 1 ruangan sekaligus
+            // (mis. partisi dibuka), supaya jangan ketuker sama badge jumlah hari.
+            const multiRoomBadgeHTML = isMultiRoom ? `
+                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 self-start">
+                    <i class="fas fa-door-open mr-1"></i>${roomCount} Ruangan
                 </span>` : '';
 
             const toolsGridHTML = (b.tools && b.tools.length > 0)
@@ -9302,7 +9332,7 @@ const listenToData = () => {
 
                 <div class="flex flex-wrap items-center justify-center gap-1">
                     <span class="inline-flex items-center gap-1 flex-nowrap">
-                        ${typeLabelHTML}${multiDayBadgeHTML}
+                        ${typeLabelHTML}${multiDayBadgeHTML}${multiRoomBadgeHTML}
                     </span>
                 </div>
 
@@ -9374,18 +9404,19 @@ const listenToData = () => {
     else{
 
         container.innerHTML =
-        groups.map(({ ids, items, first, last, isMultiDay }) => {
+        groups.map(({ ids, items, first, last, isMultiDay, dayCount, roomCount, isMultiRoom }) => {
 
-            const b = first; // representatif: ruangan/alat/goal sama untuk tiap hari dalam 1 grup
+            const b = first; // representatif: goal/tools sama untuk tiap hari dalam 1 grup
 
-            // 🔥 AMBIL NAMA RUANGAN DARI roomId
-            const room =
-                localState.rooms.find(
-                    r => String(r.id) === String(b.roomId)
-                );
-
-            const roomName =
-                room ? room.name : '-';
+            // 🔥 1 pesanan (1 groupId) sekarang bisa mencakup lebih dari 1 ruangan
+            // sekaligus (mis. partisi dibuka). Kumpulkan nama SEMUA ruangan unik
+            // dalam grup ini, bukan cuma ruangan dari dokumen pertama (b.roomId).
+            const roomIdsInGroup = Array.from(new Set(
+                items.filter(it => it.roomId).map(it => String(it.roomId))
+            ));
+            const roomName = roomIdsInGroup.length > 0
+                ? roomIdsInGroup.map(rid => localState.rooms.find(r => String(r.id) === rid)?.name).filter(Boolean).join(', ') || '-'
+                : '-';
 
             // 🔥 AMBIL NAMA TOOLS
             const toolsText =
@@ -9449,7 +9480,12 @@ const listenToData = () => {
                 ${window.bookingTypeLabelHTML(b)}
                 ${isMultiDay ? `
                 <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
-                    <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+                    <i class="fas fa-calendar-week mr-1"></i>${dayCount} Hari
+                </span>
+                ` : ``}
+                ${isMultiRoom ? `
+                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 self-start">
+                    <i class="fas fa-door-open mr-1"></i>${roomCount} Ruangan
                 </span>
                 ` : ``}
             </span>
@@ -9737,7 +9773,7 @@ window.buildAllBookingsRows = () => {
     }
 
     return units.map((u, index) => {
-        const { items, first, last, isMultiDay } = u;
+        const { items, first, last, isMultiDay, dayCount: groupDayCount, roomCount } = u;
 
         // 🔥 1 pesanan (1 groupId) sekarang bisa berisi lebih dari 1 ruangan sekaligus
         // (mis. partisi dibuka jadi 2 ruangan dipesan bareng). Kumpulkan nama SEMUA
@@ -9769,7 +9805,8 @@ window.buildAllBookingsRows = () => {
             no: index + 1,
             ids: items.map(x => x.id),
             dateLabel: isMultiDay ? `${first.date} → ${last.date}` : first.date,
-            dayCount: items.length,
+            dayCount: (typeof groupDayCount === 'number') ? groupDayCount : items.length,
+            roomCount: (typeof roomCount === 'number') ? roomCount : roomsInRow.length,
             isMultiDay,
             timeLabel: `${first.start} - ${last.end}`,
             userName: first.userName || '-',
@@ -10328,7 +10365,9 @@ setTimeout(() => {
 window.cancelBookingMany = async (ids) => {
 
     if(!ids || ids.length === 0) return;
-    if(!confirm(ids.length > 1 ? `Batalkan pesanan ini (${ids.length} hari)?` : "Batalkan pesanan ini?")) return;
+    // 🔥 ids.length = jumlah DOKUMEN (bisa gabungan tanggal x ruangan), jadi jangan
+    // langsung disebut "hari" -- bisa salah kalau yang beda sebenarnya ruangan.
+    if(!confirm(ids.length > 1 ? `Batalkan pesanan ini (${ids.length} item)?` : "Batalkan pesanan ini?")) return;
 
     try {
 
@@ -10351,7 +10390,7 @@ window.cancelBookingMany = async (ids) => {
 window.deleteBookingMany = async (ids) => {
 
     if(!ids || ids.length === 0) return;
-    if(!confirm(ids.length > 1 ? `Batalkan dan hapus pesanan ini (${ids.length} hari)?` : "Batalkan dan hapus pesanan ini?")) return;
+    if(!confirm(ids.length > 1 ? `Batalkan dan hapus pesanan ini (${ids.length} item)?` : "Batalkan dan hapus pesanan ini?")) return;
 
     try {
 
@@ -10385,7 +10424,12 @@ window.deleteBookingMany = async (ids) => {
 
             const groups = Array.from(groupsMap.entries()).map(([key, items]) => {
                 items.sort((a, c) => new Date(`${a.date}T${a.start}`) - new Date(`${c.date}T${c.start}`));
-                return { key, items };
+                // 🔥 FIX: dayCount/roomCount dihitung dari tanggal/ruangan UNIK, bukan
+                // items.length -- karena 1 grup sekarang bisa berisi >1 ruangan per
+                // tanggal (1 pesanan, >1 ruangan), items.length jadi bukan jumlah hari lagi.
+                const dayCount = Array.from(new Set(items.map(x => x.date))).length;
+                const roomCount = Array.from(new Set(items.filter(x => x.roomId).map(x => String(x.roomId)))).length;
+                return { key, items, dayCount, roomCount };
             }).sort((a, b) => new Date(`${a.items[0].date}T${a.items[0].start}`) - new Date(`${b.items[0].date}T${b.items[0].start}`));
 
             // Simpan mapping key -> daftar id booking, dipakai saat approve/reject
@@ -10398,13 +10442,12 @@ window.deleteBookingMany = async (ids) => {
                     <p class="text-slate-600 font-bold text-sm">Tidak ada antrean persetujuan</p>
                     <p class="text-slate-400 text-xs mt-1">Belum ada pesanan yang menunggu approval saat ini</p>
                 </div>`;
-            else container.innerHTML = groups.map(({ key, items }) => {
-                const b = items[0]; // representatif: ruangan/alat sama untuk tiap hari dalam 1 grup
-                const room = b.roomId ? localState.rooms.find(r => r.id === b.roomId) : null;
-
-                const isMultiDay = items.length > 1;
+            else container.innerHTML = groups.map(({ key, items, dayCount, roomCount }) => {
+                const b = items[0]; // representatif: goal/pemesan sama untuk tiap hari/ruangan dalam 1 grup
+                const isMultiDay = dayCount > 1;
+                const isMultiRoom = roomCount > 1;
                 const dateLabel = isMultiDay
-                    ? `${items[0].date} s/d ${items[items.length - 1].date} (${items.length} hari)`
+                    ? `${items[0].date} s/d ${items[items.length - 1].date} (${dayCount} hari)`
                     : `${b.date} [${b.start}-${b.end}]`;
 
                 return `
@@ -10412,7 +10455,8 @@ window.deleteBookingMany = async (ids) => {
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 mb-2 inline-block">${b.type === 'room' ? 'Ruangan & Alat' : 'Hanya Alat'}</span>
-                                ${isMultiDay ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-600 mb-2 ml-1 inline-block"><i class="fas fa-calendar-week mr-1"></i>${items.length} Hari</span>` : ''}
+                                ${isMultiDay ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-600 mb-2 ml-1 inline-block"><i class="fas fa-calendar-week mr-1"></i>${dayCount} Hari</span>` : ''}
+                                ${isMultiRoom ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-sky-50 text-sky-600 mb-2 ml-1 inline-block"><i class="fas fa-door-open mr-1"></i>${roomCount} Ruangan</span>` : ''}
                                 <h4 class="font-bold text-slate-900 text-lg">${b.goal}</h4>
                                 <p class="text-[10px] text-slate-500 font-medium mt-0.5">${b.userName} (${b.dept}) • ${dateLabel}</p>
                             </div>
@@ -10422,12 +10466,23 @@ window.deleteBookingMany = async (ids) => {
                         <div class="bg-amber-50/60 rounded-2xl p-4 border border-amber-100">
                             <p class="text-[10px] font-black uppercase text-amber-600 mb-3">Rincian Jam Per Hari:</p>
                             <div class="flex flex-col gap-1.5">
-                                ${items.map(m => `
-                                <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-amber-100 text-xs">
-                                    <span class="font-bold italic">${new Date(m.date + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                                    <span class="font-bold text-indigo-600">${m.start} - ${m.end}</span>
-                                </div>
-                                `).join('')}
+                                ${(() => {
+                                    // 🔥 Dedup berdasarkan tanggal UNIK: kalau 1 pesanan ini berisi >1
+                                    // ruangan sekaligus, jangan sampai tanggal yang sama muncul dobel
+                                    // (1x per ruangan) di rincian jam per hari ini.
+                                    const seenDates = new Set();
+                                    const uniqueDayItems = items.filter(m => {
+                                        if (seenDates.has(m.date)) return false;
+                                        seenDates.add(m.date);
+                                        return true;
+                                    });
+                                    return uniqueDayItems.map(m => `
+                                    <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-amber-100 text-xs">
+                                        <span class="font-bold italic">${new Date(m.date + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                        <span class="font-bold text-indigo-600">${m.start} - ${m.end}</span>
+                                    </div>
+                                    `).join('');
+                                })()}
                             </div>
                         </div>
                         ` : ''}
@@ -11178,7 +11233,7 @@ function renderJadwal() {
         .sort((a, b) => new Date(a.first.date) - new Date(b.first.date));
 
     container.innerHTML = groups
-    .map(({ ids, items, first, last, isMultiDay }) => {
+    .map(({ ids, items, first, last, isMultiDay, dayCount, roomCount, isMultiRoom }) => {
 
         // 🔥 representatif untuk aksi yang sensitif tanggal (reminder/expired/dsb):
         // hari yang tanggalnya sama dengan hari ini kalau ada, kalau tidak pakai
@@ -11239,13 +11294,12 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
 
         ${(() => {
 
-            const room =
-                localState.rooms.find(
-                    r => String(r.id) === String(b.roomId)
-                );
-
-            const roomName =
-                room ? room.name : '-';
+            const roomIdsInGroup = Array.from(new Set(
+                items.filter(it => it.roomId).map(it => String(it.roomId))
+            ));
+            const roomName = roomIdsInGroup.length > 0
+                ? roomIdsInGroup.map(rid => localState.rooms.find(r => String(r.id) === rid)?.name).filter(Boolean).join(', ') || '-'
+                : '-';
 
             const toolsText =
                 (b.tools || [])
@@ -11261,7 +11315,12 @@ class="relative card-pop bg-white p-3 rounded-2xl border border-l-4 border-indig
                 ${window.bookingTypeLabelHTML(b)}
                 ${isMultiDay ? `
                 <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 self-start">
-                    <i class="fas fa-calendar-week mr-1"></i>${items.length} Hari
+                    <i class="fas fa-calendar-week mr-1"></i>${dayCount} Hari
+                </span>
+                ` : ``}
+                ${isMultiRoom ? `
+                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 self-start">
+                    <i class="fas fa-door-open mr-1"></i>${roomCount} Ruangan
                 </span>
                 ` : ``}
             </span>
@@ -11750,7 +11809,19 @@ ${(() => {
         ? localState.bookings.filter(x => x.groupId === b.groupId).sort((a, c) => a.date.localeCompare(c.date))
         : [b];
 
-    const isMultiDay = groupMembers.length > 1;
+    // 🔥 FIX: groupMembers.length sekarang bisa mencakup lebih dari 1 ruangan per
+    // tanggal (1 pesanan, >1 ruangan), jadi "jumlah hari" HARUS dihitung dari
+    // tanggal UNIK, bukan dari jumlah dokumen mentah.
+    const uniqueDatesInGroup = Array.from(new Set(groupMembers.map(m => m.date))).sort();
+    const isMultiDay = uniqueDatesInGroup.length > 1;
+
+    // Dedup per-tanggal (kalau ada >1 ruangan di tanggal yang sama, tampilkan tanggalnya sekali saja)
+    const seenDatesForBreakdown = new Set();
+    const uniqueDayMembers = groupMembers.filter(m => {
+        if (seenDatesForBreakdown.has(m.date)) return false;
+        seenDatesForBreakdown.add(m.date);
+        return true;
+    });
 
     const fmtTgl = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -11770,7 +11841,7 @@ ${(() => {
     return `
 <div class="col-span-2 text-xs">
 <span class="text-slate-500">Tanggal :</span>
-<span class="font-bold italic">${groupMembers[0].date} s/d ${groupMembers[groupMembers.length - 1].date} (${groupMembers.length} hari)</span>
+<span class="font-bold italic">${uniqueDatesInGroup[0]} s/d ${uniqueDatesInGroup[uniqueDatesInGroup.length - 1]} (${uniqueDatesInGroup.length} hari)</span>
 </div>
 
 <div class="col-span-2">
@@ -11779,7 +11850,7 @@ Rincian Jam Per Hari
 </label>
 
 <div class="flex flex-col gap-1.5 mt-1">
-${groupMembers.map(m => `
+${uniqueDayMembers.map(m => `
 <div class="flex items-center justify-between bg-slate-50 border p-2 rounded-lg text-xs">
     <span class="font-bold italic">${fmtTgl(m.date)}</span>
     <span class="font-bold text-indigo-600">${m.start} - ${m.end}</span>
