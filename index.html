@@ -9274,8 +9274,17 @@ const listenToData = () => {
                     ⚠ Ada Pelanggaran / ${latestViolation.status}
                 </span>` : '';
 
-            const roomName = (b.type === 'room' && b.roomId)
-                ? (localState.rooms.find(r => String(r.id) === String(b.roomId))?.name || '')
+            // 🔥 1 pesanan sekarang bisa mencakup lebih dari 1 ruangan (groupId sama untuk
+            // semua ruangan yang dipesan sekaligus), jadi ambil nama SEMUA ruangan yang
+            // unik di dalam grup ini, bukan cuma ruangan dari dokumen pertama saja.
+            const roomIdsInGroup = Array.from(new Set(
+                items.filter(it => it.type === 'room' && it.roomId).map(it => String(it.roomId))
+            ));
+            const roomName = roomIdsInGroup.length > 0
+                ? roomIdsInGroup
+                    .map(rid => localState.rooms.find(r => String(r.id) === rid)?.name || '')
+                    .filter(Boolean)
+                    .join(', ')
                 : '';
 
             return `
@@ -9730,9 +9739,18 @@ window.buildAllBookingsRows = () => {
     return units.map((u, index) => {
         const { items, first, last, isMultiDay } = u;
 
+        // 🔥 1 pesanan (1 groupId) sekarang bisa berisi lebih dari 1 ruangan sekaligus
+        // (mis. partisi dibuka jadi 2 ruangan dipesan bareng). Kumpulkan nama SEMUA
+        // ruangan unik dalam grup ini, bukan cuma ruangan dari dokumen pertama.
+        const roomIdsInRow = Array.from(new Set(
+            items.filter(it => it.type === 'room' && it.roomId).map(it => String(it.roomId))
+        ));
+        const roomsInRow = roomIdsInRow.map(rid => localState.rooms.find(r => String(r.id) === rid)).filter(Boolean);
         const room = localState.rooms.find(r => r.id == first.roomId);
-        const roomName = room ? room.name : (first.roomName || '-');
-        const roomImage = room?.image || '';
+        const roomName = roomsInRow.length > 0
+            ? roomsInRow.map(r => r.name).join(', ')
+            : (room ? room.name : (first.roomName || '-'));
+        const roomImage = (roomsInRow[0] || room)?.image || '';
 
         const toolsWithImage = (first.tools || []).map(t => {
             const masterTool = localState.tools.find(x => x.id == t.id);
@@ -10417,12 +10435,24 @@ window.deleteBookingMany = async (ids) => {
                         <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                             <p class="text-[10px] font-black uppercase text-slate-400 mb-3">Unit Persetujuan:</p>
                             <div class="space-y-2">
-                                ${b.roomId ? `
-                                    <label class="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 cursor-pointer">
-                                        <input type="checkbox" checked class="approval-room-check-${key} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" data-room-id="${b.roomId}">
-                                        <span class="text-xs font-bold text-slate-700">Ruangan: ${room?.name || 'N/A'}</span>
-                                    </label>
-                                ` : ''}
+                                ${(() => {
+                                    // 🔥 1 pesanan (1 groupId) sekarang bisa mencakup lebih dari 1 ruangan
+                                    // sekaligus, jadi tampilkan checkbox untuk SEMUA ruangan unik yang ada
+                                    // di dalam grup ini (bukan cuma ruangan dari dokumen pertama/representatif),
+                                    // supaya admin tetap bisa approve/tolak per ruangan kalau perlu.
+                                    const roomIdsInGroup = Array.from(new Set(
+                                        items.filter(it => it.roomId).map(it => String(it.roomId))
+                                    ));
+                                    if (roomIdsInGroup.length === 0) return '';
+                                    return roomIdsInGroup.map(rid => {
+                                        const r = localState.rooms.find(x => String(x.id) === rid);
+                                        return `
+                                        <label class="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-100 cursor-pointer">
+                                            <input type="checkbox" checked class="approval-room-check-${key} w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" data-room-id="${rid}">
+                                            <span class="text-xs font-bold text-slate-700">Ruangan: ${r?.name || 'N/A'}</span>
+                                        </label>`;
+                                    }).join('');
+                                })()}
                                 ${(b.tools || []).map(t => {
 
 const masterTool =
@@ -10793,8 +10823,17 @@ function renderMaster(){
             localState.bookings
             .find(x => x.id === ids[0]);
 
-        const roomCheck =
-            document.querySelector(`.approval-room-check-${key}`);
+        // 🔥 SATU GRUP BISA BERISI LEBIH DARI 1 RUANGAN (multi-ruangan sekaligus),
+        // jadi ambil SEMUA checkbox ruangan yang ada, lalu petakan per roomId
+        // supaya approve/tolak ruangan bisa dilakukan per ruangan, bukan cuma 1 ruangan
+        // yang mewakili seluruh grup.
+        const roomChecks =
+            document.querySelectorAll(`.approval-room-check-${key}`);
+
+        const roomApprovalMap = {};
+        Array.from(roomChecks).forEach(c => {
+            roomApprovalMap[c.dataset.roomId] = c.checked;
+        });
 
         const toolChecks =
             document.querySelectorAll(`.approval-tool-check-${key}`);
@@ -10804,8 +10843,12 @@ function renderMaster(){
             .getElementById(`admin-note-${key}`)
             ?.value.trim() || '';
 
+        // 🔥 dipakai untuk validasi & email (representatif): true kalau SEMUA ruangan
+        // dalam grup masih dicentang/disetujui.
         const isRoomApproved =
-            roomCheck ? roomCheck.checked : false;
+            roomChecks.length > 0
+            ? Array.from(roomChecks).every(c => c.checked)
+            : false;
 
         const approvedTools =
             Array.from(toolChecks)
@@ -10819,7 +10862,7 @@ function renderMaster(){
             (b.tools || []).length;
 
         const isPartialReject =
-            (roomCheck && !isRoomApproved) ||
+            (roomChecks.length > 0 && !isRoomApproved) ||
             (approvedTools.length < originalToolCount);
 
         // ================= VALIDASI =================
@@ -10838,26 +10881,43 @@ function renderMaster(){
 
         console.log("📌 Approve booking group:", key, "→", ids);
 
-        await Promise.all(ids.map(id =>
-            updateDoc(
+        // 🔥 FIX MULTI-RUANGAN: dulu SEMUA dokumen dalam grup ditimpa pakai roomId
+        // dari dokumen pertama saja (b.roomId), jadi kalau grup ini berisi 2 ruangan
+        // berbeda, ruangan kedua bisa KETIMPA/HILANG datanya. Sekarang tiap dokumen
+        // mempertahankan roomId miliknya SENDIRI, dan hanya berubah jadi null/'tool'
+        // kalau checkbox ruangan spesifiknya memang di-uncheck oleh admin.
+        await Promise.all(ids.map(id => {
+
+            const docBooking = localState.bookings.find(x => x.id === id);
+            const docRoomId = docBooking ? docBooking.roomId : null;
+
+            // Kalau dokumen ini punya ruangan & ruangan itu ada checkbox-nya & di-uncheck
+            // -> ruangan untuk dokumen ini ditolak (roomId dikosongkan, type jadi 'tool').
+            // Kalau tidak ada checkbox untuk roomId tsb (mis. render lama), default tetap disetujui.
+            const thisRoomApproved =
+                docRoomId
+                ? (roomApprovalMap.hasOwnProperty(String(docRoomId)) ? roomApprovalMap[String(docRoomId)] : true)
+                : true;
+
+            return updateDoc(
                 doc(db,'artifacts',appId,'public','data','bookings',id),
                 {
                     status: 'Approved',
                     adminNote: note,
                     roomId:
-                        isRoomApproved
-                        ? b.roomId
+                        (docRoomId && thisRoomApproved)
+                        ? docRoomId
                         : null,
                     tools: approvedTools,
                     type:
-                        isRoomApproved
+                        (docRoomId && thisRoomApproved)
                         ? 'room'
                         : 'tool',
                     approvedAt:
                         serverTimestamp()
                 }
-            )
-        ));
+            );
+        }));
 
         console.log("✅ Status Approved tersimpan untuk", ids.length, "hari");
 
@@ -11577,6 +11637,17 @@ window.openDetail = (id) => {
         b.roomId
         ? localState.rooms.find(r => r.id == b.roomId)
         : null;
+
+    // 🔥 1 pesanan (1 groupId) sekarang bisa mencakup lebih dari 1 ruangan sekaligus,
+    // jadi kumpulkan nama SEMUA ruangan unik dalam grup ini (bukan cuma ruangan dari
+    // dokumen yang sedang dibuka), supaya modal Detail juga menampilkan semuanya.
+    const roomsInGroup = b.groupId
+        ? Array.from(new Set(
+            localState.bookings.filter(x => x.groupId === b.groupId && x.roomId).map(x => String(x.roomId))
+          )).map(rid => localState.rooms.find(r => String(r.id) === rid)).filter(Boolean)
+        : (room ? [room] : []);
+    const roomNamesJoined = roomsInGroup.length > 0 ? roomsInGroup.map(r => r.name).join(', ') : '';
+
 	const toolsWithImage = (b.tools || []).map(t => {
 
     const masterTool =
@@ -11649,7 +11720,7 @@ ${room ? `
         >
 
         <div class="font-bold italic">
-            ${room.name}
+            ${roomNamesJoined || room.name}
         </div>
 
     </div>
@@ -12748,11 +12819,20 @@ if (editId) {
 
 } else {
 
-    // 🔥 BOOKING BARU: loop per ruangan yang dipilih (1 ruangan = 1 "pesanan"/grup sendiri).
-    // Kalau pilih 2 ruangan sekaligus (mis. partisi dibuka), maka dibuat 2 pesanan terpisah
-    // dengan tanggal & jam yang identik, supaya masing-masing tetap bisa di-approve/ditolak
-    // secara independen oleh admin seperti pesanan ruangan biasa.
+    // 🔥 BOOKING BARU: loop per ruangan yang dipilih. SEMUA ruangan yang dicentang
+    // sekaligus (mis. partisi dibuka jadi 2 ruangan) sekarang BENAR-BENAR jadi 1
+    // "pesanan" yang sama -- ditandai dengan 1 groupId YANG SAMA untuk semua ruangan
+    // & semua tanggal dalam pesanan ini. Efeknya otomatis nyambung ke seluruh fitur
+    // yang sudah mengelompokkan/menghitung pesanan berdasarkan groupId (approve/tolak/
+    // mulai/selesai sekali klik untuk semua ruangan sekaligus, kartu "Pesanan Saya",
+    // "Kalender", tabel "Semua Pesanan", chip jumlah status, badge notifikasi, dsb),
+    // karena semuanya memakai window.groupBookingsForCards / filter by groupId.
     const dayCount = dateList.length;
+
+    // 🔥 1 groupId untuk SELURUH pesanan ini (semua ruangan + semua tanggal),
+    // dibuat SEKALI di luar loop ruangan (beda dari sebelumnya yang generate
+    // groupId baru per ruangan sehingga tiap ruangan dianggap pesanan terpisah).
+    const groupId = (crypto.randomUUID ? crypto.randomUUID() : ('grp-' + Date.now() + '-' + Math.random().toString(16).slice(2)));
 
     for (const rId of roomTargets) {
 
@@ -12766,9 +12846,6 @@ if (editId) {
             roomId: rId,
             roomName,
         };
-
-        // 🔥 semuanya (per tanggal) ditandai dengan groupId yang sama supaya tetap dianggap "1 pesanan"
-        const groupId = (crypto.randomUUID ? crypto.randomUUID() : ('grp-' + Date.now() + '-' + Math.random().toString(16).slice(2) + '-' + (rId || 'tool')));
 
         for (let i = 0; i < dateList.length; i++) {
 
