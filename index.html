@@ -355,6 +355,29 @@ body {
     100% { left: 130%; opacity: 0; }
 }
 
+/* 🔥 RUNNING TEKS CTA "PASANG IKLAN": teks berjalan terus-menerus dari
+   kanan ke kiri (marquee), loop tanpa putus. Durasi disesuaikan otomatis
+   berdasarkan panjang teks lewat CSS var --ads-marquee-duration (di-set
+   oleh JS), supaya kecepatan geraknya konsisten meski isi teksnya beda. */
+#ads-running-text-bar {
+    overflow: hidden;
+    white-space: nowrap;
+}
+#ads-running-text-track {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: adsRunningTextMarquee var(--ads-marquee-duration, 18s) linear infinite;
+    will-change: transform;
+}
+#ads-running-text-bar:hover #ads-running-text-track {
+    animation-play-state: paused;
+}
+@keyframes adsRunningTextMarquee {
+    0%   { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
 /* 🔥 Animasi logo zoom out lalu balik normal pas diklik buat "refresh" ke
    Dashboard, biar user kerasa ada aksi yang kejadian. */
 @keyframes logoZoom {
@@ -1222,6 +1245,16 @@ window.downloadQR = function () {
         </button>
         </div>
             </header>
+
+            <!-- ================= 🔥 RUNNING TEKS CTA "PASANG IKLAN" - Tampil/sembunyi diatur Super Admin ================= -->
+            <div id="ads-running-text-bar" class="hide px-4 md:px-8 pt-4">
+                <a id="ads-running-text-link" href="javascript:void(0)" target="_blank" rel="noopener noreferrer"
+                    class="block max-w-4xl md:max-w-[168rem] mx-auto rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md px-4 py-2 text-xs font-bold tracking-wide hover:opacity-90 transition">
+                    <span id="ads-running-text-track">
+                        <span class="mx-6"><i class="fas fa-bullhorn mr-1.5"></i>Mau pasang iklan Anda di sini? Klik teks ini untuk chat Admin via WhatsApp sekarang! 🚀</span><span class="mx-6"><i class="fas fa-bullhorn mr-1.5"></i>Mau pasang iklan Anda di sini? Klik teks ini untuk chat Admin via WhatsApp sekarang! 🚀</span>
+                    </span>
+                </a>
+            </div>
 
             <!-- ================= 🔥 AD BANNER (IKLAN) - Gambar & Link diatur Admin ================= -->
             <!-- Mobile: lebar mengikuti layar (max-w-4xl). Desktop (md+): 3x lebih panjang lebarnya, tinggi tetap sama (h-44). -->
@@ -2591,6 +2624,19 @@ window.downloadQR = function () {
             <i class="fas fa-circle-info mr-1"></i>Semua identitas iklan yang pernah dibuat tercatat di sini. Mengganti/edit gambar banner pada iklan yang sama <b>tidak</b> membuat catatan baru — tetap dihitung 1 identitas iklan. Hanya boleh 1 iklan yang berstatus "Tayang" ke user di waktu bersamaan.
         </p>
 
+        <!-- ================= 🔥 TOGGLE RUNNING TEKS CTA "PASANG IKLAN" ================= -->
+        <div class="flex items-center justify-between bg-slate-50 rounded-xl p-3 mb-5 max-w-2xl">
+            <div>
+                <p class="text-sm font-bold text-slate-700"><i class="fas fa-bullhorn text-indigo-500 mr-1"></i> Running Teks CTA "Pasang Iklan"</p>
+                <p class="text-[10px] text-slate-400 max-w-md">Teks berjalan di atas banner iklan yang mengajak orang menghubungi Admin via WhatsApp untuk pasang iklan. Bisa diaktif/nonaktifkan kapan saja tanpa mengganggu iklan yang sedang tayang.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-3">
+                <input type="checkbox" id="ads-running-text-toggle" class="sr-only peer" onchange="window.toggleAdsRunningText(this.checked)">
+                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-600 transition-all relative
+                    after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+            </label>
+        </div>
+
         <div id="ad-recap-loading" class="text-center py-14 text-slate-400 text-xs font-bold">
             <i class="fas fa-circle-notch fa-spin mr-1"></i> Memuat rekap iklan...
         </div>
@@ -3693,6 +3739,70 @@ const appId = "booking-ruang-training";
 			window.renderAdRecapList(ads);
 		}
 	}, (err) => console.error('Gagal memuat data iklan:', err));
+
+	// ================= 🔥 RUNNING TEKS CTA "PASANG IKLAN" =================
+	// Beda dari koleksi "ads" (isi gambar banner) di atas: ini cuma 1 dokumen
+	// setting global (enabled true/false) yang dikontrol Super Admin buat
+	// nampilin/nyembunyiin teks berjalan yang ngajak orang chat WA Admin
+	// buat pasang iklan. Nomor WA pakai nomor Admin Training yang sudah
+	// dipakai di fitur lain (082116444887) supaya konsisten 1 kontak admin.
+	const adsRunningTextRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'adsRunningText');
+	const ADS_RUNNING_TEXT_WA_NUMBER = '6282116444887';
+	const ADS_RUNNING_TEXT_WA_MESSAGE = 'Halo Admin TrainingHub, saya tertarik untuk pasang iklan di aplikasi TrainingHub. Boleh minta info lebih lanjut?';
+
+	function renderAdsRunningTextBar(enabled) {
+		const bar = document.getElementById('ads-running-text-bar');
+		const link = document.getElementById('ads-running-text-link');
+		if (!bar || !link) return;
+
+		if (!link.dataset.waReady) {
+			link.href = 'https://wa.me/' + ADS_RUNNING_TEXT_WA_NUMBER + '?text=' + encodeURIComponent(ADS_RUNNING_TEXT_WA_MESSAGE);
+			link.dataset.waReady = '1';
+		}
+
+		if (enabled) {
+			bar.classList.remove('hide');
+		} else {
+			bar.classList.add('hide');
+		}
+		window.__reflowContentArea();
+	}
+
+	// 🔥 Live di sisi USER: dengarkan doc setting, tampilkan/sembunyikan bar sesuai status.
+	// Juga sinkronkan toggle di panel Super Admin (kalau lagi kebuka) biar selalu real-time.
+	onSnapshot(adsRunningTextRef, (snap) => {
+		const enabled = !!(snap.exists() && snap.data() && snap.data().enabled);
+		renderAdsRunningTextBar(enabled);
+
+		const toggle = document.getElementById('ads-running-text-toggle');
+		if (toggle && document.activeElement !== toggle) {
+			toggle.checked = enabled;
+		}
+	}, (err) => console.error('Gagal memuat status running teks iklan:', err));
+
+	// 🔥 Super Admin: aktif/nonaktifkan running teks CTA pasang iklan.
+	window.toggleAdsRunningText = async function (enabled) {
+
+		if (!window.isSuperAdmin(currentUser)) {
+			alert("Fitur ini khusus untuk Super Admin.");
+			const toggle = document.getElementById('ads-running-text-toggle');
+			if (toggle) toggle.checked = !enabled;
+			return;
+		}
+
+		try {
+			await setDoc(adsRunningTextRef, {
+				enabled: !!enabled,
+				updatedAt: serverTimestamp(),
+				updatedBy: currentUser.username,
+			}, { merge: true });
+		} catch (err) {
+			console.error('Gagal mengubah status running teks iklan:', err);
+			alert('❌ Gagal mengubah status running teks iklan. Coba lagi.');
+			const toggle = document.getElementById('ads-running-text-toggle');
+			if (toggle) toggle.checked = !enabled;
+		}
+	};
 
 	// 🔥 Helper: tampilkan/sembunyikan gambar pratinjau vs placeholder "Belum ada gambar"
 	function setAdPreviewImage(type, src) {
