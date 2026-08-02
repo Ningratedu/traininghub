@@ -14502,9 +14502,9 @@ window.logout = () => {
 //   walau app sempat "tidur" 3 jam di background, begitu dibuka lagi langsung ketauan
 //   udah lewat 1 jam dan LANGSUNG di-logout paksa, gak nunggu/reset timer dari 0.
 (function () {
-    const IDLE_LIMIT_MS = 60 * 60 * 1000; // 1 jam
+    const IDLE_LIMIT_MS = 2 * 60 * 1000; // 🧪 SEMENTARA buat testing: 2 menit (nanti balikin ke 60 * 60 * 1000 = 1 jam)
     const LAST_ACTIVITY_KEY = "traininghub_last_activity_at";
-    const CHECK_INTERVAL_MS = 30 * 1000; // cek tiap 30 detik selama app kebuka
+    const CHECK_INTERVAL_MS = 15 * 1000; // 🧪 SEMENTARA: cek tiap 15 detik biar testing lebih responsif (nanti balikin ke 30 * 1000)
 
     function isLoggedIn() {
         return !!localStorage.getItem("traininghub_user");
@@ -14544,8 +14544,15 @@ window.logout = () => {
         window.addEventListener(evt, markActivity, { passive: true });
     });
 
-    // Inisialisasi jam aktivitas pertama kali (pas app dibuka/direfresh).
-    markActivity();
+    // 🔥 FIX PENTING: pas app baru dibuka dari NOL (cold start -- misal klik shortcut
+    // di home screen setelah OS Android "bunuh" proses app yang lama di background),
+    // script ini jalan dari awal lagi. Urutannya WAJIB: cek idle DULU pakai timestamp
+    // LAMA yang tersimpan dari sesi sebelumnya, BARU SETELAH ITU timestamp di-update ke
+    // "sekarang". Kalau kebalik (update duluan baru cek), timestamp lama keburu ketimpa
+    // jadi "baru aja" sebelum sempat dicek -- akibatnya idle selalu kebaca 0 detik dan
+    // logout paksa gak akan pernah kepicu walau udah didiemin berjam-jam.
+    checkIdle();       // cek pakai timestamp lama (kalau emang udah lewat 1 jam, logout di sini)
+    markActivity();    // baru setelah itu, catat "sekarang" sebagai aktivitas terakhir
 
     // Cek berkala selama app kebuka di foreground.
     setInterval(checkIdle, CHECK_INTERVAL_MS);
