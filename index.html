@@ -30,6 +30,15 @@
 
     <!-- 📱 PWA -->
     <link rel="manifest" href="manifest.json">
+
+    <!-- 🔥 FIX: favicon buat bookmark/shortcut browser (Chrome new-tab, tab
+         judul, dll). Ini BEDA sama manifest icon di atas — manifest icon
+         cuma dipakai pas "Add to Home Screen"/install PWA, sedangkan icon
+         yang muncul di bookmark & tab browser diambil dari <link rel="icon">
+         ini (atau /favicon.ico kalau tag ini gak ada). Sebelumnya gak ada
+         tag ini sama sekali makanya browser fallback ke icon default
+         (globe/kotak abu-abu) di shortcut. -->
+    <link rel="icon" type="image/png" sizes="192x192" href="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%2010%20Jul%202026%2C%2007.45.48.png">
     <meta name="theme-color" content="#4f46e5">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14475,19 +14484,45 @@ window.logout = () => {
 // ================= 🔥 AUTO LOGOUT KARENA TIDAK ADA AKTIVITAS (IDLE 1 JAM) =================
 // Kalau akun sedang login TAPI tidak ada interaksi apa pun (mouse, keyboard,
 // scroll, tap layar) selama 1 jam berturut-turut, akun otomatis di-logout.
-// Timer di-reset tiap kali ada aktivitas, jadi selama user aktif memakai
-// app, sesi TIDAK akan pernah timeout.
+//
+// 🔥 FIX: versi sebelumnya pakai setTimeout(handleIdleTimeout, 1 jam) yang di-reset
+// tiap ada aktivitas. Masalahnya, browser/OS (apalagi di HP & di dalam APK/WebView)
+// SERING "membekukan" setTimeout begitu tab/app di-minimize atau layar dikunci demi
+// hemat baterai -- jadi timer itu gak jalan akurat pas app di background. Lebih parah
+// lagi, listener "visibilitychange" yang lama cuma RESET timer dari 0 begitu app dibuka
+// lagi, bukan ngecek udah berapa lama idle sebenarnya -- akibatnya user bisa tetap
+// login selamanya asal app-nya sesekali dibuka ke foreground walau gak diapa-apain.
+//
+// Sekarang logikanya berbasis TIMESTAMP asli (disimpan di localStorage), bukan cuma
+// ngandelin setTimeout jalan terus-menerus:
+// - Tiap ada aktivitas (klik/scroll/dst), waktu SEKARANG dicatat ke localStorage.
+// - Dicek berkala (tiap 30 detik) SELAMA app kebuka, DAN setiap kali app balik ke
+//   foreground (buka lagi dari background/kunci layar/tab lain).
+// - Pengecekannya selalu bandingkan Date.now() vs waktu aktivitas terakhir -- jadi
+//   walau app sempat "tidur" 3 jam di background, begitu dibuka lagi langsung ketauan
+//   udah lewat 1 jam dan LANGSUNG di-logout paksa, gak nunggu/reset timer dari 0.
 (function () {
     const IDLE_LIMIT_MS = 60 * 60 * 1000; // 1 jam
-
-    let idleTimer = null;
+    const LAST_ACTIVITY_KEY = "traininghub_last_activity_at";
+    const CHECK_INTERVAL_MS = 30 * 1000; // cek tiap 30 detik selama app kebuka
 
     function isLoggedIn() {
         return !!localStorage.getItem("traininghub_user");
     }
 
+    function getLastActivity() {
+        const raw = localStorage.getItem(LAST_ACTIVITY_KEY);
+        const ts = raw ? parseInt(raw, 10) : NaN;
+        return Number.isFinite(ts) ? ts : Date.now();
+    }
+
+    // Dipanggil TANPA syarat login supaya jam "aktivitas terakhir" selalu update
+    // walau event klik ini kebetulan pas proses login lagi berjalan (async).
+    function markActivity() {
+        localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+    }
+
     function handleIdleTimeout() {
-        if (!isLoggedIn()) return;
         // 🔥 Tandai: begitu akun ini login LAGI setelah ke-logout otomatis karena idle,
         // paksa HARD REFRESH (bukan cuma lanjut di sesi JS yang sama) supaya kalau ada
         // fitur/update terbaru yang sudah di-deploy selama akun ini idle, langsung
@@ -14497,22 +14532,31 @@ window.logout = () => {
         window.logout();
     }
 
-    function resetIdleTimer() {
-        if (idleTimer) clearTimeout(idleTimer);
+    function checkIdle() {
         if (!isLoggedIn()) return;
-        idleTimer = setTimeout(handleIdleTimeout, IDLE_LIMIT_MS);
+        const elapsed = Date.now() - getLastActivity();
+        if (elapsed >= IDLE_LIMIT_MS) {
+            handleIdleTimeout();
+        }
     }
 
     ["mousemove", "mousedown", "keydown", "wheel", "scroll", "touchstart", "click"].forEach(function (evt) {
-        window.addEventListener(evt, resetIdleTimer, { passive: true });
+        window.addEventListener(evt, markActivity, { passive: true });
     });
 
-    // Kalau tab sempat di-background lalu dibuka lagi, cek ulang timer-nya.
+    // Inisialisasi jam aktivitas pertama kali (pas app dibuka/direfresh).
+    markActivity();
+
+    // Cek berkala selama app kebuka di foreground.
+    setInterval(checkIdle, CHECK_INTERVAL_MS);
+
+    // Cek ulang SEGERA setiap kali app balik ke foreground -- ini kunci fix-nya,
+    // supaya idle yang kejadian pas app di-background tetap ke-deteksi akurat.
     document.addEventListener("visibilitychange", function () {
-        if (document.visibilityState === "visible") resetIdleTimer();
+        if (document.visibilityState === "visible") checkIdle();
     });
-
-    resetIdleTimer();
+    window.addEventListener("pageshow", checkIdle);
+    window.addEventListener("focus", checkIdle);
 })();
 
 window.onpopstate = (event) => {
