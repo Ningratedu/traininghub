@@ -83,6 +83,13 @@
     </script>
 
     <style>
+        /* 🔥 FIX: @import WAJIB jadi rule paling pertama di stylesheet (cuma boleh
+           didahului @charset). Sebelumnya @import ini ketaruh di tengah, setelah
+           beberapa rule CSS lain (#boot-loader dkk) -- browser otomatis IGNORE
+           total import yang posisinya salah kayak gitu, jadi font "Plus Jakarta
+           Sans" gak pernah ke-load dari Google Fonts, diam-diam fallback ke font
+           default browser tanpa ada tanda apapun selain warning di Console. */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 /* ================= 🔥 BOOT LOADER (TAMPIL INSTAN, GAK NUNGGU TAILWIND CDN) =================
    Login-screen & seluruh layout app pakai class utility Tailwind, yang baru "hidup" setelah
@@ -126,8 +133,6 @@
 @keyframes boot-spin {
     to { transform: rotate(360deg); }
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 /* ================= 🔥 ANTI DOUBLE-SUBMIT: TOMBOL YANG DI-DISABLE JADI KELIHATAN BEDA ================= */
 /* Berlaku untuk SEMUA tombol (submit form, tombol aksi, dsb) begitu diberi atribut
