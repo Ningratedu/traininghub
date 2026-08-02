@@ -9,24 +9,16 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <script>
-    (function () {
-        // Hapus semua Cache Storage punya Service Worker (kalau ada) supaya
-        // asset yang sempat ke-cache offline gak "nyangkut" jadi versi lama.
-        if ('caches' in window) {
-            caches.keys().then(function (names) {
-                names.forEach(function (name) { caches.delete(name); });
-            }).catch(function () {});
-        }
-        // Lepas registrasi Service Worker LAMA. Nanti didaftarkan ulang FRESH
-        // oleh script di akhir <body>, jadi tiap buka app selalu mulai "bersih".
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function (regs) {
-                regs.forEach(function (reg) { reg.unregister(); });
-            }).catch(function () {});
-        }
-    })();
-    </script>
+    <!-- 🔥 FIX: script pembersih cache & unregister service worker yang dulu di
+         sini SUDAH DIHAPUS. Sebelumnya script itu jalan TANPA SYARAT di setiap
+         kali app dibuka -- artinya cache & service worker selalu dihapus dan
+         didaftar ulang dari nol tiap load, jadi semua file (shell, CDN, gambar)
+         selalu didownload ulang dari internet dan loading kerasa berat terus,
+         padahal manfaat caching service-worker.js jadi gak pernah kepakai.
+         Mekanisme "hard refresh" yang BENAR (cuma jalan pas dibutuhkan, misal
+         abis auto-logout karena idle) sudah ada & tetap jalan lewat flag
+         "traininghub_force_hard_refresh" di bagian bawah file ini. Update rutin
+         cukup dihandle dengan menaikkan CACHE_NAME di service-worker.js. -->
 
     <!-- 📱 PWA -->
     <link rel="manifest" href="manifest.json">
@@ -149,7 +141,6 @@ input[type="submit"]:disabled {
     pointer-events: none;
 }
 
-		
 /* ================= BODY BACKGROUND DIGITAL ================= */
 
 body {
@@ -14503,9 +14494,9 @@ window.logout = () => {
 //   walau app sempat "tidur" 3 jam di background, begitu dibuka lagi langsung ketauan
 //   udah lewat 1 jam dan LANGSUNG di-logout paksa, gak nunggu/reset timer dari 0.
 (function () {
-    const IDLE_LIMIT_MS = 2 * 60 * 1000; // 🧪 SEMENTARA buat testing: 2 menit (nanti balikin ke 60 * 60 * 1000 = 1 jam)
+    const IDLE_LIMIT_MS = 60 * 60 * 1000; // 1 jam (final)
     const LAST_ACTIVITY_KEY = "traininghub_last_activity_at";
-    const CHECK_INTERVAL_MS = 15 * 1000; // 🧪 SEMENTARA: cek tiap 15 detik biar testing lebih responsif (nanti balikin ke 30 * 1000)
+    const CHECK_INTERVAL_MS = 30 * 1000; // cek tiap 30 detik selama app kebuka
 
     function isLoggedIn() {
         return !!localStorage.getItem("traininghub_user");
