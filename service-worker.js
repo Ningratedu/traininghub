@@ -1,8 +1,8 @@
-// 🔥 v2: naikkan versi cache supaya device yang masih pegang service worker
+// 🔥 v3: naikkan versi cache supaya device yang masih pegang service worker
 // lama otomatis ke-upgrade ke versi yang sudah dibenerin ini (browser akan
 // install SW baru di background lalu dipakai begitu semua tab lama ditutup/
 // direfresh, berkat self.clients.claim() di bawah).
-const CACHE_NAME = "traininghub-shell-v2";
+const CACHE_NAME = "traininghub-shell-v3";
 
 // File utama yang di-cache biar app tetap kebuka (shell) walau koneksi lemot.
 // Data pesanan/login tetap butuh internet karena pakai Firebase realtime.
