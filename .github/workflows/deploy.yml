@@ -1,0 +1,47 @@
+name: Deploy TrainingHub to GitHub Pages
+
+# Jalan otomatis tiap ada push ke branch main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # biar bisa di-trigger manual dari tab Actions kalau perlu
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Generate versi cache unik & ganti placeholder di service-worker.js
+        run: |
+          # Versi unik dibuat dari tanggal + 7 karakter pertama commit hash,
+          # contoh hasilnya: 20260802-a1b2c3d
+          VERSION="$(date -u +'%Y%m%d%H%M')-${GITHUB_SHA::7}"
+          echo "Cache version yang dipakai build ini: $VERSION"
+          sed -i "s/__CACHE_VERSION__/${VERSION}/g" service-worker.js
+          grep "CACHE_NAME" service-worker.js
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact buat di-deploy
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy ke GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
