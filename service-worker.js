@@ -1,8 +1,9 @@
-// 🔥 v3: naikkan versi cache supaya device yang masih pegang service worker
-// lama otomatis ke-upgrade ke versi yang sudah dibenerin ini (browser akan
-// install SW baru di background lalu dipakai begitu semua tab lama ditutup/
-// direfresh, berkat self.clients.claim() di bawah).
-const CACHE_NAME = "traininghub-shell-v3";
+// 🔥 CACHE_NAME ini di-generate OTOMATIS tiap kali ada push ke branch main,
+// lewat GitHub Actions (.github/workflows/deploy.yml). Placeholder
+// "__CACHE_VERSION__" di bawah ini akan diganti otomatis jadi angka unik
+// (tanggal + commit hash) pas proses deploy -- jadi gak perlu lagi manual
+// naikin versi cache tiap kali update index.html/file lain. Jangan diedit manual.
+const CACHE_NAME = "traininghub-shell-__CACHE_VERSION__";
 
 // File utama yang di-cache biar app tetap kebuka (shell) walau koneksi lemot.
 // Data pesanan/login tetap butuh internet karena pakai Firebase realtime.
