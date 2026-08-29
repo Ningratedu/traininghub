@@ -9,27 +9,9 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- 🔥 FIX: script pembersih cache & unregister service worker yang dulu di
-         sini SUDAH DIHAPUS. Sebelumnya script itu jalan TANPA SYARAT di setiap
-         kali app dibuka -- artinya cache & service worker selalu dihapus dan
-         didaftar ulang dari nol tiap load, jadi semua file (shell, CDN, gambar)
-         selalu didownload ulang dari internet dan loading kerasa berat terus,
-         padahal manfaat caching service-worker.js jadi gak pernah kepakai.
-         Mekanisme "hard refresh" yang BENAR (cuma jalan pas dibutuhkan, misal
-         abis auto-logout karena idle) sudah ada & tetap jalan lewat flag
-         "traininghub_force_hard_refresh" di bagian bawah file ini. Update rutin
-         cukup dihandle dengan menaikkan CACHE_NAME di service-worker.js. -->
 
     <!-- 📱 PWA -->
     <link rel="manifest" href="manifest.json">
-
-    <!-- 🔥 FIX: favicon buat bookmark/shortcut browser (Chrome new-tab, tab
-         judul, dll). Ini BEDA sama manifest icon di atas — manifest icon
-         cuma dipakai pas "Add to Home Screen"/install PWA, sedangkan icon
-         yang muncul di bookmark & tab browser diambil dari <link rel="icon">
-         ini (atau /favicon.ico kalau tag ini gak ada). Sebelumnya gak ada
-         tag ini sama sekali makanya browser fallback ke icon default
-         (globe/kotak abu-abu) di shortcut. -->
     <link rel="icon" type="image/png" sizes="192x192" href="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%2010%20Jul%202026%2C%2007.45.48.png">
     <meta name="theme-color" content="#4f46e5">
     <meta name="mobile-web-app-capable" content="yes">
@@ -37,11 +19,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TrainingHub">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Ningratedu/asset-foto/refs/heads/main/ChatGPT%20Image%2010%20Jul%202026%2C%2007.45.48.png">
-
-    <!-- 🔥 FIX LOADING AWAL LEMOT: kasih tau browser lebih awal domain-domain
-         yang bakal dipakai (CDN, Firebase, gambar GitHub) supaya DNS lookup +
-         TLS handshake-nya jalan PARALEL sedari awal, bukan nunggu giliran
-         satu-satu pas script/asset-nya baru ke-discover belakangan. -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -52,12 +29,6 @@
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
     <link rel="dns-prefetch" href="https://unpkg.com">
 
-    <!-- 🔥 FIX: qrcodejs & html5-qrcode SUDAH DIPINDAH ke lazy-load (lihat loadScriptOnce
-         di bawah) karena keduanya cuma dipakai di fitur QR (generate/scan), bukan di setiap
-         load app. Sebelumnya kedua library ini (terutama html5-qrcode yang berat) selalu
-         didownload & dieksekusi di <head> pada SETIAP kali app dibuka, padahal mayoritas
-         sesi user gak pernah sentuh fitur QR sama sekali -> ini salah satu penyebab utama
-         loading awal kerasa berat/lama. -->
     <script src="https://cdn.tailwindcss.com" defer></script>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -65,9 +36,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
     <script>
-    // 🔥 Loader kecil buat lazy-load library berat (qrcodejs, html5-qrcode, xlsx dst)
-    // HANYA saat fitur terkait beneran dipakai, bukan di setiap load app.
-    // Cache promise per-src supaya kalau dipanggil berkali-kali gak double-download.
+
     window.__scriptLoadCache = window.__scriptLoadCache || {};
     window.loadScriptOnce = function (src) {
         if (window.__scriptLoadCache[src]) return window.__scriptLoadCache[src];
@@ -83,22 +52,8 @@
     </script>
 
     <style>
-        /* 🔥 FIX: @import WAJIB jadi rule paling pertama di stylesheet (cuma boleh
-           didahului @charset). Sebelumnya @import ini ketaruh di tengah, setelah
-           beberapa rule CSS lain (#boot-loader dkk) -- browser otomatis IGNORE
-           total import yang posisinya salah kayak gitu, jadi font "Plus Jakarta
-           Sans" gak pernah ke-load dari Google Fonts, diam-diam fallback ke font
-           default browser tanpa ada tanda apapun selain warning di Console. */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-/* ================= 🔥 BOOT LOADER (TAMPIL INSTAN, GAK NUNGGU TAILWIND CDN) =================
-   Login-screen & seluruh layout app pakai class utility Tailwind, yang baru "hidup" setelah
-   script CDN Tailwind selesai didownload & jalan. Sebelum itu, browser bisa sempat menampilkan
-   HTML mentah tanpa styling sepersekian detik (apalagi di koneksi lemot) -> kerasa kayak
-   "loading gagal / macet". CSS di bawah ini di-tulis manual (bukan class Tailwind) supaya
-   langsung aktif begitu HTML ke-parse, jadi user selalu lihat indikator loading yang rapi
-   dari detik pertama, bukan layar putih/berantakan. Otomatis disembunyikan oleh script kecil
-   di akhir <body> begitu halaman selesai load. */
 #boot-loader {
     position: fixed;
     inset: 0;
@@ -15750,10 +15705,41 @@ window.showAssetBookings = (id, type, name) => {
     });
   }
 
+  // 🔒 JARING PENGAMAN TAMBAHAN: sebelumnya kuis CUMA dipicu lewat panggilan
+  // window.openCultureQuiz() di baris terakhir initSession() -- masalahnya,
+  // initSession() itu ngerjain banyak hal (render sidebar, cek role, load
+  // data, dst) sebelum akhirnya nyampe ke baris pemicu kuis. Kalau ada
+  // hambatan di proses restore sesi pas REFRESH (misalnya elemen DOM yang
+  // dicari initSession() belum sempat siap, timing service worker, dll),
+  // baris pemicu kuis di ujung fungsi itu bisa gak kepanggil -- efeknya
+  // kuis gak muncul lagi pas di-refresh, padahal user belum pernah jawab
+  // benar. Ini jadi celah buat lolos tanpa jawab kuis.
+  //
+  // Makanya di sini ditambah pengecekan LANGSUNG & independen: begitu
+  // halaman ini selesai dimuat (baik login baru maupun sesi lama yang
+  // direstore ulang setelah refresh), dicek dulu apakah ada sesi login
+  // tersimpan (localStorage "traininghub_user"). Kalau ada, kuis dipaksa
+  // tampil dari sini juga -- gak nunggu/gak bergantung sama sekali ke
+  // initSession() berhasil nyampe baris terakhirnya atau nggak.
+  // openCultureQuiz() sendiri sudah ada guard cultureQuizIsOpen, jadi aman
+  // dipanggil dobel (dari sini DAN dari initSession()) tanpa nge-render
+  // dua popup sekaligus.
+  function checkPersistedLoginAndOpenQuiz(){
+    let hasSavedSession = false;
+    try{
+      hasSavedSession = !!localStorage.getItem('traininghub_user');
+    }catch(e){ hasSavedSession = false; }
+    if(hasSavedSession) openCultureQuiz();
+  }
+
   if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', initCultureQuizHandlers);
+    document.addEventListener('DOMContentLoaded', () => {
+      initCultureQuizHandlers();
+      checkPersistedLoginAndOpenQuiz();
+    });
   }else{
     initCultureQuizHandlers();
+    checkPersistedLoginAndOpenQuiz();
   }
 
   // Digantung ke window supaya bisa dipanggil dari initSession() (di <script type="module">
